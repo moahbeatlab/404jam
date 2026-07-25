@@ -313,6 +313,10 @@
   .setup-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .setup-btn { min-height: 44px; padding: 8px 14px; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 12.5px; }
   .setup-btn.primary { background: var(--accent); color: #1a1105; font-weight: 700; }
+  #help-btn { color: var(--accent); font-weight: 700; letter-spacing: .03em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--accent);
+    display: inline-flex; align-items: center; gap: 7px; }
+  #help-btn svg { width: 15px; height: 15px; flex: none; }
   .setup-btn.sel { box-shadow: 0 0 0 2px var(--accent); }
   #diag { font-size: 12px; line-height: 1.6; color: var(--muted); }
   #diag b { color: var(--text); font-weight: 600; }
@@ -521,7 +525,7 @@
           <button id="midi-rescan" class="setup-btn">Reconnect</button>
           <button id="push-state" class="setup-btn">Send state to device</button>
           <button id="wake-toggle" class="setup-btn">Keep screen awake: off</button>
-          <button id="help-btn" class="setup-btn">Manual</button>
+          <button id="help-btn" class="setup-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 3.4C6.6 2.3 4.6 2 2.5 2v10.2c2.1 0 4.1.3 5.5 1.4 1.4-1.1 3.4-1.4 5.5-1.4V2C11.4 2 9.4 2.3 8 3.4z"/><path d="M8 3.4v10.2"/></svg>Manual</button>
         </div>
         <div>
           <h4>MIDI output</h4>
@@ -1061,7 +1065,7 @@ const CAT_ORDER=["direct","filter","lofi","drive","mod","delayverb","weird","voi
 (function () {
 "use strict";
 
-const BUILD = "2026-07-25.18"; /* bump on deploy - shown in Setup to spot stale caches */
+const BUILD = "2026-07-25.19"; /* bump on deploy - shown in Setup to spot stale caches */
 
 /* ===== 02 UTIL ===== */
 const $ = (id) => document.getElementById(id);
