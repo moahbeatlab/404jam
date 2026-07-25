@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -11,7 +11,7 @@
   <title>404 Busdriver</title>
   <meta property="og:type" content="website">
   <meta property="og:title" content="404 Busdriver">
-  <meta property="og:description" content="MIDI-Controller für die fünf Effekt-Busse des Roland SP-404 MkII. Chrome/Edge (Web MIDI).">
+  <meta property="og:description" content="MIDI controller for the five FX buses of the Roland SP-404 MkII. Chrome/Edge (Web MIDI).">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23121214'/%3E%3Crect x='7' y='7' width='18' height='18' rx='3' fill='%23ff7a1a'/%3E%3C/svg%3E">
   <style>
   /* ============ 01 tokens ============ */
@@ -393,7 +393,7 @@
       </button>
       <span id="tx"></span>
       <span id="bpm"><span id="beat"></span><span id="bpm-val">&ndash;</span></span>
-      <button id="view-toggle" class="sbtn pad">&Uuml;bersicht</button>
+      <button id="view-toggle" class="sbtn pad">Overview</button>
       <button id="xy-btn" class="sbtn pad">XY</button>
       <button id="alloff" class="sbtn">ALL OFF</button>
       <button id="snaps-btn" class="sbtn pad">Snap</button>
@@ -408,10 +408,10 @@
             <button id="fx-prev">&#8249;</button>
             <button id="fx-name" class="display">
               <span class="fx-title">(OFF)</span>
-              <span class="fx-sub">Effekt w&auml;hlen</span>
+              <span class="fx-sub">choose effect</span>
             </button>
             <button id="fx-next">&#8250;</button>
-            <button id="rnd-btn" title="W&uuml;rfeln / R&uuml;ckg&auml;ngig">RND</button>
+            <button id="rnd-btn" title="Randomize / Undo">RND</button>
           </div>
         </div>
         <div id="faders"></div>
@@ -445,11 +445,11 @@
         <div id="auto-row">
           <h4>Autopilot</h4>
           <button id="auto-on" class="pad">AUTO</button>
-          <button id="auto-bars" class="pad">alle 4 Takte</button>
-          <button id="auto-scope" class="pad">nur Bank</button>
+          <button id="auto-bars" class="pad">every 4 bars</button>
+          <button id="auto-scope" class="pad">bank only</button>
         </div>
         <div id="loop-row">
-          <h4>Looper (Ger&auml;t im Looper-Modus, CH 1)</h4>
+          <h4>Looper (device in looper mode, CH 1)</h4>
           <button id="lp-rec" class="pad">REC</button>
           <button id="lp-dub" class="pad">OVERDUB</button>
           <button id="lp-del" class="pad">DEL</button>
@@ -457,11 +457,11 @@
           <button id="lp-redo" class="pad">REDO</button>
           <button id="lp-stop" class="pad">STOP ALL</button>
           <button id="lp-treset" class="pad">TEMPO RST</button>
-          <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / Play Rate (CC#90)">
+          <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / play rate (CC#90)">
         </div>
-        <p class="pick-note">Program Change: Bank = MIDI-Kanal, Pattern = PC 0&ndash;15.
-        Ben&ouml;tigt <b>MIDI Mode B</b> am Ger&auml;t und &bdquo;PC Rx&ldquo; = ON.
-        Das Ger&auml;t best&auml;tigt Wechsel nicht per MIDI &ndash; markiert ist der zuletzt gesendete.</p>
+        <p class="pick-note">Program change: bank = MIDI channel, pattern = PC 0&ndash;15.
+        Requires <b>MIDI mode B</b> on the device and &quot;PC Rx&quot; = ON.
+        The device does not confirm switches via MIDI &ndash; highlighted is the last one sent.</p>
       </section>
       <section id="view-play">
         <div id="play-head">
@@ -473,8 +473,8 @@
           <button id="play-root" class="pad">C</button>
           <button id="play-scalesel" class="pad">DUR</button>
           <button id="play-layout" class="pad">ISO</button>
-          <button id="play-oct-down" class="pad">OKT &minus;</button>
-          <button id="play-oct-up" class="pad">OKT +</button>
+          <button id="play-oct-down" class="pad">OCT &minus;</button>
+          <button id="play-oct-up" class="pad">OCT +</button>
         </div>
         <div id="keys-area">
           <div id="keys"></div>
@@ -487,7 +487,7 @@
         <div id="scale-area">
           <div id="scale-grid"></div>
         </div>
-        <p class="pick-note" id="play-note">Chromatisch: spielt das aktuelle Sample (CH 16, C2&ndash;C4).</p>
+        <p class="pick-note" id="play-note">Chromatic: plays the current sample (CH 16, C2&ndash;C4).</p>
       </section>
     </main>
   </div>
@@ -511,56 +511,56 @@
     <div id="setup-panel">
       <div id="setup-head">
         <h2>404 BUSDRIVER &ndash; SETUP</h2>
-        <button id="setup-close" class="setup-btn">Schlie&szlig;en</button>
+        <button id="setup-close" class="setup-btn">Close</button>
       </div>
       <div id="setup-body">
         <div id="diag" class="mono"></div>
         <div id="clock-diag" class="mono">Clock: &ndash;</div>
         <div class="setup-row" id="setup-actions">
-          <button id="midi-connect" class="setup-btn primary">Mit SP-404 verbinden</button>
-          <button id="midi-rescan" class="setup-btn">Neu verbinden</button>
-          <button id="push-state" class="setup-btn">Zustand ans Ger&auml;t senden</button>
-          <button id="wake-toggle" class="setup-btn">Bildschirm wachhalten: aus</button>
-          <button id="help-btn" class="setup-btn">Handbuch</button>
+          <button id="midi-connect" class="setup-btn primary">Connect to SP-404</button>
+          <button id="midi-rescan" class="setup-btn">Reconnect</button>
+          <button id="push-state" class="setup-btn">Send state to device</button>
+          <button id="wake-toggle" class="setup-btn">Keep screen awake: off</button>
+          <button id="help-btn" class="setup-btn">Manual</button>
         </div>
         <div>
-          <h4>MIDI-Ausgang</h4>
+          <h4>MIDI output</h4>
           <div class="setup-row" id="out-list"></div>
         </div>
         <div>
-          <h4>MIDI-Eingang</h4>
+          <h4>MIDI input</h4>
           <div class="setup-row" id="in-list"></div>
         </div>
         <div>
-          <h4>Direct FX Belegung (BUS 1+2)</h4>
+          <h4>Direct FX assignment (BUS 1+2)</h4>
           <div class="setup-row" id="dfx-list"></div>
-          <p class="pick-note">Spiegelt die Ger&auml;te-Einstellung: welcher Effekt liegt auf
-          Direct FX 1&ndash;5? Dann zeigen die Fader beim Anw&auml;hlen die echten
-          Parameternamen (z. B. Sync Delay auf DFX3).</p>
+          <p class="pick-note">Mirrors the device setting: which effect sits on
+          Direct FX 1&ndash;5? The faders then show the real
+          parameter names (e.g. Sync Delay on DFX3).</p>
         </div>
         <div class="infobox">
           <span class="label">Tempo / Ableton Link</span>
-          Die BPM-Anzeige in der Statusleiste liest eingehende MIDI Clock
-          &ndash; von jedem angeschlossenen Port. Link-Route: Ableton Live oder
-          eine Link-to-MIDI-Bridge sendet Clock an den SP-404
-          (UTILITY &gt; SYSTEM &gt; MIDI: &bdquo;MIDI Sync&ldquo;) und an diesen
-          Rechner &ndash; Ger&auml;t und App laufen dann synchron zur Link-Session.
-          Sendet der SP-404 selbst Clock (MIDI Sync Out), zeigt die App
-          dessen Tempo.
+          The BPM display in the status bar reads incoming MIDI clock
+          &ndash; from any connected port. Link route: Ableton Live or
+          a Link-to-MIDI bridge sends clock to the SP-404
+          (UTILITY &gt; SYSTEM &gt; MIDI: &quot;MIDI Sync&quot;) and to this
+          computer &ndash; device and app then run in sync with the Link session.
+          If the SP-404 itself sends clock (MIDI Sync Out), the app shows
+          its tempo.
         </div>
         <div class="infobox">
-          <span class="label">Am Ger&auml;t: MIDI-Modus</span>
-          Die FX-Steuerung funktioniert in Mode <b>A</b> und <b>B</b> (Roland
-          dokumentiert sie nur f&uuml;r B; A am Ger&auml;t verifiziert). F&uuml;r die
-          sp&auml;tere Pattern-Umschaltung braucht es Mode B: [SHIFT] + [PAD 12]
-          &gt; SYSTEM &gt; MIDI &gt; &bdquo;MIDI Mode&ldquo;. Der SP-404 MkII
-          h&auml;ngt per USB-C direkt am Rechner bzw. iPad.
+          <span class="label">On the device: MIDI mode</span>
+          FX control works in mode <b>A</b> and <b>B</b> (Roland
+          documents it for B only; A verified on the device). Later
+          pattern switching needs mode B: [SHIFT] + [PAD 12]
+          &gt; SYSTEM &gt; MIDI &gt; &quot;MIDI Mode&quot;. Connect the SP-404 MkII
+          directly via USB-C to the computer or iPad.
         </div>
         <div class="infobox">
           <span class="label">iPhone / iPad</span>
-          Kein iOS-Browser kann Web MIDI. Diese Seite dort in der App
-          <b>MIDIWeb Browser</b> oder <b>Web MIDI Browser</b> &ouml;ffnen
-          (App Store), SP-404 per USB-C anschlie&szlig;en.
+          No iOS browser can do Web MIDI. Open this page there in the app
+          <b>MIDIWeb Browser</b> or <b>Web MIDI Browser</b>
+          (App Store), connect the SP-404 via USB-C.
         </div>
       </div>
     </div>
@@ -570,23 +570,23 @@
     <div id="snaps-panel">
       <div id="snaps-head">
         <h2>SNAPSHOTS</h2>
-        <button id="snaps-close" class="setup-btn">Schlie&szlig;en</button>
+        <button id="snaps-close" class="setup-btn">Close</button>
       </div>
       <div id="snaps-body">
         <div id="sync-status" class="mono">Sync: &hellip;</div>
         <div>
-          <h4>Aktueller Zustand (das wird gespeichert)</h4>
+          <h4>Current state (what gets saved)</h4>
           <div id="snap-current" class="display mono"></div>
         </div>
         <div class="snap-grid" id="snap-grid"></div>
-        <p class="pick-note">Tippen l&auml;dt den Slot auf alle 5 Busse (leerer Slot: speichert).
-        Halten speichert in den Slot. Nach dem Speichern l&auml;sst sich der Name direkt im Slot tippen.</p>
+        <p class="pick-note">Tap loads the slot onto all 5 buses (empty slot: saves).
+        Hold saves into the slot. After saving, type the name right in the slot.</p>
         <div>
           <h4>Export / Import (JSON)</h4>
-          <textarea id="exchange" spellcheck="false" placeholder="Export erzeugt hier JSON zum Kopieren &ndash; Import liest eingef&uuml;gtes JSON."></textarea>
+          <textarea id="exchange" spellcheck="false" placeholder="Export writes JSON here for copying &ndash; import reads pasted JSON."></textarea>
           <div class="setup-row">
-            <button id="exp-btn" class="setup-btn">Exportieren</button>
-            <button id="imp-btn" class="setup-btn">Importieren</button>
+            <button id="exp-btn" class="setup-btn">Export</button>
+            <button id="imp-btn" class="setup-btn">Import</button>
           </div>
         </div>
       </div>
@@ -596,15 +596,15 @@
   <div id="padpick" class="overlay">
     <div id="padpick-panel">
       <div id="padpick-head">
-        <h2 id="padpick-title">PAD BELEGEN</h2>
-        <button id="padpick-close" class="setup-btn">Schlie&szlig;en</button>
+        <h2 id="padpick-title">ASSIGN PAD</h2>
+        <button id="padpick-close" class="setup-btn">Close</button>
       </div>
       <div id="padpick-body">
         <h4>Bank</h4>
         <div class="setup-row" id="padpick-bank"></div>
         <h4>Pad</h4>
         <div class="setup-row" id="padpick-pad"></div>
-        <div class="setup-row"><button id="padpick-none" class="setup-btn">Leeren</button></div>
+        <div class="setup-row"><button id="padpick-none" class="setup-btn">Clear</button></div>
       </div>
     </div>
   </div>
@@ -612,15 +612,15 @@
   <div id="xypick" class="overlay">
     <div id="xypick-panel">
       <div id="xypick-head">
-        <h2 id="xypick-title">X-ACHSE</h2>
-        <button id="xypick-close" class="setup-btn">Schlie&szlig;en</button>
+        <h2 id="xypick-title">X AXIS</h2>
+        <button id="xypick-close" class="setup-btn">Close</button>
       </div>
       <div id="xypick-body">
         <h4>Bus</h4>
         <div class="setup-row" id="xypick-bus"></div>
-        <h4>Regler</h4>
+        <h4>Control</h4>
         <div class="setup-row" id="xypick-slot"></div>
-        <div class="setup-row"><button id="xypick-none" class="setup-btn">Keine Zuordnung</button></div>
+        <div class="setup-row"><button id="xypick-none" class="setup-btn">No assignment</button></div>
       </div>
     </div>
   </div>
@@ -629,70 +629,69 @@
     <div id="help-panel">
       <div id="help-head">
         <h2>HANDBUCH</h2>
-        <button id="help-close" class="setup-btn">Schlie&szlig;en</button>
+        <button id="help-close" class="setup-btn">Close</button>
       </div>
       <div id="help-body">
-        <h3>Verbindung</h3>
-        <p>SP-404 MkII per USB-C anschlie&szlig;en, Setup &gt; &bdquo;Mit SP-404 verbinden&ldquo;.
-        Am Rechner Chrome/Edge; auf iPhone/iPad die App <b>MIDIWeb Browser</b> nutzen.
-        FX-Steuerung l&auml;uft in MIDI Mode A und B; Patterns brauchen Mode B + &bdquo;PC Rx&ldquo; ON.
-        Wirkt die App veraltet: URL mit <b>?v=99</b> laden (Cache), Build-Nr. steht im Setup.</p>
-        <h3>Statusleiste und Tabs</h3>
-        <p>Verbindungspunkt (tippen = Setup), TX-Blinker, BPM bei eingehender Clock,
-        &Uuml;bersicht/Fokus, XY, <b>ALL OFF</b> (aus + merken; zweiter Tipp stellt wieder her),
-        Snap, Setup. Tabs: BUS 1&ndash;4, IN, PLAY, PTN &ndash; die LEDs zeigen aktive Effekte.</p>
-        <h3>Fader-Gesten (Fokus)</h3>
-        <p>Relativer Drag &ndash; der erste Touch springt nie. <b>Feinjustage:</b> beim Ziehen
-        seitlich rausziehen (ab 60 px feiner, ab 120 px sehr fein). <b>Doppeltipp</b> = Default.
-        Tipp aufs Wertefenster = &plusmn;1-Stepper. Desktop: Mausrad &plusmn;1, Shift &plusmn;10.
-        <b>EFX-Pad:</b> Tipp = an/aus, <b>Halten = Momentary</b> (an, solange gedr&uuml;ckt).
-        &lsaquo;/&rsaquo; steppen durch Favoriten. <b>RND</b> w&uuml;rfelt (ohne LEVEL/SEND/GAIN),
-        danach 6 s <b>UNDO</b>.</p>
-        <h3>Effekte</h3>
-        <p>Effektname antippen &ouml;ffnet den Picker: Zuletzt, Favoriten (Stern per Halten),
-        Kategorien. Die Bus-Typen haben unterschiedliche Sets (Roland-Vorgabe) &ndash;
-        Sync Delay &amp; Co. nur auf BUS 3/4, Stimm-Effekte nur auf INPUT.
-        <b>Direct FX:</b> Was am Ger&auml;t auf DFX 1&ndash;5 liegt, im Setup spiegeln &ndash;
-        dann zeigen die Fader echte Parameternamen. Die App merkt sich Werte pro Effekt
-        und sendet beim Wechsel alles ans Ger&auml;t.</p>
+        <h3>Connection</h3>
+        <p>Connect the SP-404 MkII via USB-C, then Setup &gt; &quot;Connect to SP-404&quot;.
+        On desktop use Chrome or Edge; on iPhone/iPad use the <b>MIDIWeb Browser</b> app.
+        FX control works in MIDI mode A and B; patterns need mode B + &quot;PC Rx&quot; ON.
+        If the app seems outdated, load the URL with <b>?v=99</b> (cache); the build number is shown in Setup.</p>
+        <h3>Status bar and tabs</h3>
+        <p>Connection dot (tap = Setup), TX blinker, BPM on incoming clock,
+        Overview/Focus, XY, <b>ALL OFF</b> (all buses off + remembered; a second tap restores),
+        Snap, Setup. Tabs: BUS 1&ndash;4, IN, PLAY, PTN &ndash; the LEDs show active effects.</p>
+        <h3>Fader gestures (Focus)</h3>
+        <p>Relative drag &ndash; the first touch never jumps. <b>Fine-tune:</b> while dragging,
+        pull sideways (finer from 60 px, very fine from 120 px). <b>Double tap</b> = default.
+        Tap the value window = &plusmn;1 stepper. Desktop: mouse wheel &plusmn;1, Shift &plusmn;10.
+        <b>EFX pad:</b> tap = on/off, <b>hold = momentary</b>.
+        &lsaquo;/&rsaquo; step through favorites. <b>RND</b> randomizes (sparing LEVEL/SEND/GAIN),
+        then acts as <b>UNDO</b> for 6 s.</p>
+        <h3>Effects</h3>
+        <p>Tap the effect name to open the picker: Recent, Favorites (star via hold),
+        categories. The bus types have different sets (Roland's spec) &ndash;
+        Sync Delay &amp; co. only on BUS 3/4, voice effects only on INPUT.
+        <b>Direct FX:</b> mirror in Setup what sits on the device's DFX 1&ndash;5 &ndash;
+        the faders then show real parameter names. The app remembers values per effect
+        and sends everything to the device on each switch.</p>
         <h3>Snapshots (Snap)</h3>
-        <p>8 Slots f&uuml;r alle 5 Busse. <b>Tippen l&auml;dt</b> (leer: speichert),
-        <b>Halten speichert</b> mit Namens-Eingabe, &#10005; l&ouml;scht. Export/Import als JSON &ndash; auch f&uuml;r den Austausch zwischen Ger&auml;ten.</p>
-        <h3>XY-Pad und LFOs</h3>
-        <p>Achsen oben frei belegen; Position = Wert. <b>MOMENTARY</b> federt beim Loslassen
-        zur&uuml;ck. Vier LFO-Slots (Chips 1&ndash;4): Ziel, Welle (SIN/TRI/SQR/SAW/<b>RND</b> = Drift),
-        Rate in Notenwerten, Depth. Zeitquelle: <b>CLK</b> (MIDI Clock) oder <b>TAP</b>
-        (im Beat tippen). Finger auf dem Ziel-Fader pausiert und re-zentriert;
-        Ausschalten parkt auf der Mitte.</p>
+        <p>8 slots for all 5 buses. <b>Tap loads</b> (empty: saves),
+        <b>hold saves</b> with inline naming, &#10005; deletes. Export/import as JSON &ndash;
+        also for moving snapshots between devices.</p>
+        <h3>XY pad and LFOs</h3>
+        <p>Assign both axes at the top; position = value. <b>MOMENTARY</b> springs back on release.
+        Four LFO slots (chips 1&ndash;4): target, wave (SIN/TRI/SQR/SAW/<b>RND</b> = drift),
+        rate in note values, depth. Time source: <b>CLK</b> (MIDI clock) or <b>TAP</b>
+        (tap the beat). A finger on the target fader pauses and re-centers;
+        switching off parks at the center.</p>
         <h3>PLAY</h3>
-        <p><b>KEYS:</b> Klaviatur &ndash; Sample chromatisch (CH 16, C2&ndash;C4) oder
-        Vocoder (CH 11) mit Pitch-Bend-Streifen. <b>SCALE:</b> 4&times;4-Grid nur mit
-        T&ouml;nen der gew&auml;hlten Tonart; ISO = Move-Layout (Reihen im Quart-Versatz),
-        LIN = fortlaufend; Grundt&ouml;ne markiert. <b>PADS:</b> Pad-Board wie am Ger&auml;t
-        (Pad 1 oben links), B&auml;nke A&ndash;J, &#9733; = freies Layout (Halten belegt);
-        PAD-CH muss dem Ger&auml;te-Setting &bdquo;Pad MIDI Channels&ldquo; entsprechen.</p>
-        <h3>PTN: Patterns, Autopilot, Looper</h3>
-        <p>Bank w&auml;hlen, Pattern tippen (Mode B + PC Rx ON; markiert = zuletzt gesendet).
-        <b>Autopilot</b> wandert quantisiert alle 2/4/8 Takte, wahlweise nur in der Bank.
-        <b>Looper-Panel</b> fernbedient den Looper-Modus des Ger&auml;ts (REC, OVERDUB, DEL,
+        <p><b>KEYS:</b> keyboard &ndash; sample chromatic (CH 16, C2&ndash;C4) or
+        vocoder (CH 11) with pitch-bend strip. <b>SCALE:</b> 4&times;4 grid with only
+        in-scale notes; ISO = Move layout (rows a fourth apart), LIN = continuous;
+        roots highlighted. <b>PADS:</b> pad board laid out like the device
+        (pad 1 top left), banks A&ndash;J, &#9733; = custom layout (hold to assign);
+        PAD-CH must match the device setting &quot;Pad MIDI Channels&quot;.</p>
+        <h3>PTN: patterns, autopilot, looper</h3>
+        <p>Pick a bank, tap a pattern (mode B + PC Rx ON; highlighted = last sent).
+        The <b>autopilot</b> wanders quantized every 2/4/8 bars, optionally within the bank.
+        The <b>looper panel</b> remote-controls the device's looper mode (REC, OVERDUB, DEL,
         UNDO/REDO, STOP ALL, BPM).</p>
         <h3>Tempo / Ableton Link</h3>
-        <p>BPM liest MIDI Clock von jedem Port (AUM, Ableton, Bridge). Link-Route:
-        Link-Quelle sendet Clock an SP-404 (UTILITY &gt; SYSTEM &gt; MIDI: &bdquo;MIDI Sync&ldquo;)
-        und Rechner &ndash; alles l&auml;uft synchron. LFOs/Autopilot nutzen die Clock, sonst Tap.</p>
-        <h3>Tastatur (Desktop)</h3>
-        <p>1&ndash;5 = Bus &middot; Leertaste = EFX &middot; O = &Uuml;bersicht &middot; X = XY &middot; Esc = schlie&szlig;en.</p>
-        <h3>Tipps und Grenzen</h3>
-        <p>Kein SysEx: Effektwechsel am Ger&auml;t sieht die App nicht (Encoder schon) &ndash;
-        Effekte aus der App wechseln. <b>BUS 3/4 stumm?</b> Ger&auml;te-Bypass: EFX-Pad einmal
-        aus/an (bei Effektwechseln macht die App das automatisch). Beim Laden sendet die
-        App nie &ndash; Abgleich per &bdquo;Zustand ans Ger&auml;t senden&ldquo; oder erster Geste.</p>
-        <h3>&Uuml;ber</h3>
-        <p>404 Busdriver ist ein inoffizielles Open-Source-Projekt (MIT-Lizenz)
-        und steht in keiner Verbindung zur Roland Corporation. &bdquo;SP-404&ldquo;
-        ist eine Marke der Roland Corporation. Effektdaten nach dem
-        &ouml;ffentlichen SP-404MK2-Referenzhandbuch.</p>
-
+        <p>BPM reads MIDI clock from any port (AUM, Ableton, a bridge). Link route:
+        the Link source sends clock to the SP-404 (UTILITY &gt; SYSTEM &gt; MIDI: &quot;MIDI Sync&quot;)
+        and to this computer &ndash; everything runs in sync. LFOs/autopilot use the clock, else tap tempo.</p>
+        <h3>Keyboard (desktop)</h3>
+        <p>1&ndash;5 = bus &middot; Space = EFX &middot; O = overview &middot; X = XY &middot; Esc = close.</p>
+        <h3>Tips and limits</h3>
+        <p>No SysEx: the app cannot see effect changes made on the device (encoders do arrive) &ndash;
+        switch effects from the app. <b>BUS 3/4 silent?</b> Device-side bypass: toggle the EFX pad
+        off/on once (the app does this automatically on effect switches). The app never sends
+        on load &ndash; align via &quot;Send state to device&quot; or the first gesture.</p>
+        <h3>About</h3>
+        <p>404 Busdriver is an unofficial open-source project (MIT license) and is not
+        affiliated with or endorsed by Roland Corporation. &quot;SP-404&quot; is a trademark of
+        Roland Corporation. Effect data derived from the public SP-404MK2 reference manual.</p>
       </div>
     </div>
   </div>
@@ -700,14 +699,14 @@
   <div id="nomidi">
     <div class="inner">
       <h1>404 Busdriver</h1>
-      <p><b>Dieser Browser kann kein Web MIDI.</b></p>
-      <p>Am Rechner: <b>Chrome</b> oder <b>Edge</b> verwenden.</p>
-      <p>Auf iPhone/iPad: die App <b>MIDIWeb Browser</b> oder <b>Web MIDI Browser</b>
-      aus dem App Store installieren und diese Adresse dort &ouml;ffnen.
-      Den SP-404 MkII per USB-C anschlie&szlig;en.</p>
-      <p>MIDI-Modus am Ger&auml;t: <b>A und B</b> funktionieren f&uuml;r die
-      FX-Steuerung ([SHIFT] + [PAD 12] &gt; SYSTEM &gt; MIDI).</p>
-      <div class="setup-row"><button id="demo-btn" class="setup-btn">Trotzdem UI ansehen (Demo-Modus)</button></div>
+      <p><b>This browser cannot do Web MIDI.</b></p>
+      <p>On desktop, use <b>Chrome</b> or <b>Edge</b>.</p>
+      <p>On iPhone/iPad: install <b>MIDIWeb Browser</b> or <b>Web MIDI Browser</b>
+      from the App Store and open this address there.
+      Connect the SP-404 MkII via USB-C.</p>
+      <p>Device MIDI mode: <b>A and B</b> both work for
+      FX control ([SHIFT] + [PAD 12] &gt; SYSTEM &gt; MIDI).</p>
+      <div class="setup-row"><button id="demo-btn" class="setup-btn">View the UI anyway (demo mode)</button></div>
     </div>
   </div>
 
@@ -1053,7 +1052,7 @@ const EFFECTS={
  ]},
 };
 const BUS_TABLES={bus12:["(OFF)","Direct FX1","Direct FX2","Direct FX3","Direct FX4","Direct FX5","Scatter","Downer","Ha-Dou","Ko-Da-Ma","Zan-Zou","To-Gu-Ro","SBF","Stopper","Tape Echo","TimeCtrlDly","Super Filter","WrmSaturator","303 VinylSim","404 VinylSim","Cassette Sim","Lo-fi","Reverb","Chorus","JUNO Chorus","Flanger","Phaser","Wah","Slicer","Tremolo/Pan","Chromatic PS","Hyper-Reso","Ring Mod","Crusher","Overdrive","Distortion","Equalizer","Compressor","SX Reverb","SX Delay","Cloud Delay","Back Spin","DJFX Delay"],bus34:["(OFF)","303 VinylSim","404 VinylSim","Cassette Sim","Lo-fi","Downer","Compressor","Equalizer","Isolator","Super Filter","Filter+Drive","WrmSaturator","Overdrive","Distortion","Crusher","Ring Mod","SBF","Resonator","Hyper-Reso","Chromatic PS","Reverb","Ha-Dou","Zan-Zou","Sync Delay","TimeCtrlDly","Ko-Da-Ma","Tape Echo","Chorus","JUNO Chorus","Flanger","Phaser","Wah","Slicer","Tremolo/Pan","To-Gu-Ro","DJFX Looper","Scatter","SX Reverb","SX Delay","Cloud Delay","DJFX Delay"],input:["(OFF)","Auto Pitch","Vocoder","Harmony","Gt Amp Sim","Chorus","JUNO Chorus","Reverb","TimeCtrlDly","Chromatic PS","Downer","WrmSaturator","303 VinylSim","404 VinylSim","Cassette Sim","Lo-fi","Equalizer","Compressor"]};
-const CAT_LABELS={filter:"FILTER",lofi:"LO-FI & TEXTUR",drive:"DRIVE & DYNAMIK",mod:"MODULATION",delayverb:"DELAY & REVERB",weird:"GLITCH & PITCH",voice:"STIMME",direct:"DIRECT FX"};
+const CAT_LABELS={filter:"FILTER",lofi:"LO-FI & TEXTURE",drive:"DRIVE & DYNAMICS",mod:"MODULATION",delayverb:"DELAY & REVERB",weird:"GLITCH & PITCH",voice:"VOICE",direct:"DIRECT FX"};
 const CAT_ORDER=["direct","filter","lofi","drive","mod","delayverb","weird","voice"];
 /* 404 Busdriver - app logic. One IIFE, no dependencies.
    MIDI spec (SP-404MK2 v5, MIDI Mode B): CH 1-5 = BUS1-4 + INPUT.
@@ -1348,7 +1347,7 @@ const Midi = {
     try {
       this.access = await navigator.requestMIDIAccess({ sysex: false });
     } catch (e) {
-      if (interactive) showBanner("MIDI-Zugriff verweigert - Browser-Berechtigung prüfen", "warn", 5000);
+      if (interactive) showBanner("MIDI access denied - check browser permission", "warn", 5000);
       updateConnUi(); renderSetup();
       return;
     }
@@ -1497,16 +1496,16 @@ function showBanner(text, cls, ms) {
 }
 function updateConnUi() {
   const dot = $("conn-dot"), name = $("conn-name");
-  if (Midi.demo) { dot.className = ""; name.textContent = "Demo-Modus (kein MIDI)"; return; }
-  if (!navigator.requestMIDIAccess) { dot.className = "err"; name.textContent = "kein Web MIDI"; return; }
+  if (Midi.demo) { dot.className = ""; name.textContent = "Demo mode (no MIDI)"; return; }
+  if (!navigator.requestMIDIAccess) { dot.className = "err"; name.textContent = "no Web MIDI"; return; }
   const o = Midi.out();
   if (o) {
     dot.className = "ok"; name.textContent = o.name;
     $("banner").classList.remove("show");
   } else {
     dot.className = Midi.access ? "err" : "";
-    name.textContent = Midi.access ? "SP-404 nicht verbunden" : "nicht verbunden";
-    if (Midi.access && state.midi.outName) showBanner("SP-404 nicht verbunden - tippen zum Verbinden öffnet Setup", "warn", 6000);
+    name.textContent = Midi.access ? "SP-404 not connected" : "not connected";
+    if (Midi.access && state.midi.outName) showBanner("SP-404 not connected - tap to open Setup", "warn", 6000);
   }
 }
 
@@ -1740,7 +1739,7 @@ function updateFocusHead() {
   $("efx-pad").classList.toggle("on", b.on);
   $("efx-pad").textContent = b.on ? "EFX ON" : "EFX";
   $("fx-name").querySelector(".fx-title").textContent = fxDisplayName(B.table, b.fx);
-  $("fx-name").querySelector(".fx-sub").textContent = B.label + " · Effekt wählen";
+  $("fx-name").querySelector(".fx-sub").textContent = B.label + " · choose effect";
 }
 function updateBusChrome(bus) {
   const b = state.buses[bus];
@@ -1774,7 +1773,7 @@ function setView(v) {
   $("xy-btn").classList.toggle("on", v === "xy");
   if (patternTab) patternTab.classList.toggle("active", v === "pattern");
   if (playTab) playTab.classList.toggle("active", v === "play");
-  $("view-toggle").textContent = v === "overview" ? "Fokus" : "Übersicht";
+  $("view-toggle").textContent = v === "overview" ? "Focus" : "Overview";
   if (v === "xy") renderXy();
   if (v === "pattern") renderPattern();
   if (v === "play") renderPlay();
@@ -1960,10 +1959,10 @@ function busesSummary(buses, compact) {
     if (compact) {
       if (name) parts.push((i + 1) + (b.on ? "●" : "○") + " " + name);
     } else {
-      parts.push(B.label.padEnd(6) + " " + (name || "–") + (name ? (b.on ? "  AN" : "  aus") : ""));
+      parts.push(B.label.padEnd(6) + " " + (name || "–") + (name ? (b.on ? "  ON" : "  off") : ""));
     }
   });
-  if (compact) return parts.length ? parts.join(" · ") : "alle Busse leer";
+  if (compact) return parts.length ? parts.join(" · ") : "all buses empty";
   return parts.join("\n");
 }
 function snapSave(i) {
@@ -2005,7 +2004,7 @@ function snapLoad(i) {
   if (!s || s.del || !Array.isArray(s.buses)) return;
   applyFullState(s.buses);
   $("snaps").classList.remove("open");
-  showBanner("„" + s.name + "“ geladen", "info", 2000);
+  showBanner("\"" + s.name + "\" loaded", "info", 2000);
 }
 function snapDelete(i) {
   state.snapshots[i] = { t: Date.now(), del: 1 }; /* tombstone so no device resurrects it */
@@ -2024,8 +2023,8 @@ function renderSnaps() {
     slot.appendChild(el("span", "sn-name", filled ? s.name : "Slot " + (i + 1)));
     if (filled) slot.appendChild(el("span", "sn-sum", busesSummary(s.buses, true)));
     slot.appendChild(el("span", "sn-meta", filled
-      ? new Date(s.t).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
-      : "leer"));
+      ? new Date(s.t).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+      : "empty"));
     let armed = false, moved = false, held = false, sx = 0, sy = 0, hT = null;
     slot.addEventListener("pointerdown", (e) => {
       e.preventDefault();
@@ -2065,7 +2064,7 @@ function doExport() {
   ta.focus(); ta.select();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(ta.value)
-      .then(() => showBanner("JSON in die Zwischenablage kopiert", "info", 2500))
+      .then(() => showBanner("JSON copied to clipboard", "info", 2500))
       .catch(() => {});
   }
 }
@@ -2073,11 +2072,11 @@ function doImport() {
   let d = null;
   try { d = JSON.parse($("exchange").value); } catch (e) {}
   if (!d || d.busdriver !== 1 || !Array.isArray(d.snapshots)) {
-    showBanner("Kein gültiges Busdriver-JSON im Textfeld", "warn", 3000);
+    showBanner("No valid Busdriver JSON in the text field", "warn", 3000);
     return;
   }
   let ok = true;
-  try { ok = window.confirm("Import überschreibt belegte Slot-Nummern aus dem JSON. Fortfahren?"); } catch (e) {}
+  try { ok = window.confirm("Import overwrites matching slot numbers from the JSON. Continue?"); } catch (e) {}
   if (!ok) return;
   let n = 0;
   for (let i = 0; i < 8; i++) {
@@ -2088,7 +2087,7 @@ function doImport() {
     }
   }
   saveState(); scheduleSync(); renderSnaps();
-  showBanner(n + " Snapshot(s) importiert", "info", 2500);
+  showBanner(n + " snapshot(s) imported", "info", 2500);
 }
 
 /* ===== randomizer (one-step undo via second tap within 6 s) ===== */
@@ -2097,7 +2096,7 @@ let rndUndo = null; /* { bus, cc, t } */
 function randomize(bus) {
   const B = BUSES[bus], b = state.buses[bus];
   const def = fxDefFor(B.table, b.fx);
-  if (!def) { showBanner("Erst einen Effekt wählen", "info", 2200); return; }
+  if (!def) { showBanner("Choose an effect first", "info", 2200); return; }
   if (rndUndo && rndUndo.bus === bus && performance.now() - rndUndo.t < 6000) {
     rndUndo.cc.forEach((v, i) => setBusCc(bus, i, v, { force: true }));
     rndUndo = null;
@@ -2119,7 +2118,7 @@ function updateRndBtn() {
 }
 
 /* ===== device sync: removed in the public build =====
-   Snapshots live in localStorage; use Export/Import (Snap panel) to move
+   Snapshots live in localStorage; use export/import (Snap panel) to move
    them between devices. */
 let syncTimer = null;
 function mergeRemote() { return false; }
@@ -2127,7 +2126,7 @@ function pushSync() {}
 function scheduleSync() {}
 function pullSync() {}
 function updateSyncStatus() {
-  $("sync-status").textContent = "Lokal gespeichert – Geräte-Austausch über Export/Import.";
+  $("sync-status").textContent = "Stored locally - move snapshots between devices via export/import.";
 }
 
 /* ===== 09 picker ===== */
@@ -2140,15 +2139,15 @@ function openPicker(bus, assignSlot) {
   /* assign mode: choose which effect sits on a device Direct-FX slot */
   if (typeof assignSlot === "number") {
     const oj = $("jumpbar"); if (oj) oj.remove();
-    $("picker-title").textContent = "DIRECT FX" + (assignSlot + 1) + " · BELEGUNG";
+    $("picker-title").textContent = "DIRECT FX" + (assignSlot + 1) + " · ASSIGNMENT";
     body.appendChild(el("div", "pick-note",
-      "Sag der App, welcher Effekt am Gerät auf Direct FX" + (assignSlot + 1) +
-      " liegt (SYSTEM-Einstellung des SP-404) – dann zeigen die Fader die richtigen Parameternamen."));
+      "Tell the app which effect sits on the device Direct FX slot " + (assignSlot + 1) +
+      " (SP-404 SYSTEM setting) - the faders then show the real parameter names."));
     const curName = directName(assignSlot + 1);
     const mkA = (name, isClear) => {
       const it = el("button", "pick-item" + (isClear ? " off-item" : "") +
         ((isClear ? !curName : curName === name) ? " sel" : ""));
-      it.appendChild(el("span", "", isClear ? "(keine Angabe)" : name));
+      it.appendChild(el("span", "", isClear ? "(not set)" : name));
       it.addEventListener("click", () => { setDirectFx(assignSlot, isClear ? null : name); closePicker(); });
       return it;
     };
@@ -2173,7 +2172,7 @@ function openPicker(bus, assignSlot) {
     $("picker").classList.add("open");
     return;
   }
-  $("picker-title").textContent = B.label + " · EFFEKT";
+  $("picker-title").textContent = B.label + " · EFFECT";
   const table = BUS_TABLES[B.table];
   const cur = state.buses[bus].fx;
 
@@ -2222,9 +2221,9 @@ function openPicker(bus, assignSlot) {
 
   /* the three bus types have different effect sets (Roland spec) */
   const NOTES = {
-    bus12: "Effekt-Set von BUS 1+2. BUS 3/4 und INPUT haben eigene Sets (Roland-Vorgabe) – z. B. liegen Sync Delay, Isolator und Resonator nur auf BUS 3/4.",
-    bus34: "Effekt-Set von BUS 3+4 (Roland-Vorgabe) – u. a. mit Sync Delay, Isolator, Filter+Drive, Resonator und DJFX Looper.",
-    input: "Effekt-Set des INPUT-Busses (Roland-Vorgabe) – u. a. Auto Pitch, Vocoder, Harmony, Gt Amp Sim.",
+    bus12: "Effect set of BUS 1+2. BUS 3/4 and INPUT have their own sets (Roland spec) - e.g. Sync Delay, Isolator and Resonator only exist on BUS 3/4.",
+    bus34: "Effect set of BUS 3+4 (Roland spec) - incl. Sync Delay, Isolator, Filter+Drive, Resonator and DJFX Looper.",
+    input: "Effect set of the INPUT bus (Roland spec) - Auto Pitch, Vocoder, Harmony, Gt Amp Sim.",
   };
   body.appendChild(el("div", "pick-note", NOTES[B.table]));
   const grid0 = el("div", "pick-grid");
@@ -2240,8 +2239,8 @@ function openPicker(bus, assignSlot) {
     cat.appendChild(g);
     body.appendChild(cat);
   };
-  addRow("ZULETZT", state.recents[B.table].filter((n) => n < table.length));
-  addRow("FAVORITEN", favList(B.table).filter((n) => n < table.length));
+  addRow("RECENT", state.recents[B.table].filter((n) => n < table.length));
+  addRow("FAVORITES", favList(B.table).filter((n) => n < table.length));
 
   const catSecs = {};
   CAT_ORDER.forEach((c) => { catSecs[c] = []; });
@@ -2280,15 +2279,15 @@ function renderSetup() {
   if (!$("setup").classList.contains("open")) return;
   const lines = [];
   lines.push("Build: <b>" + BUILD + "</b>");
-  lines.push("Web MIDI: " + (navigator.requestMIDIAccess ? "<b>verfügbar</b>" : "<b>nicht verfügbar</b>"));
-  lines.push("Zugriff: " + (Midi.access ? "<b>erteilt</b>" : Midi.demo ? "<b>Demo-Modus</b>" : "noch nicht angefragt"));
+  lines.push("Web MIDI: " + (navigator.requestMIDIAccess ? "<b>available</b>" : "<b>not available</b>"));
+  lines.push("Access: " + (Midi.access ? "<b>granted</b>" : Midi.demo ? "<b>demo mode</b>" : "not requested yet"));
   const o = Midi.out(), i_ = Midi.in_();
-  lines.push("Ausgang: " + (o ? "<b>" + esc(o.name) + "</b>" : "–"));
-  lines.push("Eingang: " + (i_ ? "<b>" + esc(i_.name) + "</b>" : "–"));
+  lines.push("Output: " + (o ? "<b>" + esc(o.name) + "</b>" : "–"));
+  lines.push("Input: " + (i_ ? "<b>" + esc(i_.name) + "</b>" : "–"));
   $("diag").innerHTML = lines.join("<br>");
   const mkPortBtns = (host, ports, sel, pick) => {
     host.textContent = "";
-    if (!ports.length) { host.appendChild(el("span", "label", "keine Ports")); return; }
+    if (!ports.length) { host.appendChild(el("span", "label", "no ports")); return; }
     ports.forEach((p) => {
       const b = el("button", "setup-btn" + (p.name === sel ? " sel" : ""), p.name);
       b.addEventListener("click", () => { pick(p.name); Midi.refreshPorts(); });
@@ -2302,7 +2301,7 @@ function renderSetup() {
   }
   mkPortBtns($("out-list"), outs, state.midi.outName, (n) => { state.midi.outName = n; });
   mkPortBtns($("in-list"), ins, state.midi.inName, (n) => { state.midi.inName = n; });
-  $("wake-toggle").textContent = "Bildschirm wachhalten: " + (state.wake ? "an" : "aus");
+  $("wake-toggle").textContent = "Keep screen awake: " + (state.wake ? "on" : "off");
   const dl = $("dfx-list");
   dl.textContent = "";
   for (let i = 0; i < 5; i++) {
@@ -2324,7 +2323,7 @@ function pushStateToDevice() {
     b.cc.forEach((v, j) => { setTimeout(() => Midi.send(B.ch, CC_CTRL[j], v, true), d); d += 8; });
     setTimeout(() => Midi.send(B.ch, CC_SW, b.on ? 127 : 0, true), d); d += 8;
   });
-  showBanner("Zustand gesendet (5 Busse)", "info", 2500);
+  showBanner("State sent (5 buses)", "info", 2500);
 }
 
 /* wake lock */
@@ -2375,15 +2374,15 @@ setInterval(() => {
     const mean = (t[t.length - 1] - t[0]) / (t.length - 1);
     Clock.bpm = 60000 / (mean * 24);
     $("bpm-val").textContent = Clock.bpm.toFixed(1);
-    bpmEl.title = "MIDI Clock von: " + (Clock.src || "?");
+    bpmEl.title = "MIDI clock from: " + (Clock.src || "?");
     bpmEl.classList.add("on");
   }
   if (document.body.classList.contains("xy")) renderLfo(); /* CLK/TAP label follows source */
   /* live clock diagnosis while the setup panel is open (iOS has no console) */
   if ($("setup").classList.contains("open")) {
     $("clock-diag").textContent = alive
-      ? "Clock: Quelle „" + (Clock.src || "?") + "“ · " + $("bpm-val").textContent + " BPM · " + Clock.count + " Ticks"
-      : "Clock: keine empfangen" + (Clock.count ? " (zuletzt: " + Clock.count + " Ticks)" : "");
+      ? "Clock: source \"" + (Clock.src || "?") + "\" · " + $("bpm-val").textContent + " BPM · " + Clock.count + " ticks"
+      : "Clock: none received" + (Clock.count ? " (last: " + Clock.count + " ticks)" : "");
   }
 }, 500);
 
@@ -2396,7 +2395,7 @@ function xyParam(a) {
 }
 function xyLabelText(axis) {
   const a = xyAssign(axis);
-  if (!a) return axis.toUpperCase() + ": – (tippen)";
+  if (!a) return axis.toUpperCase() + ": – (tap)";
   const p = xyParam(a);
   return axis.toUpperCase() + ": " + BUSES[a.bus].label + " · " + (p ? p.n : "CTRL " + (a.slot + 1));
 }
@@ -2416,7 +2415,7 @@ function updateXyVals() {
     const cc = state.buses[a.bus].cc[a.slot];
     parts.push(axis.toUpperCase() + " " + (p ? dispFromCc(p, cc, syncOnFor(a.bus, def)) : cc));
   }
-  $("xy-vals").textContent = parts.join("   ") || "Achsen oben zuweisen";
+  $("xy-vals").textContent = parts.join("   ") || "assign axes above";
 }
 function renderXy() {
   renderLfo();
@@ -2488,7 +2487,7 @@ function openXyPick(axis) {
   xyPickAxis = axis;
   const a = axis === "lfo" ? state.lfos[lfoSel].target : xyAssign(axis);
   xyPickBus = a ? a.bus : state.activeBus;
-  $("xypick-title").textContent = axis === "lfo" ? "LFO-ZIEL" : (axis === "x" ? "X" : "Y") + "-ACHSE";
+  $("xypick-title").textContent = axis === "lfo" ? "LFO TARGET" : (axis === "x" ? "X" : "Y") + " AXIS";
   renderXyPick();
   $("xypick").classList.add("open");
 }
@@ -2550,7 +2549,7 @@ function clockAlive() { return Clock.last > 0 && performance.now() - Clock.last 
 function lfoBpm() { return (clockAlive() && Clock.bpm) ? Clock.bpm : state.tapBpm; }
 function lfoToggle() {
   const rt = LfoRt[lfoSel], t = state.lfos[lfoSel].target;
-  if (!rt.on && !t) { showBanner("Erst ein LFO-Ziel wählen", "info", 2200); return; }
+  if (!rt.on && !t) { showBanner("Choose an LFO target first", "info", 2200); return; }
   rt.on = !rt.on;
   if (rt.on) {
     LfoRt.forEach((r, j) => { /* one target belongs to one slot */
@@ -2606,10 +2605,10 @@ setInterval(() => {
 }, 33);
 function lfoTargetLabel(cfg) {
   const t = cfg.target;
-  if (!t) return "Ziel: – (tippen)";
+  if (!t) return "Target: – (tap)";
   const def = fxDefFor(BUSES[t.bus].table, state.buses[t.bus].fx);
   const p = def && def.p[t.slot];
-  return "Ziel: " + BUSES[t.bus].label + " · " + (p ? p.n : "CTRL " + (t.slot + 1));
+  return "Target: " + BUSES[t.bus].label + " · " + (p ? p.n : "CTRL " + (t.slot + 1));
 }
 function renderLfo() {
   lfoChips.forEach((c, i) => {
@@ -2669,8 +2668,8 @@ const AUTO_BARS = [2, 4, 8];
 let autoOn = false, autoLast = 0;
 function renderAuto() {
   $("auto-on").classList.toggle("on", autoOn);
-  $("auto-bars").textContent = "alle " + state.auto.bars + " Takte";
-  $("auto-scope").textContent = state.auto.scope === "bank" ? "nur Bank" : "alle Bänke";
+  $("auto-bars").textContent = "every " + state.auto.bars + " bars";
+  $("auto-scope").textContent = state.auto.scope === "bank" ? "bank only" : "all banks";
 }
 setInterval(() => {
   if (!autoOn) return;
@@ -2796,7 +2795,7 @@ function buildPads() {
     if (custom) {
       const a = state.play.custom[cell];
       btn.appendChild(el("span", "", a ? BANK_NAMES[a.bank] + a.pad : "–"));
-      btn.appendChild(el("span", "pl", a ? "halten: ändern" : "halten: belegen"));
+      btn.appendChild(el("span", "pl", a ? "hold: edit" : "hold: assign"));
       attachNoteSource(btn, () => {
         const asg = state.play.custom[cell];
         return asg ? padNote(asg.bank, asg.pad) : null;
@@ -2852,10 +2851,10 @@ function renderPadPick() {
   }
 }
 const SCALES = [
-  ["DUR", [0, 2, 4, 5, 7, 9, 11]],
-  ["MOLL", [0, 2, 3, 5, 7, 8, 10]],
-  ["M-PENT", [0, 3, 5, 7, 10]],
-  ["D-PENT", [0, 2, 4, 7, 9]],
+  ["MAJ", [0, 2, 4, 5, 7, 9, 11]],
+  ["MIN", [0, 2, 3, 5, 7, 8, 10]],
+  ["MIN-P", [0, 3, 5, 7, 10]],
+  ["MAJ-P", [0, 2, 4, 7, 9]],
   ["DOR", [0, 2, 3, 5, 7, 9, 10]],
   ["MIXO", [0, 2, 4, 5, 7, 9, 10]],
   ["BLUES", [0, 3, 5, 6, 7, 10]],
@@ -2901,12 +2900,12 @@ function renderPlay() {
   $("play-layout").textContent = state.play.iso ? "ISO" : "LIN";
   $("bend").classList.toggle("off", !(mode === "keys" && state.play.target === "voc"));
   $("play-note").textContent = mode === "pads"
-    ? "Note-Map Mode B, Kanäle " + (state.play.padChPair + 1) + "/" + (state.play.padChPair + 2) + " (Geräte-Setting „Pad MIDI Channels“). ★ = eigenes Layout."
+    ? "Note map mode B, channels " + (state.play.padChPair + 1) + "/" + (state.play.padChPair + 2) + " (device setting \"Pad MIDI Channels\"). ★ = custom layout."
     : mode === "scale"
-      ? "Scale-Pads " + NOTE_NAMES[state.play.scaleRoot] + " " + SCALES[state.play.scaleType][0] + ": unten links = Grundton, " + (state.play.iso ? "Reihen im Quart-Versatz (Move-Layout)" : "Reihen fortlaufend") + ". Grundtöne markiert."
+      ? "Scale pads " + NOTE_NAMES[state.play.scaleRoot] + " " + SCALES[state.play.scaleType][0] + ": bottom left = root, " + (state.play.iso ? "rows a fourth apart (Move layout)" : "rows continuous") + ". Roots highlighted."
       : state.play.target === "sample"
-        ? "Chromatisch: spielt das aktuelle Sample (CH 16, C2–C4)."
-        : "Vocoder: Tonhöhen für den INPUT-Vocoder (CH 11), rechts Pitch Bend.";
+        ? "Chromatic: plays the current sample (CH 16, C2–C4)."
+        : "Vocoder: pitches for the INPUT vocoder (CH 11); pitch bend on the right.";
   if (mode === "pads") buildPads(); else if (mode === "scale") buildScale(); else buildKeys();
 }
 function setupBend() {
@@ -2950,7 +2949,7 @@ function boot() {
   buildOverview();
   BUSES.forEach((_, i) => renderBus(i));
   setActiveBus(state.activeBus || 0);
-  if (window.innerWidth >= 900) { document.body.classList.add("overview"); $("view-toggle").textContent = "Fokus"; }
+  if (window.innerWidth >= 900) { document.body.classList.add("overview"); $("view-toggle").textContent = "Focus"; }
 
   attachEfxPadDynamic($("efx-pad")); /* focus-header pad follows the active bus */
 
@@ -3100,7 +3099,7 @@ function boot() {
       Midi.demo = true;
       $("nomidi").classList.remove("open");
       updateConnUi();
-      showBanner("Demo-Modus: es wird kein MIDI gesendet", "info", 4000);
+      showBanner("Demo mode: no MIDI is sent", "info", 4000);
     });
   } else if (state.midi.outName) {
     Midi.connect(false); /* previously granted: resolves silently */

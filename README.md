@@ -3,7 +3,7 @@
 A free, browser-based MIDI controller for the **Roland SP-404 MkII** — a single
 HTML file, no installation, no dependencies, no account.
 
-**Live:** _(GitHub Pages URL follows after publishing)_
+**Live: https://littletools404.github.io/404busdriver/**
 
 ## What it does
 
@@ -28,8 +28,8 @@ HTML file, no installation, no dependencies, no account.
 - Effect control works in MIDI Mode A and B; pattern switching needs Mode B
   with "PC Rx" ON. Details in the built-in manual (Setup > Handbuch).
 
-Note: the UI is currently in German. The gestures are self-explanatory; an
-English UI may follow.
+Full documentation: [MANUAL.md](MANUAL.md) — also built into the app
+(Setup > Manual).
 
 ## Privacy
 
