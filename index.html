@@ -1,0 +1,3150 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#121214">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>404 Busdriver</title>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="404 Busdriver">
+  <meta property="og:description" content="MIDI-Controller für die fünf Effekt-Busse des Roland SP-404 MkII. Chrome/Edge (Web MIDI).">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23121214'/%3E%3Crect x='7' y='7' width='18' height='18' rx='3' fill='%23ff7a1a'/%3E%3C/svg%3E">
+  <style>
+  /* ============ 01 tokens ============ */
+  :root {
+    --bg: #121214; --panel: #1c1c20; --raised: #26262b; --line: #35353b;
+    --text: #e8e6e1; --muted: #8a8880;
+    --accent: #ff7a1a; --accent-dim: rgba(255,122,26,.25); --glow: rgba(255,122,26,.35);
+    --ok: #4cd07d; --warn: #ff4545;
+    --statusbar-h: 46px; --tabs-h: 60px;
+    --font-label: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  /* ============ 02 reset + shell ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    position: fixed; inset: 0; width: 100%; height: 100dvh;
+    touch-action: none; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-label);
+    -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    /* subtle film grain + vignette, no external assets */
+    background-image:
+      radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.025), transparent 70%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; touch-action: none; }
+  #app {
+    display: grid; height: 100dvh;
+    grid-template-rows: calc(var(--statusbar-h) + env(safe-area-inset-top)) var(--tabs-h) 1fr;
+    grid-template-columns: minmax(0, 1fr); /* no item may inflate the track */
+    grid-template-areas: "status" "tabs" "main";
+  }
+  .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .display {
+    background: #000; border-radius: 4px; box-shadow: inset 0 0 0 1px #2a2a2e;
+    font-family: var(--font-mono); color: var(--text);
+    text-shadow: 0 0 6px rgba(232,230,225,.4);
+    background-image: repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,.02) 2px 3px);
+  }
+  .pad {
+    background: var(--raised); border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.4), 0 0 0 1px var(--line);
+  }
+  .pad.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow), inset 0 1px 0 rgba(255,255,255,.25); }
+  /* ============ 03 statusbar ============ */
+  #statusbar {
+    grid-area: status; display: flex; align-items: center; gap: 10px;
+    padding: env(safe-area-inset-top) calc(10px + env(safe-area-inset-right)) 0 calc(10px + env(safe-area-inset-left));
+    border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  #conn { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; height: 100%; text-align: left; }
+  #conn-dot { width: 9px; height: 9px; border-radius: 50%; background: #555; flex: none; }
+  #conn-dot.ok { background: var(--ok); box-shadow: 0 0 6px rgba(76,208,125,.6); }
+  #conn-dot.err { background: var(--warn); box-shadow: 0 0 6px rgba(255,69,69,.6); }
+  #conn-name { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tx { width: 7px; height: 7px; border-radius: 50%; background: #3a3a40; flex: none; transition: background .05s; }
+  #tx.blink { background: var(--accent); box-shadow: 0 0 6px var(--glow); }
+  #statusbar .sbtn {
+    height: 34px; padding: 0 12px; border-radius: 7px; flex: none;
+    font-size: 11px; letter-spacing: .07em; font-weight: 600;
+  }
+  #alloff { color: #ff9a9a; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.4), 0 0 0 1px #5a3535; }
+  #alloff.armed { background: var(--warn); color: #fff; box-shadow: 0 0 12px rgba(255,69,69,.5); }
+  /* ============ 04 bus tabs ============ */
+  #bustabs {
+    grid-area: tabs; display: flex; gap: 6px; align-items: stretch;
+    padding: 6px calc(8px + env(safe-area-inset-right)) 6px calc(8px + env(safe-area-inset-left));
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .bustab {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--muted);
+    position: relative; min-width: 0;
+  }
+  .bustab.active { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); }
+  .led { width: 10px; height: 10px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 35% 35%, #4a4a50, #333338); box-shadow: inset 0 0 2px #000; }
+  .led.on { background: radial-gradient(circle at 35% 35%, #ffc48f, var(--accent)); box-shadow: 0 0 8px var(--glow); }
+  /* ============ 05 focus view ============ */
+  /* min-width 0: as a grid item, main must never inflate the track -
+     wide overview content scrolls inside #view-overview instead */
+  main { grid-area: main; min-height: 0; min-width: 0; position: relative; }
+  #view-focus { display: flex; flex-direction: column; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); gap: 10px; }
+  #focus-head { display: flex; gap: 10px; align-items: stretch; flex: none; height: 58px; }
+  #efx-pad { width: 104px; flex: none; font-size: 13px; font-weight: 700; letter-spacing: .1em; }
+  #fx-select { flex: 1; display: flex; gap: 6px; min-width: 0; }
+  #fx-prev, #fx-next { width: 46px; flex: none; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line); font-size: 17px; color: var(--muted); }
+  #fx-name {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    padding: 4px 10px; font-size: 15px; overflow: hidden;
+  }
+  #fx-name .fx-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #fx-name .fx-sub { font-size: 9px; letter-spacing: .12em; color: var(--muted); text-shadow: none; }
+  #faders { flex: 1; display: flex; gap: 8px; min-height: 0; }
+  /* ============ 06 fader component ============ */
+  .slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+  .slot.empty { opacity: .22; pointer-events: none; }
+  .fader { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; width: 100%; min-height: 0; position: relative; touch-action: none; }
+  .fader-val { font-size: 12px; padding: 3px 4px; min-width: 52px; max-width: 100%; text-align: center; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fader-track-wrap { flex: 1; width: 100%; display: flex; justify-content: center; min-height: 0; position: relative; }
+  .fader-track { width: 10px; height: 100%; border-radius: 5px; background: #0d0d0f; box-shadow: inset 0 0 0 1px #2c2c31; position: relative; }
+  .fader-fill { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 5px; background: var(--accent-dim); }
+  .fader-thumb {
+    --thumb-h: 26px;
+    position: absolute; left: 50%; width: 44px; height: var(--thumb-h); border-radius: 6px;
+    transform: translateX(-50%);
+    background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), inset 0 -1px 0 rgba(0,0,0,.5), 0 2px 5px rgba(0,0,0,.5), 0 0 0 1px var(--line);
+  }
+  .fader-thumb::after { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; transform: translateY(-50%); background: var(--accent); border-radius: 1px; }
+  .fader.drag .fader-thumb { background: #3a3126; box-shadow: 0 0 12px var(--glow), inset 0 1px 0 rgba(255,255,255,.15), 0 0 0 1px var(--accent); }
+  .slot-label { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; flex: none; }
+  .bigval {
+    position: absolute; top: -6px; left: 50%; transform: translate(-50%, -100%);
+    font-size: 30px; padding: 4px 12px; z-index: 6; pointer-events: none;
+    opacity: 0; transition: opacity .15s; white-space: nowrap;
+  }
+  .bigval.show { opacity: 1; }
+  /* toggle pad + segment stepper in a slot */
+  .slot-toggle { flex: 1; width: 100%; max-width: 74px; border-radius: 8px; font-size: 11px; font-weight: 700; letter-spacing: .06em; min-height: 0; }
+  .seg { flex: 1; width: 100%; max-width: 74px; display: flex; flex-direction: column-reverse; gap: 4px; min-height: 0; }
+  .seg button { flex: 1; border-radius: 6px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 10px; font-weight: 600; color: var(--muted); min-height: 0; overflow: hidden; }
+  .seg button.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 10px var(--glow); }
+  /* stepper popover */
+  #stepper { position: fixed; z-index: 40; display: none; gap: 8px; padding: 8px; border-radius: 10px; background: var(--panel); box-shadow: 0 6px 24px rgba(0,0,0,.6), 0 0 0 1px var(--line); }
+  #stepper.open { display: flex; }
+  #stepper button { width: 56px; height: 48px; border-radius: 8px; font-size: 20px; }
+  /* ============ 07 overview ============ */
+  #view-overview { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); gap: 8px; }
+  body.overview #view-overview { display: flex; }
+  body.overview #view-focus { display: none; }
+  .busstrip { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; background: var(--panel); border-radius: 10px; padding: 8px; box-shadow: 0 0 0 1px var(--line); }
+  .busstrip.on { box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(255,122,26,.12); }
+  .strip-head { display: flex; align-items: center; gap: 8px; flex: none; }
+  .strip-head .label { flex: 1; text-align: left; }
+  .strip-efx { width: 64px; height: 44px; border-radius: 7px; font-size: 10px; font-weight: 700; letter-spacing: .06em; flex: none; }
+  .strip-fx { flex: none; padding: 5px 8px; font-size: 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .strip-faders { flex: 1; display: flex; gap: 5px; min-height: 0; }
+  .strip-faders .fader-val { display: none; }
+  .strip-faders .slot-label { font-size: 8.5px; }
+  .strip-faders .fader-thumb { --thumb-h: 16px; width: 26px; }
+  /* ============ 08 picker ============ */
+  .overlay { position: fixed; inset: 0; z-index: 20; display: none; background: rgba(8,8,10,.72); }
+  .overlay.open { display: flex; }
+  #picker-panel {
+    margin-left: auto; width: min(420px, 100%); height: 100%;
+    background: var(--panel); box-shadow: -8px 0 30px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; position: relative;
+    padding-top: env(safe-area-inset-top);
+  }
+  #picker-head { display: flex; align-items: center; gap: 10px; padding: 12px calc(14px + env(safe-area-inset-right)) 12px 14px; border-bottom: 1px solid var(--line); flex: none; }
+  #picker-title { flex: 1; font-size: 13px; font-weight: 700; letter-spacing: .08em; }
+  #picker-close { width: 44px; height: 40px; border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 16px; }
+  #picker-body { flex: 1; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 10px calc(46px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) 12px; position: relative; }
+  .pick-cat { margin-top: 14px; }
+  .pick-cat h3 { font-size: 10px; letter-spacing: .12em; color: var(--muted); font-weight: 700; padding: 6px 2px; position: sticky; top: -10px; background: var(--panel); z-index: 2; }
+  .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pick-item {
+    min-height: 48px; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    display: flex; align-items: center; gap: 8px; padding: 4px 10px;
+    font-size: 12.5px; text-align: left; color: var(--text); position: relative;
+  }
+  .pick-item.sel { background: var(--accent); color: #1a1105; font-weight: 700; }
+  .pick-item.off-item { grid-column: 1 / -1; justify-content: center; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+  .pick-item.sel.off-item { color: #1a1105; }
+  .pick-item .star { margin-left: auto; font-size: 13px; color: var(--muted); opacity: .45; flex: none; }
+  .pick-item .star.fav { color: var(--accent); opacity: 1; }
+  .pick-item.sel .star.fav { color: #1a1105; }
+  /* buttons in scroll panels must not defeat the panel's pan-y (global button rule is none) */
+  .pick-item, .setup-btn, .snap-slot { touch-action: pan-y; }
+  .pick-note { font-size: 11px; line-height: 1.5; color: var(--muted); padding: 2px 2px 10px; }
+  @media (min-width: 700px) { .pick-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  #jumpbar { position: absolute; right: calc(6px + env(safe-area-inset-right)); top: calc(70px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; z-index: 3; }
+  #jumpbar button { width: 36px; height: 40px; font-size: 9px; font-weight: 700; color: var(--muted); border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); }
+  /* ============ 09 setup ============ */
+  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel {
+    margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px);
+    background: var(--panel); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px var(--line);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
+  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
+  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  #help-panel { width: min(560px, calc(100% - 24px)); }
+  #help-body { gap: 6px; }
+  #help-body h3 { font-size: 11px; letter-spacing: .1em; color: var(--accent); font-weight: 700; margin-top: 10px; text-transform: uppercase; }
+  #help-body p { font-size: 12.5px; line-height: 1.65; color: var(--text); }
+  #help-body b { font-weight: 700; }
+  /* xy view */
+  #view-xy { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.xy #view-xy { display: flex; }
+  body.xy #view-focus, body.xy #view-overview { display: none; }
+  #xy-head { display: flex; gap: 8px; flex: none; height: 46px; }
+  #xy-xa, #xy-ya { flex: 1; min-width: 0; font-size: 12px; padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #xy-mom { width: 112px; flex: none; font-size: 10px; font-weight: 700; letter-spacing: .06em; border-radius: 8px; }
+  #xy-pad { flex: 1; position: relative; border-radius: 12px; background: #0d0d0f;
+    box-shadow: inset 0 0 0 1px #2c2c31; touch-action: none; overflow: hidden;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 calc(25% - 1px), rgba(255,255,255,.04) calc(25% - 1px) 25%),
+      repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(255,255,255,.04) calc(25% - 1px) 25%); }
+  #xy-lineh, #xy-linev { position: absolute; background: rgba(255,122,26,.28); pointer-events: none; }
+  #xy-lineh { left: 0; right: 0; height: 1px; top: 50%; }
+  #xy-linev { top: 0; bottom: 0; width: 1px; left: 50%; }
+  #xy-cross { position: absolute; width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--accent); box-shadow: 0 0 14px var(--glow);
+    transform: translate(-50%, -50%); pointer-events: none; left: 50%; top: 50%; }
+  #xy-vals { position: absolute; left: 10px; top: 8px; padding: 4px 9px; font-size: 11px; pointer-events: none; }
+  /* lfo row (inside xy view) */
+  #lfo-row { display: flex; gap: 6px; flex: none; height: 42px; }
+  #lfo-row .pad { border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; padding: 0 10px; flex: none; }
+  #lfo-target { flex: 1; min-width: 0; font-size: 11px; padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* pattern view */
+  #view-pattern { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.pattern #view-pattern { display: flex; }
+  body.pattern #view-focus, body.pattern #view-overview, body.pattern #view-xy { display: none; }
+  #ptn-banks, #pad-banks { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+  #ptn-banks button, #pad-banks button { flex: 1; min-width: 44px; height: 40px; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    font-size: 12px; font-weight: 700; color: var(--muted); }
+  #ptn-banks button.active, #pad-banks button.active { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), 0 0 0 1px var(--line); }
+  #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
+  #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
+  #ptn-grid button.sent { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow), inset 0 1px 0 rgba(255,255,255,.25); }
+  #pad-grid button.hit, #scale-grid button.hit { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow); }
+  #scale-grid button.root { box-shadow: inset 0 -3px 0 var(--accent), inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line); }
+  #scale-grid button.oor { opacity: .22; pointer-events: none; }
+  #pad-grid button .pl { display: block; font-size: 9px; font-weight: 600; color: inherit; opacity: .65; }
+  #view-pattern .pick-note, #view-play .pick-note { flex: none; }
+  #loop-row, #auto-row { display: flex; flex-wrap: wrap; gap: 6px; flex: none; align-items: center; }
+  #loop-row .pad, #auto-row .pad { height: 40px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 0 10px; }
+  #loop-row h4, #auto-row h4 { width: 100%; font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
+  #loop-bpm { flex: 1; min-width: 90px; accent-color: var(--accent); }
+  /* play view: chromatic keys + pad board */
+  #view-play { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.play #view-play { display: flex; }
+  body.play #view-focus, body.play #view-overview, body.play #view-xy, body.play #view-pattern { display: none; }
+  #play-head { display: flex; gap: 6px; flex: none; height: 42px; }
+  #play-head .pad { border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; padding: 0 12px; flex: none; }
+  #play-head .spacer { flex: 1; }
+  #keys-area { flex: 1; display: flex; gap: 8px; min-height: 0; }
+  #view-play.pads #keys-area, #view-play.scale #keys-area { display: none; }
+  #pads-area { flex: 1; display: none; flex-direction: column; gap: 10px; min-height: 0; }
+  #view-play.pads #pads-area { display: flex; }
+  #scale-area { flex: 1; display: none; flex-direction: column; gap: 10px; min-height: 0; }
+  #view-play.scale #scale-area { display: flex; }
+  #keys { flex: 1; position: relative; touch-action: none; min-width: 0; }
+  .key { position: absolute; bottom: 0; top: 0; border-radius: 0 0 6px 6px; }
+  .key.white { background: #e8e6e1; box-shadow: inset 0 0 0 1px #9a988f, inset 0 -6px 0 rgba(0,0,0,.08); }
+  .key.black { background: #1a1a1e; height: 56%; bottom: auto; z-index: 2; border-radius: 0 0 5px 5px; box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 0 0 1px #000; }
+  .key.on { background: var(--accent); }
+  .key .kl { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 9px; color: #6a685f; pointer-events: none; }
+  #bend { width: 54px; flex: none; border-radius: 8px; background: #0d0d0f; box-shadow: inset 0 0 0 1px #2c2c31; position: relative; touch-action: none; }
+  #bend.off { display: none; }
+  #bend-ind { position: absolute; left: 6px; right: 6px; height: 24px; top: calc(50% - 12px); border-radius: 5px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); pointer-events: none; }
+  #bend-ind::after { content: ""; position: absolute; left: 5px; right: 5px; top: 50%; height: 2px; transform: translateY(-50%); background: var(--accent); border-radius: 1px; }
+  /* lfo slot chips */
+  #lfo-slots { display: flex; gap: 4px; flex: none; }
+  #lfo-slots button { width: 34px; border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 10px; font-weight: 700; color: var(--muted); position: relative; }
+  #lfo-slots button.sel { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), 0 0 0 1px var(--line); }
+  #lfo-slots button.running::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--glow); }
+  /* bpm display */
+  #bpm { display: none; align-items: center; gap: 6px; padding: 4px 9px; flex: none;
+    background: #000; border-radius: 4px; box-shadow: inset 0 0 0 1px #2a2a2e;
+    font-family: var(--font-mono); font-size: 11px; color: var(--text);
+    text-shadow: 0 0 6px rgba(232,230,225,.4); }
+  #bpm.on { display: flex; }
+  #beat { width: 6px; height: 6px; border-radius: 50%; background: #3a3a40; }
+  #beat.tick { background: var(--accent); box-shadow: 0 0 5px var(--glow); }
+  /* snapshots */
+  .snap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .snap-slot { min-height: 64px; border-radius: 10px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 8px 32px 8px 12px; position: relative; color: var(--text); cursor: pointer; user-select: none; }
+  .snap-slot.empty { color: var(--muted); background: transparent; box-shadow: 0 0 0 1px var(--line); }
+  .snap-slot .sn-name { font-size: 12.5px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .snap-slot .sn-meta { font-size: 9px; letter-spacing: .08em; color: var(--muted); }
+  .snap-slot .sn-sum { font-size: 9.5px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sn-edit { width: 100%; background: #000; border: 1px solid var(--accent); color: var(--text);
+    border-radius: 5px; font: inherit; font-size: 12.5px; padding: 3px 6px; text-align: center;
+    user-select: text; -webkit-user-select: text; }
+  #snap-current { padding: 8px 10px; font-size: 11.5px; line-height: 1.65; white-space: pre-line; }
+  .snap-slot .sn-del { position: absolute; top: 2px; right: 2px; width: 30px; height: 30px; border-radius: 7px; color: var(--muted); font-size: 12px; }
+  #sync-status { font-size: 11px; color: var(--muted); letter-spacing: .05em; }
+  #exchange { width: 100%; min-height: 90px; background: #000; color: var(--text);
+    font-family: var(--font-mono); font-size: 11px; border-radius: 6px;
+    border: 1px solid var(--line); padding: 8px; resize: vertical; margin-bottom: 8px; }
+  #rnd-btn { width: 46px; flex: none; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line);
+    font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--muted); }
+  #rnd-btn.undo { color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .setup-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .setup-btn { min-height: 44px; padding: 8px 14px; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 12.5px; }
+  .setup-btn.primary { background: var(--accent); color: #1a1105; font-weight: 700; }
+  .setup-btn.sel { box-shadow: 0 0 0 2px var(--accent); }
+  #diag { font-size: 12px; line-height: 1.6; color: var(--muted); }
+  #diag b { color: var(--text); font-weight: 600; }
+  #clock-diag { font-size: 12px; color: var(--muted); }
+  .infobox { border-left: 3px solid var(--accent); background: rgba(255,122,26,.06); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 12.5px; line-height: 1.55; color: var(--text); }
+  .infobox .label { display: block; margin-bottom: 4px; color: var(--accent); }
+  /* ============ 10 no-midi hint ============ */
+  #nomidi { position: fixed; inset: 0; z-index: 30; display: none; background: var(--bg); padding: max(30px, env(safe-area-inset-top)) 24px 24px; overflow-y: auto; touch-action: pan-y; }
+  #nomidi.open { display: block; }
+  #nomidi .inner { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  #nomidi h1 { font-size: 20px; letter-spacing: .04em; }
+  #nomidi p { font-size: 13.5px; line-height: 1.65; color: var(--muted); }
+  #nomidi p b { color: var(--text); font-weight: 600; }
+  /* ============ 11 banner ============ */
+  #banner { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 25;
+    background: var(--warn); color: #fff; font-size: 12.5px; font-weight: 600; padding: 10px 16px; border-radius: 9px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.5); display: none; max-width: calc(100% - 28px); text-align: center; }
+  #banner.show { display: block; }
+  #banner.info { background: var(--raised); color: var(--text); box-shadow: 0 4px 18px rgba(0,0,0,.5), 0 0 0 1px var(--line); }
+  #banner:not(.info) { cursor: pointer; }
+  /* ============ 12 responsive ============ */
+  /* phone portrait <=520: overview becomes stacked cards, strip faders read-only */
+  @media (max-width: 520px) {
+    #view-overview { flex-direction: column; overflow-y: auto; touch-action: pan-y; }
+    .busstrip { flex: none; height: 116px; flex-direction: row; align-items: stretch; }
+    .strip-head { flex-direction: column; align-items: flex-start; gap: 6px; width: 92px; flex: none; justify-content: center; }
+    .strip-fx { width: 92px; align-self: center; flex: none; }
+    .strip-faders { pointer-events: none; }
+    .strip-faders .fader-thumb { display: none; }
+    #efx-pad { width: 96px; }
+    #statusbar { gap: 6px; }
+    #statusbar .sbtn { padding: 0 6px; font-size: 10px; letter-spacing: .03em; }
+    .strip-efx { width: 100%; height: 44px; }
+    .strip-fx, .strip-head .label { touch-action: pan-y; }
+    #lfo-row { flex-wrap: wrap; height: auto; }
+    #lfo-row .pad, #lfo-target, #lfo-slots button { height: 40px; }
+    #lfo-target { min-width: 130px; }
+    #play-head { flex-wrap: wrap; height: auto; }
+    #play-head .pad { height: 38px; }
+  }
+  /* tablet/desktop overview: strips keep a playable width, container scrolls */
+  @media (min-width: 521px) {
+    .busstrip { min-width: 190px; touch-action: pan-x; }
+    #view-overview { overflow-x: auto; touch-action: pan-x; overscroll-behavior-x: contain; }
+    /* horizontal pan may start on card head/name (click won't fire after a pan);
+       faders and EFX pads keep touch-action none */
+    .strip-fx, .strip-head .label { touch-action: pan-x; }
+  }
+  /* phone landscape: tabs become a left rail */
+  @media (max-height: 500px) and (orientation: landscape) {
+    #app { grid-template-rows: calc(var(--statusbar-h) + env(safe-area-inset-top)) 1fr; grid-template-columns: calc(70px + env(safe-area-inset-left)) minmax(0, 1fr);
+      grid-template-areas: "status status" "tabs main"; }
+    #bustabs { flex-direction: column; border-bottom: none; border-right: 1px solid var(--line);
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left)); }
+    #view-focus { flex-direction: row; }
+    #focus-head { flex-direction: column; height: auto; width: 120px; flex: none; }
+    #efx-pad { width: 100%; height: 58px; flex: none; }
+    #fx-select { flex-direction: column; }
+    #fx-prev, #fx-next, #rnd-btn { width: 100%; height: 40px; flex: none; }
+    #fx-name { flex: 1; }
+    #view-overview { overflow-x: auto; }
+    #view-pattern { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
+    #ptn-grid { flex: none; min-height: 210px; }
+    #view-pattern button, #loop-bpm { touch-action: pan-y; }
+  }
+  /* wide: desktop hover niceties */
+  @media (hover: hover) {
+    .pick-item:hover, .setup-btn:hover, .bustab:hover { filter: brightness(1.15); }
+  }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="statusbar">
+      <button id="conn" title="Setup">
+        <span id="conn-dot"></span>
+        <span id="conn-name" class="mono">nicht verbunden</span>
+      </button>
+      <span id="tx"></span>
+      <span id="bpm"><span id="beat"></span><span id="bpm-val">&ndash;</span></span>
+      <button id="view-toggle" class="sbtn pad">&Uuml;bersicht</button>
+      <button id="xy-btn" class="sbtn pad">XY</button>
+      <button id="alloff" class="sbtn">ALL OFF</button>
+      <button id="snaps-btn" class="sbtn pad">Snap</button>
+      <button id="setup-btn" class="sbtn pad">Setup</button>
+    </header>
+    <nav id="bustabs"></nav>
+    <main>
+      <section id="view-focus">
+        <div id="focus-head">
+          <button id="efx-pad" class="pad">EFX</button>
+          <div id="fx-select">
+            <button id="fx-prev">&#8249;</button>
+            <button id="fx-name" class="display">
+              <span class="fx-title">(OFF)</span>
+              <span class="fx-sub">Effekt w&auml;hlen</span>
+            </button>
+            <button id="fx-next">&#8250;</button>
+            <button id="rnd-btn" title="W&uuml;rfeln / R&uuml;ckg&auml;ngig">RND</button>
+          </div>
+        </div>
+        <div id="faders"></div>
+      </section>
+      <section id="view-overview"></section>
+      <section id="view-xy">
+        <div id="xy-head">
+          <button id="xy-xa" class="display mono">X: &ndash;</button>
+          <button id="xy-ya" class="display mono">Y: &ndash;</button>
+          <button id="xy-mom" class="pad">MOMENTARY</button>
+        </div>
+        <div id="lfo-row">
+          <div id="lfo-slots"></div>
+          <button id="lfo-on" class="pad">LFO</button>
+          <button id="lfo-target" class="display mono">Ziel: &ndash;</button>
+          <button id="lfo-wave" class="pad">SIN</button>
+          <button id="lfo-rate" class="pad">1/4</button>
+          <button id="lfo-depth" class="pad">50%</button>
+          <button id="lfo-tap" class="pad">TAP</button>
+        </div>
+        <div id="xy-pad">
+          <div id="xy-lineh"></div>
+          <div id="xy-linev"></div>
+          <div id="xy-cross"></div>
+          <div id="xy-vals" class="display mono"></div>
+        </div>
+      </section>
+      <section id="view-pattern">
+        <div id="ptn-banks"></div>
+        <div id="ptn-grid"></div>
+        <div id="auto-row">
+          <h4>Autopilot</h4>
+          <button id="auto-on" class="pad">AUTO</button>
+          <button id="auto-bars" class="pad">alle 4 Takte</button>
+          <button id="auto-scope" class="pad">nur Bank</button>
+        </div>
+        <div id="loop-row">
+          <h4>Looper (Ger&auml;t im Looper-Modus, CH 1)</h4>
+          <button id="lp-rec" class="pad">REC</button>
+          <button id="lp-dub" class="pad">OVERDUB</button>
+          <button id="lp-del" class="pad">DEL</button>
+          <button id="lp-undo" class="pad">UNDO</button>
+          <button id="lp-redo" class="pad">REDO</button>
+          <button id="lp-stop" class="pad">STOP ALL</button>
+          <button id="lp-treset" class="pad">TEMPO RST</button>
+          <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / Play Rate (CC#90)">
+        </div>
+        <p class="pick-note">Program Change: Bank = MIDI-Kanal, Pattern = PC 0&ndash;15.
+        Ben&ouml;tigt <b>MIDI Mode B</b> am Ger&auml;t und &bdquo;PC Rx&ldquo; = ON.
+        Das Ger&auml;t best&auml;tigt Wechsel nicht per MIDI &ndash; markiert ist der zuletzt gesendete.</p>
+      </section>
+      <section id="view-play">
+        <div id="play-head">
+          <button id="play-keys-btn" class="pad">KEYS</button>
+          <button id="play-scale-btn" class="pad">SCALE</button>
+          <button id="play-pads-btn" class="pad">PADS</button>
+          <span class="spacer"></span>
+          <button id="play-target" class="pad">SAMPLE CH16</button>
+          <button id="play-root" class="pad">C</button>
+          <button id="play-scalesel" class="pad">DUR</button>
+          <button id="play-layout" class="pad">ISO</button>
+          <button id="play-oct-down" class="pad">OKT &minus;</button>
+          <button id="play-oct-up" class="pad">OKT +</button>
+        </div>
+        <div id="keys-area">
+          <div id="keys"></div>
+          <div id="bend" class="off"><div id="bend-ind"></div></div>
+        </div>
+        <div id="pads-area">
+          <div id="pad-banks"></div>
+          <div id="pad-grid"></div>
+        </div>
+        <div id="scale-area">
+          <div id="scale-grid"></div>
+        </div>
+        <p class="pick-note" id="play-note">Chromatisch: spielt das aktuelle Sample (CH 16, C2&ndash;C4).</p>
+      </section>
+    </main>
+  </div>
+
+  <div id="stepper">
+    <button id="step-minus">&minus;</button>
+    <button id="step-plus">+</button>
+  </div>
+
+  <div id="picker" class="overlay">
+    <div id="picker-panel">
+      <div id="picker-head">
+        <span id="picker-title" class="label">Effekt</span>
+        <button id="picker-close">&#10005;</button>
+      </div>
+      <div id="picker-body"></div>
+    </div>
+  </div>
+
+  <div id="setup" class="overlay">
+    <div id="setup-panel">
+      <div id="setup-head">
+        <h2>404 BUSDRIVER &ndash; SETUP</h2>
+        <button id="setup-close" class="setup-btn">Schlie&szlig;en</button>
+      </div>
+      <div id="setup-body">
+        <div id="diag" class="mono"></div>
+        <div id="clock-diag" class="mono">Clock: &ndash;</div>
+        <div class="setup-row" id="setup-actions">
+          <button id="midi-connect" class="setup-btn primary">Mit SP-404 verbinden</button>
+          <button id="midi-rescan" class="setup-btn">Neu verbinden</button>
+          <button id="push-state" class="setup-btn">Zustand ans Ger&auml;t senden</button>
+          <button id="wake-toggle" class="setup-btn">Bildschirm wachhalten: aus</button>
+          <button id="help-btn" class="setup-btn">Handbuch</button>
+        </div>
+        <div>
+          <h4>MIDI-Ausgang</h4>
+          <div class="setup-row" id="out-list"></div>
+        </div>
+        <div>
+          <h4>MIDI-Eingang</h4>
+          <div class="setup-row" id="in-list"></div>
+        </div>
+        <div>
+          <h4>Direct FX Belegung (BUS 1+2)</h4>
+          <div class="setup-row" id="dfx-list"></div>
+          <p class="pick-note">Spiegelt die Ger&auml;te-Einstellung: welcher Effekt liegt auf
+          Direct FX 1&ndash;5? Dann zeigen die Fader beim Anw&auml;hlen die echten
+          Parameternamen (z. B. Sync Delay auf DFX3).</p>
+        </div>
+        <div class="infobox">
+          <span class="label">Tempo / Ableton Link</span>
+          Die BPM-Anzeige in der Statusleiste liest eingehende MIDI Clock
+          &ndash; von jedem angeschlossenen Port. Link-Route: Ableton Live oder
+          eine Link-to-MIDI-Bridge sendet Clock an den SP-404
+          (UTILITY &gt; SYSTEM &gt; MIDI: &bdquo;MIDI Sync&ldquo;) und an diesen
+          Rechner &ndash; Ger&auml;t und App laufen dann synchron zur Link-Session.
+          Sendet der SP-404 selbst Clock (MIDI Sync Out), zeigt die App
+          dessen Tempo.
+        </div>
+        <div class="infobox">
+          <span class="label">Am Ger&auml;t: MIDI-Modus</span>
+          Die FX-Steuerung funktioniert in Mode <b>A</b> und <b>B</b> (Roland
+          dokumentiert sie nur f&uuml;r B; A am Ger&auml;t verifiziert). F&uuml;r die
+          sp&auml;tere Pattern-Umschaltung braucht es Mode B: [SHIFT] + [PAD 12]
+          &gt; SYSTEM &gt; MIDI &gt; &bdquo;MIDI Mode&ldquo;. Der SP-404 MkII
+          h&auml;ngt per USB-C direkt am Rechner bzw. iPad.
+        </div>
+        <div class="infobox">
+          <span class="label">iPhone / iPad</span>
+          Kein iOS-Browser kann Web MIDI. Diese Seite dort in der App
+          <b>MIDIWeb Browser</b> oder <b>Web MIDI Browser</b> &ouml;ffnen
+          (App Store), SP-404 per USB-C anschlie&szlig;en.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="snaps" class="overlay">
+    <div id="snaps-panel">
+      <div id="snaps-head">
+        <h2>SNAPSHOTS</h2>
+        <button id="snaps-close" class="setup-btn">Schlie&szlig;en</button>
+      </div>
+      <div id="snaps-body">
+        <div id="sync-status" class="mono">Sync: &hellip;</div>
+        <div>
+          <h4>Aktueller Zustand (das wird gespeichert)</h4>
+          <div id="snap-current" class="display mono"></div>
+        </div>
+        <div class="snap-grid" id="snap-grid"></div>
+        <p class="pick-note">Tippen l&auml;dt den Slot auf alle 5 Busse (leerer Slot: speichert).
+        Halten speichert in den Slot. Nach dem Speichern l&auml;sst sich der Name direkt im Slot tippen.</p>
+        <div>
+          <h4>Export / Import (JSON)</h4>
+          <textarea id="exchange" spellcheck="false" placeholder="Export erzeugt hier JSON zum Kopieren &ndash; Import liest eingef&uuml;gtes JSON."></textarea>
+          <div class="setup-row">
+            <button id="exp-btn" class="setup-btn">Exportieren</button>
+            <button id="imp-btn" class="setup-btn">Importieren</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="padpick" class="overlay">
+    <div id="padpick-panel">
+      <div id="padpick-head">
+        <h2 id="padpick-title">PAD BELEGEN</h2>
+        <button id="padpick-close" class="setup-btn">Schlie&szlig;en</button>
+      </div>
+      <div id="padpick-body">
+        <h4>Bank</h4>
+        <div class="setup-row" id="padpick-bank"></div>
+        <h4>Pad</h4>
+        <div class="setup-row" id="padpick-pad"></div>
+        <div class="setup-row"><button id="padpick-none" class="setup-btn">Leeren</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="xypick" class="overlay">
+    <div id="xypick-panel">
+      <div id="xypick-head">
+        <h2 id="xypick-title">X-ACHSE</h2>
+        <button id="xypick-close" class="setup-btn">Schlie&szlig;en</button>
+      </div>
+      <div id="xypick-body">
+        <h4>Bus</h4>
+        <div class="setup-row" id="xypick-bus"></div>
+        <h4>Regler</h4>
+        <div class="setup-row" id="xypick-slot"></div>
+        <div class="setup-row"><button id="xypick-none" class="setup-btn">Keine Zuordnung</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="help" class="overlay">
+    <div id="help-panel">
+      <div id="help-head">
+        <h2>HANDBUCH</h2>
+        <button id="help-close" class="setup-btn">Schlie&szlig;en</button>
+      </div>
+      <div id="help-body">
+        <h3>Verbindung</h3>
+        <p>SP-404 MkII per USB-C anschlie&szlig;en, Setup &gt; &bdquo;Mit SP-404 verbinden&ldquo;.
+        Am Rechner Chrome/Edge; auf iPhone/iPad die App <b>MIDIWeb Browser</b> nutzen.
+        FX-Steuerung l&auml;uft in MIDI Mode A und B; Patterns brauchen Mode B + &bdquo;PC Rx&ldquo; ON.
+        Wirkt die App veraltet: URL mit <b>?v=99</b> laden (Cache), Build-Nr. steht im Setup.</p>
+        <h3>Statusleiste und Tabs</h3>
+        <p>Verbindungspunkt (tippen = Setup), TX-Blinker, BPM bei eingehender Clock,
+        &Uuml;bersicht/Fokus, XY, <b>ALL OFF</b> (aus + merken; zweiter Tipp stellt wieder her),
+        Snap, Setup. Tabs: BUS 1&ndash;4, IN, PLAY, PTN &ndash; die LEDs zeigen aktive Effekte.</p>
+        <h3>Fader-Gesten (Fokus)</h3>
+        <p>Relativer Drag &ndash; der erste Touch springt nie. <b>Feinjustage:</b> beim Ziehen
+        seitlich rausziehen (ab 60 px feiner, ab 120 px sehr fein). <b>Doppeltipp</b> = Default.
+        Tipp aufs Wertefenster = &plusmn;1-Stepper. Desktop: Mausrad &plusmn;1, Shift &plusmn;10.
+        <b>EFX-Pad:</b> Tipp = an/aus, <b>Halten = Momentary</b> (an, solange gedr&uuml;ckt).
+        &lsaquo;/&rsaquo; steppen durch Favoriten. <b>RND</b> w&uuml;rfelt (ohne LEVEL/SEND/GAIN),
+        danach 6 s <b>UNDO</b>.</p>
+        <h3>Effekte</h3>
+        <p>Effektname antippen &ouml;ffnet den Picker: Zuletzt, Favoriten (Stern per Halten),
+        Kategorien. Die Bus-Typen haben unterschiedliche Sets (Roland-Vorgabe) &ndash;
+        Sync Delay &amp; Co. nur auf BUS 3/4, Stimm-Effekte nur auf INPUT.
+        <b>Direct FX:</b> Was am Ger&auml;t auf DFX 1&ndash;5 liegt, im Setup spiegeln &ndash;
+        dann zeigen die Fader echte Parameternamen. Die App merkt sich Werte pro Effekt
+        und sendet beim Wechsel alles ans Ger&auml;t.</p>
+        <h3>Snapshots (Snap)</h3>
+        <p>8 Slots f&uuml;r alle 5 Busse. <b>Tippen l&auml;dt</b> (leer: speichert),
+        <b>Halten speichert</b> mit Namens-Eingabe, &#10005; l&ouml;scht. Export/Import als JSON &ndash; auch f&uuml;r den Austausch zwischen Ger&auml;ten.</p>
+        <h3>XY-Pad und LFOs</h3>
+        <p>Achsen oben frei belegen; Position = Wert. <b>MOMENTARY</b> federt beim Loslassen
+        zur&uuml;ck. Vier LFO-Slots (Chips 1&ndash;4): Ziel, Welle (SIN/TRI/SQR/SAW/<b>RND</b> = Drift),
+        Rate in Notenwerten, Depth. Zeitquelle: <b>CLK</b> (MIDI Clock) oder <b>TAP</b>
+        (im Beat tippen). Finger auf dem Ziel-Fader pausiert und re-zentriert;
+        Ausschalten parkt auf der Mitte.</p>
+        <h3>PLAY</h3>
+        <p><b>KEYS:</b> Klaviatur &ndash; Sample chromatisch (CH 16, C2&ndash;C4) oder
+        Vocoder (CH 11) mit Pitch-Bend-Streifen. <b>SCALE:</b> 4&times;4-Grid nur mit
+        T&ouml;nen der gew&auml;hlten Tonart; ISO = Move-Layout (Reihen im Quart-Versatz),
+        LIN = fortlaufend; Grundt&ouml;ne markiert. <b>PADS:</b> Pad-Board wie am Ger&auml;t
+        (Pad 1 oben links), B&auml;nke A&ndash;J, &#9733; = freies Layout (Halten belegt);
+        PAD-CH muss dem Ger&auml;te-Setting &bdquo;Pad MIDI Channels&ldquo; entsprechen.</p>
+        <h3>PTN: Patterns, Autopilot, Looper</h3>
+        <p>Bank w&auml;hlen, Pattern tippen (Mode B + PC Rx ON; markiert = zuletzt gesendet).
+        <b>Autopilot</b> wandert quantisiert alle 2/4/8 Takte, wahlweise nur in der Bank.
+        <b>Looper-Panel</b> fernbedient den Looper-Modus des Ger&auml;ts (REC, OVERDUB, DEL,
+        UNDO/REDO, STOP ALL, BPM).</p>
+        <h3>Tempo / Ableton Link</h3>
+        <p>BPM liest MIDI Clock von jedem Port (AUM, Ableton, Bridge). Link-Route:
+        Link-Quelle sendet Clock an SP-404 (UTILITY &gt; SYSTEM &gt; MIDI: &bdquo;MIDI Sync&ldquo;)
+        und Rechner &ndash; alles l&auml;uft synchron. LFOs/Autopilot nutzen die Clock, sonst Tap.</p>
+        <h3>Tastatur (Desktop)</h3>
+        <p>1&ndash;5 = Bus &middot; Leertaste = EFX &middot; O = &Uuml;bersicht &middot; X = XY &middot; Esc = schlie&szlig;en.</p>
+        <h3>Tipps und Grenzen</h3>
+        <p>Kein SysEx: Effektwechsel am Ger&auml;t sieht die App nicht (Encoder schon) &ndash;
+        Effekte aus der App wechseln. <b>BUS 3/4 stumm?</b> Ger&auml;te-Bypass: EFX-Pad einmal
+        aus/an (bei Effektwechseln macht die App das automatisch). Beim Laden sendet die
+        App nie &ndash; Abgleich per &bdquo;Zustand ans Ger&auml;t senden&ldquo; oder erster Geste.</p>
+        <h3>&Uuml;ber</h3>
+        <p>404 Busdriver ist ein inoffizielles Open-Source-Projekt (MIT-Lizenz)
+        und steht in keiner Verbindung zur Roland Corporation. &bdquo;SP-404&ldquo;
+        ist eine Marke der Roland Corporation. Effektdaten nach dem
+        &ouml;ffentlichen SP-404MK2-Referenzhandbuch.</p>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="nomidi">
+    <div class="inner">
+      <h1>404 Busdriver</h1>
+      <p><b>Dieser Browser kann kein Web MIDI.</b></p>
+      <p>Am Rechner: <b>Chrome</b> oder <b>Edge</b> verwenden.</p>
+      <p>Auf iPhone/iPad: die App <b>MIDIWeb Browser</b> oder <b>Web MIDI Browser</b>
+      aus dem App Store installieren und diese Adresse dort &ouml;ffnen.
+      Den SP-404 MkII per USB-C anschlie&szlig;en.</p>
+      <p>MIDI-Modus am Ger&auml;t: <b>A und B</b> funktionieren f&uuml;r die
+      FX-Steuerung ([SHIFT] + [PAD 12] &gt; SYSTEM &gt; MIDI).</p>
+      <div class="setup-row"><button id="demo-btn" class="setup-btn">Trotzdem UI ansehen (Demo-Modus)</button></div>
+    </div>
+  </div>
+
+  <div id="banner"></div>
+
+  <script>
+// Generated from Roland SP-404MK2 reference manual v5 (effect pages).
+// Param order = hardware knobs Ctrl 1-6 = CC 16/17/18/80/81/82.
+const EFFECTS={
+ "Back Spin":{c:"weird",p:[
+  {"n":"LENGTH","t":"e","v":["1/1","1/2","1/4","1/8","1/16"],"d":0},
+  {"n":"SPEED","t":"c","a":0,"b":100,"d":50},
+  {"n":"BACK SW","t":"b","d":0},
+ ]},
+ "DJFX Delay":{c:"delayverb",p:[
+  {"n":"LENGTH","t":"c","a":0.23,"b":0.012,"d":0.12,"u":"sec"},
+  {"n":"TIME","t":"c","a":0,"b":100,"d":40,"sv":["1/32","1/16T","1/32D","1/16","1/8T","1/16D","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2","1/1T","1/2D","1/1"],"sb":5},
+  {"n":"LOOP SW","t":"b","d":0},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Auto Pitch":{c:"voice",p:[
+  {"n":"PITCH","t":"c","a":-100,"b":100,"d":0},
+  {"n":"FORMANT","t":"c","a":-100,"b":100,"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"AT PITCH","t":"c","a":0,"b":100,"d":80},
+  {"n":"KEY","t":"e","v":["CHROMA","A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab"],"d":0},
+  {"n":"ROBOT","t":"b","d":0},
+ ]},
+ "Vocoder":{c:"voice",p:[
+  {"n":"NOTE","t":"e","v":["-17","-16","-15","-14","-13","-12","-11","-10","-9","-8","-7","-6","-5","-4","-3","-2","-1","+1","+2","+3","+4","+5","+6","+7","+8","+9","+10","+11","+12","+13","+14","+15","+16","+17","+18"],"d":17},
+  {"n":"FORMANT","t":"c","a":-100,"b":100,"d":0},
+  {"n":"TONE","t":"c","a":-100,"b":100,"d":0},
+  {"n":"SCALE","t":"e","v":["C Maj","Db Maj","D Maj","Eb Maj","E Maj","F Maj","Gb Maj","G Maj","Ab Maj","A Maj","Bb Maj","B Maj","C min","Db min","D min","Eb min","E min","F min","Gb min","G min","Ab min","A min","Bb min","B min"],"d":0},
+  {"n":"CHORD","t":"e","v":["Root","P5","Oct","UpDn","UpDnP5","3rd","5thUp","5thDn","7thUp","7thDn"],"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+ ]},
+ "Harmony":{c:"voice",p:[
+  {"n":"PITCH","t":"c","a":-100,"b":100,"d":0},
+  {"n":"FORMANT","t":"c","a":-100,"b":100,"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"AT PITCH","t":"c","a":0,"b":100,"d":80},
+  {"n":"KEY","t":"e","v":["CHROMA","A","Bb","B","C","Db","D","Eb","E","F","Gb","G","Ab"],"d":0},
+  {"n":"HARMONY","t":"e","v":["Root","P5","Oct","UpDn","UpDnP5","3rd","5thUp","5thDn","7thUp","7thDn"],"d":0},
+ ]},
+ "Gt Amp Sim":{c:"drive",p:[
+  {"n":"AMP TYPE","t":"e","v":["JC","TWIN","BG","MATCH","MS","SLDN"],"d":0},
+  {"n":"DRIVE","t":"c","a":0,"b":100,"d":30},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"BASS","t":"c","a":-100,"b":100,"d":0},
+  {"n":"MIDDLE","t":"c","a":-100,"b":100,"d":0},
+  {"n":"TREBLE","t":"c","a":-100,"b":100,"d":0},
+ ]},
+ "Crusher":{c:"lofi",p:[
+  {"n":"FILTER","t":"c","a":331,"b":15392,"d":8000,"u":"Hz"},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50},
+  {"n":"BALANCE","t":"bal","d":50},
+ ]},
+ "Overdrive":{c:"drive",p:[
+  {"n":"DRIVE","t":"c","a":0,"b":100,"d":30},
+  {"n":"TONE","t":"c","a":-100,"b":100,"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "Distortion":{c:"drive",p:[
+  {"n":"DRIVE","t":"c","a":0,"b":100,"d":30},
+  {"n":"TONE","t":"c","a":-100,"b":100,"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "Equalizer":{c:"drive",p:[
+  {"n":"LOW GAIN","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+  {"n":"MID GAIN","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+  {"n":"HIGH GAIN","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+  {"n":"LOW FREQ","t":"e","v":["20","25","31","40","50","63","80","100","125","160","200","250","315","400"],"d":0},
+  {"n":"MID FREQ","t":"e","v":["200","250","315","400","500","630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000"],"d":0},
+  {"n":"HIGH FREQ","t":"e","v":["2000","2500","3150","4000","5000","6300","8000","10000","12500","16000"],"d":0},
+ ]},
+ "Compressor":{c:"drive",p:[
+  {"n":"SUSTAIN","t":"c","a":0,"b":100,"d":50},
+  {"n":"ATTACK","t":"c","a":0,"b":100,"d":30},
+  {"n":"RATIO","t":"c","a":0,"b":100,"d":50},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "SX Reverb":{c:"delayverb",p:[
+  {"n":"TIME","t":"c","a":0,"b":100,"d":40},
+  {"n":"TONE","t":"c","a":-100,"b":100,"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+ ]},
+ "SX Delay":{c:"delayverb",p:[
+  {"n":"TIME","t":"e","v":["1/32","1/16T","1/32D","1/16","1/8T","1/16D","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2","1/1T","1/2D","1/1"],"d":0},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"BALANCE","t":"bal","d":50},
+ ]},
+ "Cloud Delay":{c:"delayverb",p:[
+  {"n":"WINDOW","t":"c","a":0,"b":100,"d":50},
+  {"n":"PITCH","t":"c","a":-12,"b":12,"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"FEEDBACK","t":"c","a":-100,"b":100,"d":30},
+  {"n":"CLOUDY","t":"c","a":0,"b":100,"d":50},
+  {"n":"LOFI","t":"b","d":0},
+ ]},
+ "WrmSaturator":{c:"drive",p:[
+  {"n":"DRIVE","t":"c","a":0,"b":48,"d":30,"u":"dB"},
+  {"n":"Eq LOW","t":"c","a":-24,"b":24,"d":0,"u":"dB"},
+  {"n":"Eq HIGH","t":"c","a":-24,"b":24,"d":0,"u":"dB"},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "303 VinylSim":{c:"lofi",p:[
+  {"n":"COMP","t":"c","a":0,"b":100,"d":30},
+  {"n":"NOISE","t":"c","a":0,"b":100,"d":20},
+  {"n":"WOW FLUT","t":"c","a":0,"b":100,"d":30},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "404 VinylSim":{c:"lofi",p:[
+  {"n":"FREQUENCY","t":"c","a":0,"b":100,"d":50},
+  {"n":"NOISE","t":"c","a":0,"b":100,"d":20},
+  {"n":"WOW FLUT","t":"c","a":0,"b":100,"d":30},
+ ]},
+ "Cassette Sim":{c:"lofi",p:[
+  {"n":"TONE","t":"c","a":0,"b":100,"d":0},
+  {"n":"HISS","t":"c","a":0,"b":100,"d":20},
+  {"n":"AGE","t":"c","a":0,"b":60,"d":10,"u":"J"},
+  {"n":"DRIVE","t":"c","a":0,"b":100,"d":30},
+  {"n":"WOW FLUT","t":"c","a":0,"b":100,"d":30},
+  {"n":"Catch","t":"c","a":0,"b":100,"d":0},
+ ]},
+ "Lo-fi":{c:"lofi",p:[
+  {"n":"PRE FILT","t":"e","v":["1","2","3","4","5","6"],"d":0},
+  {"n":"LOFI TYPE","t":"e","v":["1","2","3","4","5","6","7","8","9"],"d":0},
+  {"n":"TONE","t":"c","a":-100,"b":100,"d":0},
+  {"n":"CUTOFF","t":"e","v":["200","250","315","400","500","630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000"],"d":0},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "Reverb":{c:"delayverb",p:[
+  {"n":"TYPE","t":"e","v":["AMBI","ROOM","HALL1","HALL2"],"d":0},
+  {"n":"TIME","t":"c","a":0,"b":100,"d":40},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"LOW CUT","t":"e","v":["FLAT","20","25","31","40","50","63","80","100","125","160","200","250","315","400","500","630","800"],"d":0},
+  {"n":"HIGH CUT","t":"e","v":["630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000","10000","12500","FLAT"],"d":14},
+  {"n":"PRE DELAY","t":"c","a":0,"b":100,"d":0,"u":"ms"},
+ ]},
+ "Chorus":{c:"mod",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"c","a":0.33,"b":2.3,"d":1.0,"u":"sec"},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"EQ LOW","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+  {"n":"EQ HIGH","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+ ]},
+ "JUNO Chorus":{c:"mod",p:[
+  {"n":"MODE","t":"e","v":["JUNO 1","JUNO 2","JUNO12","JX-1 1","JX-1 2"],"d":0},
+  {"n":"NOISE","t":"c","a":0,"b":100,"d":20},
+  {"n":"BALANCE","t":"bal","d":50},
+ ]},
+ "Filter+Drive":{c:"filter",p:[
+  {"n":"CUTOFF","t":"c","a":20,"b":16000,"d":800,"u":"Hz"},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+  {"n":"DRIVE","t":"c","a":0,"b":100,"d":30},
+  {"n":"FLT TYPE","t":"e","v":["HPF","LPF"],"d":0},
+  {"n":"LOW FREQ","t":"c","a":20,"b":16000,"d":100,"u":"Hz"},
+  {"n":"LOW GAIN","t":"c","a":-24,"b":24,"d":0,"u":"dB"},
+ ]},
+ "Resonator":{c:"weird",p:[
+  {"n":"ROOT","t":"nt","d":48},
+  {"n":"BRIGHT","t":"c","a":0,"b":100,"d":50},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"CHORD","t":"e","v":["Root","Oct","UpDn","P5","m3","m5","m7","m7oct","m0","m11","M3","M5","M7","M7oct","M9","M11"],"d":0},
+  {"n":"PANNING","t":"c","a":0,"b":100,"d":50},
+  {"n":"ENV MOD","t":"c","a":0,"b":100,"d":0},
+ ]},
+ "Sync Delay":{c:"delayverb",p:[
+  {"n":"TIME","t":"e","v":["1/32","1/16T","1/32D","1/16","1/8T","1/16D","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2","1/1T","1/2D","1/1"],"d":0},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"L DAMP F","t":"e","v":["FLAT","80","100","125","160","200","250","315","400","500","630","800"],"d":0},
+  {"n":"H DAMP F","t":"e","v":["630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000","10000","12500","FLAT"],"d":14},
+ ]},
+ "Isolator":{c:"filter",p:[
+  {"n":"LOW","t":"c","a":-42,"b":12,"d":0,"u":"dB","inf":1},
+  {"n":"MID","t":"c","a":-42,"b":12,"d":0,"u":"dB","inf":1},
+  {"n":"HIGH","t":"c","a":-42,"b":12,"d":0,"u":"dB","inf":1},
+ ]},
+ "DJFX Looper":{c:"weird",p:[
+  {"n":"LENGTH","t":"c","a":0.23,"b":0.012,"d":0.12,"u":"sec"},
+  {"n":"SPEED","t":"c","a":-100,"b":100,"d":50},
+  {"n":"LOOP SW","t":"b","d":0},
+ ]},
+ "Scatter":{c:"weird",p:[
+  {"n":"TYPE","t":"e","v":["1","2","3","4","5","6","7","8","9","10"],"d":0},
+  {"n":"DEPTH","t":"e","v":["10","20","30","40","50","60","70","80","90","100"],"d":0},
+  {"n":"SCATTER","t":"b","d":0},
+  {"n":"SPEED","t":"e","v":["SINGLE","DOUBLE"],"d":0},
+ ]},
+ "Downer":{c:"lofi",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"e","v":["2/1","1/1","1/2","1/4","1/8","1/16","1/32"],"d":0},
+  {"n":"FILTER","t":"c","a":0,"b":100,"d":50},
+  {"n":"PITCH","t":"b","d":0},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+ ]},
+ "Ha-Dou":{c:"delayverb",p:[
+  {"n":"MOD DEPTH","t":"c","a":0,"b":100,"d":50},
+  {"n":"TIME","t":"c","a":0,"b":100,"d":40},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"LOW CUT","t":"e","v":["FLAT","20","25","31","40","50","63","80","100","125","160","200","250","315","400","500","630","800"],"d":0},
+  {"n":"HIGH CUT","t":"e","v":["630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000","10000","12500","FLAT"],"d":14},
+  {"n":"PRE DELAY","t":"c","a":0,"b":100,"d":0,"u":"msec"},
+ ]},
+ "Ko-Da-Ma":{c:"delayverb",p:[
+  {"n":"TIME","t":"e","v":["1/32","1/16T","1/32D","1/16","1/8T","1/16D","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2","1/1T","1/2D","1/1"],"d":0},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"SEND","t":"c","a":0,"b":100,"d":80},
+  {"n":"L DAMP F","t":"e","v":["FLAT","80","100","125","160","200","250","315","400","500","630","800"],"d":0},
+  {"n":"H DAMP F","t":"e","v":["630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000","10000","12500","FLAT"],"d":14},
+  {"n":"MODE","t":"e","v":["SINGLE","PAN"],"d":0},
+ ]},
+ "Zan-Zou":{c:"delayverb",p:[
+  {"n":"TIME","t":"c","a":0,"b":100,"d":40,"sv":["1/32","1/16T","1/32D","1/16","1/8T","1/16D","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2","1/1T","1/2D","1/1"],"sb":5},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30},
+  {"n":"HF DAMP","t":"e","v":["200","250","315","400","500","630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000","OFF"],"d":17},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"MODE","t":"e","v":["2TAP","3TAP","4TAP"],"d":0},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "To-Gu-Ro":{c:"weird",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50,"sv":["2/1","1/1","1/2","1/4","1/8","1/16","1/32","1/64","1/128"],"sb":5},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+  {"n":"FLT MOD","t":"c","a":0,"b":100,"d":50},
+  {"n":"AMP MOD","t":"c","a":0,"b":100,"d":50},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "SBF":{c:"filter",p:[
+  {"n":"INTERVAL","t":"c","a":0,"b":100,"d":50},
+  {"n":"WIDTH","t":"c","a":0,"b":100,"d":50},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"TYPE","t":"e","v":["SBF1","SBF2","SBF3","SBF4","SBF5","SBF6"],"d":0},
+  {"n":"GAIN","t":"c","a":-52.3,"b":10,"d":0,"u":"dB","inf":1},
+ ]},
+ "Stopper":{c:"weird",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"e","v":["4/1","2/1","1/1","1/2","1/4","1/8","1/16","1/32","1/64"],"d":0},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+  {"n":"FLT MOD","t":"c","a":0,"b":100,"d":50},
+  {"n":"AMP MOD","t":"c","a":0,"b":100,"d":50},
+ ]},
+ "Tape Echo":{c:"delayverb",p:[
+  {"n":"TIME","t":"c","a":10,"b":800,"d":300,"u":"msec"},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"MODE","t":"e","v":["S","M","L","S+M","S+L","M+L","S+M+L"],"d":0},
+  {"n":"W/F RATE","t":"c","a":0,"b":100,"d":30},
+  {"n":"W/F DEPTH","t":"c","a":0,"b":100,"d":30},
+ ]},
+ "TimeCtrlDly":{c:"delayverb",p:[
+  {"n":"TIME","t":"c","a":0,"b":100,"d":40,"sv":["1/32","1/16T","1/32D","1/16","1/8T","1/16D","1/8","1/4T","1/8D","1/4","1/2T","1/4D","1/2","1/1T","1/2D","1/1"],"sb":5},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"LEVEL","t":"c","a":0,"b":100,"d":80},
+  {"n":"L DAMP F","t":"e","v":["FLAT","80","100","125","160","200","250","315","400","500","630","800"],"d":0},
+  {"n":"H DAMP F","t":"e","v":["630","800","1000","1250","1600","2000","2500","3150","4000","5000","6300","8000","10000","12500","FLAT"],"d":14},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Super Filter":{c:"filter",p:[
+  {"n":"CUTOFF","t":"c","a":0,"b":100,"d":60},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+  {"n":"FLT TYPE","t":"e","v":["LPF","BPF","HPF"],"d":0},
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50,"sv":["2/1","1/1D","2/1T","1/1","1/2D","1/1T","1/2","1/4D","1/2T","1/4","1/8D","1/4T","1/8","1/16D","1/8T","1/16","1/32D","1/16T","1/32","1/32T","1/64","1/64T"],"sb":5},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Flanger":{c:"mod",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50,"sv":{"hi":4.0,"lo":0.016,"u":"bar"},"sb":5},
+  {"n":"MANUAL","t":"c","a":0,"b":100,"d":50},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Phaser":{c:"mod",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50,"sv":{"hi":4.0,"lo":0.016,"u":"bar"},"sb":5},
+  {"n":"MANUAL","t":"c","a":0,"b":100,"d":50},
+  {"n":"RESONANCE","t":"c","a":0,"b":100,"d":20},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Wah":{c:"filter",p:[
+  {"n":"PEAK","t":"c","a":0,"b":100,"d":50},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50,"sv":{"hi":1.0,"lo":0.01,"u":"bar"},"sb":5},
+  {"n":"MANUAL","t":"c","a":0,"b":100,"d":50},
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"FLT TYPE","t":"e","v":["LPF","BPF"],"d":0},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Slicer":{c:"mod",p:[
+  {"n":"PATTERN","t":"c","a":1,"b":32,"d":1},
+  {"n":"SPEED","t":"c","a":0,"b":100,"d":50,"sv":["2/1","1/1D","2/1T","1/1","1/2D","1/1T","1/2","1/4D","1/2T","1/4","1/8D","1/4T","1/8","1/16D","1/8T","1/16","1/32D","1/16T","1/32","1/32T","1/64","1/64T"],"sb":5},
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"SHUFFLE","t":"c","a":0,"b":100,"d":0},
+  {"n":"MODE","t":"e","v":["LEGATO","SLASH"],"d":0},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Tremolo/Pan":{c:"mod",p:[
+  {"n":"DEPTH","t":"c","a":0,"b":100,"d":40},
+  {"n":"RATE","t":"c","a":0,"b":100,"d":50,"sv":{"hi":1.0,"lo":0.01,"u":"bar"},"sb":4},
+  {"n":"TYPE","t":"e","v":["TRE","PAN"],"d":0},
+  {"n":"WAVE","t":"e","v":["TRI","SQR","SIN","SAW1","SAW2","TRP"],"d":0},
+  {"n":"SYNC","t":"b","d":0},
+ ]},
+ "Chromatic PS":{c:"weird",p:[
+  {"n":"PITCH1","t":"c","a":-24,"b":12,"d":0,"u":"st"},
+  {"n":"PITCH2","t":"c","a":-24,"b":12,"d":0,"u":"st"},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"PAN1","t":"pan","d":-25},
+  {"n":"PAN2","t":"pan","d":25},
+ ]},
+ "Hyper-Reso":{c:"weird",p:[
+  {"n":"NOTE","t":"e","v":["-17","-16","-15","-14","-13","-12","-11","-10","-9","-8","-7","-6","-5","-4","-3","-2","-1","+1","+2","+3","+4","+5","+6","+7","+8","+9","+10","+11","+12","+13","+14","+15","+16","+17","+18"],"d":17},
+  {"n":"SPREAD","t":"e","v":["UNISON","TINY","SMALL","MEDIUM","HUGE"],"d":0},
+  {"n":"CHARACTER","t":"c","a":0,"b":100,"d":50},
+  {"n":"SCALE","t":"e","v":["C Maj","Db Maj","D Maj","Eb Maj","E Maj","F Maj","Gb Maj","G Maj","Ab Maj","A Maj","Bb Maj","B Maj","C min","Db min","D min","Eb min","E min","F min","Gb min","G min","Ab min","A min","Bb min","B min"],"d":0},
+  {"n":"FEEDBACK","t":"c","a":0,"b":99,"d":30,"u":"%"},
+  {"n":"ENV MOD","t":"c","a":0,"b":100,"d":0},
+ ]},
+ "Ring Mod":{c:"mod",p:[
+  {"n":"FREQUENCY","t":"c","a":0,"b":100,"d":50},
+  {"n":"SENS","t":"c","a":0,"b":100,"d":50},
+  {"n":"BALANCE","t":"bal","d":50},
+  {"n":"POLARITY","t":"b","d":0},
+  {"n":"EQ LOW","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+  {"n":"EQ HIGH","t":"c","a":-15,"b":15,"d":0,"u":"dB"},
+ ]},
+ "Direct FX":{c:"direct",p:[
+  {"n":"CTRL 1","t":"c","a":0,"b":127,"d":64},
+  {"n":"CTRL 2","t":"c","a":0,"b":127,"d":64},
+  {"n":"CTRL 3","t":"c","a":0,"b":127,"d":64},
+  {"n":"CTRL 4","t":"c","a":0,"b":127,"d":64},
+  {"n":"CTRL 5","t":"c","a":0,"b":127,"d":64},
+  {"n":"CTRL 6","t":"c","a":0,"b":127,"d":64},
+ ]},
+};
+const BUS_TABLES={bus12:["(OFF)","Direct FX1","Direct FX2","Direct FX3","Direct FX4","Direct FX5","Scatter","Downer","Ha-Dou","Ko-Da-Ma","Zan-Zou","To-Gu-Ro","SBF","Stopper","Tape Echo","TimeCtrlDly","Super Filter","WrmSaturator","303 VinylSim","404 VinylSim","Cassette Sim","Lo-fi","Reverb","Chorus","JUNO Chorus","Flanger","Phaser","Wah","Slicer","Tremolo/Pan","Chromatic PS","Hyper-Reso","Ring Mod","Crusher","Overdrive","Distortion","Equalizer","Compressor","SX Reverb","SX Delay","Cloud Delay","Back Spin","DJFX Delay"],bus34:["(OFF)","303 VinylSim","404 VinylSim","Cassette Sim","Lo-fi","Downer","Compressor","Equalizer","Isolator","Super Filter","Filter+Drive","WrmSaturator","Overdrive","Distortion","Crusher","Ring Mod","SBF","Resonator","Hyper-Reso","Chromatic PS","Reverb","Ha-Dou","Zan-Zou","Sync Delay","TimeCtrlDly","Ko-Da-Ma","Tape Echo","Chorus","JUNO Chorus","Flanger","Phaser","Wah","Slicer","Tremolo/Pan","To-Gu-Ro","DJFX Looper","Scatter","SX Reverb","SX Delay","Cloud Delay","DJFX Delay"],input:["(OFF)","Auto Pitch","Vocoder","Harmony","Gt Amp Sim","Chorus","JUNO Chorus","Reverb","TimeCtrlDly","Chromatic PS","Downer","WrmSaturator","303 VinylSim","404 VinylSim","Cassette Sim","Lo-fi","Equalizer","Compressor"]};
+const CAT_LABELS={filter:"FILTER",lofi:"LO-FI & TEXTUR",drive:"DRIVE & DYNAMIK",mod:"MODULATION",delayverb:"DELAY & REVERB",weird:"GLITCH & PITCH",voice:"STIMME",direct:"DIRECT FX"};
+const CAT_ORDER=["direct","filter","lofi","drive","mod","delayverb","weird","voice"];
+/* 404 Busdriver - app logic. One IIFE, no dependencies.
+   MIDI spec (SP-404MK2 v5, MIDI Mode B): CH 1-5 = BUS1-4 + INPUT.
+   CC#19 EFX switch (0-63 off / 64-127 on), CC#83 EFX number,
+   CC#16/17/18/80/81/82 = Ctrl 1-6. Bidirectional. No SysEx. */
+(function () {
+"use strict";
+
+const BUILD = "2026-07-25.18"; /* bump on deploy - shown in Setup to spot stale caches */
+
+/* ===== 02 UTIL ===== */
+const $ = (id) => document.getElementById(id);
+const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+const PHONE = window.matchMedia("(max-width: 520px)");
+
+const CC_CTRL = [16, 17, 18, 80, 81, 82];
+const CC_SW = 19, CC_FX = 83;
+const RECV_CCS = new Set([16, 17, 18, 19, 80, 81, 82, 83]);
+const BUSES = [
+  { label: "BUS 1", short: "1", ch: 0, table: "bus12" },
+  { label: "BUS 2", short: "2", ch: 1, table: "bus12" },
+  { label: "BUS 3", short: "3", ch: 2, table: "bus34" },
+  { label: "BUS 4", short: "4", ch: 3, table: "bus34" },
+  { label: "INPUT", short: "IN", ch: 4, table: "input" },
+];
+const NOTE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
+
+/* ===== 03 CONV : cc 0-127 <-> display ===== */
+function fxNameFor(table, num) {
+  const t = BUS_TABLES[table];
+  return (num >= 0 && num < t.length) ? t[num] : "?" + num;
+}
+function fxDefFor(table, num) {
+  const name = fxNameFor(table, num);
+  if (num === 0) return null;
+  if (name.startsWith("Direct FX")) {
+    /* if the user told us what sits on this DFX slot, use the real effect */
+    const a = (table === "bus12") ? directName(num) : null;
+    return EFFECTS[a || "Direct FX"] || null;
+  }
+  return EFFECTS[name] || null;
+}
+const enumFromCc = (cc, n) => Math.min(n - 1, Math.floor(cc * n / 128));
+const ccFromEnum = (i, n) => Math.floor((2 * i + 1) * 64 / n); /* zone center */
+
+function dispFromCc(p, cc, syncOn) {
+  switch (p.t) {
+    case "b": return cc >= 64 ? "ON" : "OFF";
+    case "e": return p.v[enumFromCc(cc, p.v.length)];
+    case "bal": { const w = Math.round(cc * 100 / 127); return (100 - w) + ":" + w; }
+    case "pan": { const v = Math.round(cc * 100 / 127) - 50; return v < 0 ? "L" + (-v) : v > 0 ? "R" + v : "CTR"; }
+    case "nt": return NOTE_NAMES[cc % 12] + (Math.floor(cc / 12) - 1);
+    case "c": default: {
+      if (p.sv && syncOn) {
+        if (Array.isArray(p.sv)) return p.sv[enumFromCc(cc, p.sv.length)];
+        const v = p.sv.hi + (p.sv.lo - p.sv.hi) * cc / 127;
+        return v.toFixed(3) + " " + p.sv.u;
+      }
+      if (p.inf && cc === 0) return "-INF";
+      const v = p.a + (p.b - p.a) * cc / 127;
+      const span = Math.abs(p.b - p.a);
+      const dec = span >= 20 ? 0 : span >= 2 ? 1 : span >= 0.5 ? 2 : 3;
+      const f = Math.pow(10, dec);
+      const s = String(Math.round(v * f) / f);
+      return p.u ? s + " " + p.u : s;
+    }
+  }
+}
+function ccFromDefault(p) {
+  switch (p.t) {
+    case "b": return p.d ? 127 : 0;
+    case "e": return ccFromEnum(p.d, p.v.length);
+    case "bal": return Math.round(p.d * 127 / 100);
+    case "pan": return Math.round((p.d + 50) * 127 / 100);
+    case "nt": return clamp(p.d, 0, 127);
+    case "c": default: return clamp(Math.round((p.d - p.a) / (p.b - p.a) * 127), 0, 127);
+  }
+}
+function defaultCcs(def) {
+  const out = [64, 64, 64, 64, 64, 64];
+  if (def) def.p.forEach((p, i) => { if (i < 6) out[i] = ccFromDefault(p); });
+  return out;
+}
+function syncOnFor(bus, def) {
+  /* is the SYNC bool of this effect currently ON? */
+  if (!def) return false;
+  const i = def.p.findIndex((p) => p.n === "SYNC" && p.t === "b");
+  return i >= 0 && state.buses[bus].cc[i] >= 64;
+}
+
+/* ===== 04 STORE ===== */
+const LS_KEY = "busdriver.v1";
+let state = {
+  activeBus: 0,
+  buses: BUSES.map(() => ({ on: false, fx: 0, cc: [64, 64, 64, 64, 64, 64] })),
+  mem: {},           /* "bus12:16" -> [6 cc] */
+  favs: { bus12: {}, bus34: {}, input: {} }, /* num -> {on, t}; tombstones for sync */
+  recents: { bus12: [], bus34: [], input: [] },
+  snapshots: [null, null, null, null, null, null, null, null], /* {t, name, buses} | {t, del} */
+  directFx: [null, null, null, null, null], /* mirrors device DFX slots: {name|null, t} */
+  xy: { x: null, y: null, mom: false }, /* axis -> {bus, slot} | null; device-local */
+  lfos: [ /* 4 modulator slots; slot 4 preset = slow RND drift */
+    { target: null, wave: 0, rate: 4, depth: 1 },
+    { target: null, wave: 0, rate: 3, depth: 1 },
+    { target: null, wave: 0, rate: 2, depth: 1 },
+    { target: null, wave: 4, rate: 0, depth: 0 },
+  ],
+  tapBpm: 120,
+  ptn: { bank: 0, last: null },
+  play: { mode: "keys", target: "sample", oct: 0, padBank: 0, padChPair: 0,
+    scaleRoot: 0, scaleType: 0, iso: true,
+    custom: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null] },
+  auto: { bars: 4, scope: "bank" },
+  midi: { outName: null, inName: null },
+  wake: false,
+};
+function directName(num) { /* num = CC#83 value 1..5 in the bus12 table */
+  const r = state.directFx[num - 1];
+  return (r && r.name) ? r.name : null;
+}
+function fxDisplayName(table, num) {
+  const name = fxNameFor(table, num);
+  if (table === "bus12" && num >= 1 && num <= 5) {
+    const a = directName(num);
+    if (a) return "DFX" + num + " · " + a;
+  }
+  return name;
+}
+function setDirectFx(i, name) {
+  state.directFx[i] = { name: name || null, t: Date.now() };
+  saveState(); scheduleSync();
+  renderBus(0); renderBus(1); /* both buses share the bus12 table */
+  renderSetup();
+}
+function assignableNames() {
+  const set = new Set([...BUS_TABLES.bus12, ...BUS_TABLES.bus34]);
+  set.delete("(OFF)");
+  for (const n of [...set]) if (n.startsWith("Direct FX")) set.delete(n);
+  return [...set];
+}
+function isFav(table, num) { const r = state.favs[table][num]; return !!(r && r.on); }
+function favList(table) {
+  return Object.keys(state.favs[table]).map(Number).filter((n) => isFav(table, n)).sort((a, b) => a - b);
+}
+let allOffSaved = null; /* [bool x5] while ALL OFF armed */
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    if (s.v !== 1) return;
+    for (let i = 0; i < 5; i++) {
+      const b = s.buses && s.buses[i];
+      if (b && Array.isArray(b.cc) && b.cc.length === 6) {
+        state.buses[i] = { on: !!b.on, fx: b.fx | 0, cc: b.cc.map((v) => clamp(v | 0, 0, 127)) };
+      }
+    }
+    if (s.mem) state.mem = s.mem;
+    if (s.favs) for (const tbl of ["bus12", "bus34", "input"]) {
+      const f = s.favs[tbl];
+      if (Array.isArray(f)) { /* migrate pre-sync array shape */
+        const m = {}; f.forEach((n) => { m[n] = { on: true, t: 1 }; });
+        state.favs[tbl] = m;
+      } else if (f && typeof f === "object") state.favs[tbl] = f;
+    }
+    if (Array.isArray(s.snapshots)) {
+      for (let i = 0; i < 8; i++) {
+        const r = s.snapshots[i];
+        if (r && typeof r.t === "number") state.snapshots[i] = r;
+      }
+    }
+    if (Array.isArray(s.directFx)) {
+      for (let i = 0; i < 5; i++) {
+        const r = s.directFx[i];
+        if (r && typeof r.t === "number") state.directFx[i] = r;
+      }
+    }
+    if (s.xy && typeof s.xy === "object") {
+      for (const ax of ["x", "y"]) {
+        const r = s.xy[ax];
+        if (r && r.bus >= 0 && r.bus < 5 && r.slot >= 0 && r.slot < 6) state.xy[ax] = { bus: r.bus | 0, slot: r.slot | 0 };
+      }
+      state.xy.mom = !!s.xy.mom;
+    }
+    const lfoSrcs = Array.isArray(s.lfos) ? s.lfos : (s.lfo ? [s.lfo] : []);
+    lfoSrcs.slice(0, 4).forEach((l, i) => {
+      if (!l || typeof l !== "object") return;
+      if (l.target && l.target.bus >= 0 && l.target.bus < 5 && l.target.slot >= 0 && l.target.slot < 6)
+        state.lfos[i].target = { bus: l.target.bus | 0, slot: l.target.slot | 0 };
+      if (l.wave >= 0 && l.wave < 5) state.lfos[i].wave = l.wave | 0;
+      if (l.rate >= 0 && l.rate < 7) state.lfos[i].rate = l.rate | 0;
+      if (l.depth >= 0 && l.depth < 4) state.lfos[i].depth = l.depth | 0;
+    });
+    const tb = s.tapBpm || (s.lfo && s.lfo.tapBpm);
+    if (tb >= 30 && tb <= 300) state.tapBpm = tb;
+    if (s.play && typeof s.play === "object") {
+      if (s.play.mode === "pads" || s.play.mode === "scale") state.play.mode = s.play.mode;
+      if (s.play.target === "voc") state.play.target = "voc";
+      if (s.play.scaleRoot >= 0 && s.play.scaleRoot < 12) state.play.scaleRoot = s.play.scaleRoot | 0;
+      if (s.play.scaleType >= 0 && s.play.scaleType < 7) state.play.scaleType = s.play.scaleType | 0;
+      if (typeof s.play.iso === "boolean") state.play.iso = s.play.iso;
+      if (typeof s.play.oct === "number") state.play.oct = clamp(s.play.oct | 0, -2, 2);
+      if (s.play.padBank >= 0 && s.play.padBank <= 10) state.play.padBank = s.play.padBank | 0;
+      if (s.play.padChPair >= 0 && s.play.padChPair < 10) state.play.padChPair = s.play.padChPair | 0;
+      if (Array.isArray(s.play.custom)) for (let i = 0; i < 16; i++) {
+        const c = s.play.custom[i];
+        if (c && c.bank >= 0 && c.bank < 10 && c.pad >= 1 && c.pad <= 16)
+          state.play.custom[i] = { bank: c.bank | 0, pad: c.pad | 0 };
+      }
+    }
+    if (s.auto && typeof s.auto === "object") {
+      if ([2, 4, 8].indexOf(s.auto.bars) >= 0) state.auto.bars = s.auto.bars;
+      if (s.auto.scope === "all") state.auto.scope = "all";
+    }
+    if (s.ptn && typeof s.ptn === "object") {
+      if (s.ptn.bank >= 0 && s.ptn.bank < 10) state.ptn.bank = s.ptn.bank | 0;
+      if (s.ptn.last && s.ptn.last.bank >= 0 && s.ptn.last.bank < 10 && s.ptn.last.pc >= 0 && s.ptn.last.pc < 16)
+        state.ptn.last = { bank: s.ptn.last.bank | 0, pc: s.ptn.last.pc | 0 };
+    }
+    if (s.recents) state.recents = Object.assign(state.recents, s.recents);
+    if (s.midi) state.midi = Object.assign(state.midi, s.midi);
+    state.wake = !!s.wake;
+  } catch (e) { /* corrupt storage: start fresh */ }
+}
+let saveTimer = null;
+function writeState() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake }));
+  } catch (e) { /* quota/private mode: ignore */ }
+}
+function saveState() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveTimer = null; writeState(); }, 400);
+}
+function flushState() {
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; writeState(); }
+}
+
+/* ===== 05 MIDI (transport seam: all bytes leave through sendBytes,
+        arrive through handleBytes - a future WebSocket bridge plugs in here) ===== */
+const Midi = {
+  access: null, demo: false,
+  echoLog: new Map(), lastSent: new Map(),
+  activeCCs: new Set(), /* keys ch<<8|cc currently owned by a finger */
+  /* state check tolerant of shims that report undefined instead of "connected" */
+  live(p) { return p && p.state !== "disconnected"; },
+  out() {
+    if (!this.access || !state.midi.outName) return null;
+    let found = null;
+    this.access.outputs.forEach((p) => { if (!found && p.name === state.midi.outName && this.live(p)) found = p; });
+    return found;
+  },
+  in_() {
+    if (!this.access || !state.midi.inName) return null;
+    let found = null;
+    this.access.inputs.forEach((p) => { if (!found && p.name === state.midi.inName && this.live(p)) found = p; });
+    return found;
+  },
+  sendBytes(bytes) {
+    if (this.demo) return true;
+    const o = this.out();
+    if (!o) return false;
+    try { o.send(bytes); return true; } catch (e) { return false; }
+  },
+  sendPc(ch, pc) {
+    if (this.sendBytes([0xC0 | ch, pc & 0x7F])) blinkTx();
+  },
+  sendNote(ch, note, on, vel) {
+    if (this.sendBytes(on ? [0x90 | ch, note & 0x7F, vel || 110] : [0x80 | ch, note & 0x7F, 0])) blinkTx();
+  },
+  sendBend(ch, v14) { /* 0..16383, center 8192 */
+    v14 = clamp(v14 | 0, 0, 16383);
+    if (this.sendBytes([0xE0 | ch, v14 & 0x7F, v14 >> 7])) blinkTx();
+  },
+  send(ch, ccNum, val, force) {
+    val = clamp(val | 0, 0, 127);
+    const key = ch << 8 | ccNum;
+    if (!force && this.lastSent.get(key) === val) return;
+    this.lastSent.set(key, val);
+    this.echoLog.set(key, { val, t: performance.now() });
+    if (this.sendBytes([0xB0 | ch, ccNum, val])) blinkTx();
+  },
+  async connect(interactive) {
+    if (!navigator.requestMIDIAccess) return;
+    try {
+      this.access = await navigator.requestMIDIAccess({ sysex: false });
+    } catch (e) {
+      if (interactive) showBanner("MIDI-Zugriff verweigert - Browser-Berechtigung prüfen", "warn", 5000);
+      updateConnUi(); renderSetup();
+      return;
+    }
+    this.access.onstatechange = () => { this.refreshPorts(); };
+    this.refreshPorts();
+  },
+  refreshPorts() {
+    if (!this.access) return;
+    const outs = [], ins = [];
+    this.access.outputs.forEach((p) => { if (this.live(p)) outs.push(p); });
+    this.access.inputs.forEach((p) => { if (this.live(p)) ins.push(p); });
+    /* auto-match: the SP-404 wins as soon as it shows up - virtual fallback
+       ports (e.g. the shim's own MIDIWeb pair) are only kept while the
+       device is absent, so stale selections never swallow sends */
+    const spOut = outs.find((p) => /sp-?404/i.test(p.name));
+    if (spOut && !/sp-?404/i.test(state.midi.outName || "")) state.midi.outName = spOut.name;
+    if (!outs.some((p) => p.name === state.midi.outName)) {
+      state.midi.outName = spOut ? spOut.name : (outs.length === 1 ? outs[0].name : state.midi.outName);
+    }
+    const spIn = ins.find((p) => /sp-?404/i.test(p.name));
+    if (spIn && !/sp-?404/i.test(state.midi.inName || "")) state.midi.inName = spIn.name;
+    if (!ins.some((p) => p.name === state.midi.inName)) {
+      const cand = ins.find((p) => p.name === state.midi.outName);
+      state.midi.inName = cand ? cand.name : spIn ? spIn.name : (ins.length === 1 ? ins[0].name : state.midi.inName);
+    }
+    /* bind ALL inputs unconditionally (midimonitor.com pattern - proven to
+       receive clock in the iOS shim browsers): selected port gets the full
+       handler, every other port is listened to for clock only */
+    this.access.inputs.forEach((p) => {
+      p.onmidimessage = (p.name === state.midi.inName) ? onMidiMessage : onClockOnly;
+    });
+    saveState(); updateConnUi(); renderSetup();
+  },
+};
+
+function onMidiMessage(e) {
+  const d = e.data;
+  if (!d || !d.length) return;
+  const src = (e.target && e.target.name) || "";
+  if (window.busdriver && window.busdriver.monitor && d[0] !== 0xF8 && d[0] !== 0xFE)
+    console.log("MIDI in:", Array.from(d).map((b) => b.toString(16).padStart(2, "0")).join(" "));
+  /* realtime bytes (clock/start/stop) may arrive alone, batched, or
+     interleaved with channel messages (shim browsers do this) - scan all */
+  let msg = d, rt = false;
+  for (let i = 0; i < d.length; i++) if (d[i] >= 0xF8) { rt = true; onClockByte(d[i], src); }
+  if (rt) msg = Array.from(d).filter((b) => b < 0xF8);
+  if (msg.length < 3) return;
+  const type = msg[0] & 0xF0, ch = msg[0] & 0x0F;
+  if (type !== 0xB0 || ch > 4 || !RECV_CCS.has(msg[1])) return;
+  handleBytes(ch, msg[1], msg[2]);
+}
+function handleBytes(ch, ccNum, val) {
+  const key = ch << 8 | ccNum;
+  /* R1: while a finger owns this control, the device never wins */
+  if (Midi.activeCCs.has(key)) return;
+  /* R2: drop echoes of our own sends (value match within 400 ms) */
+  const e = Midi.echoLog.get(key);
+  if (e && e.val === val && performance.now() - e.t < 400) return;
+  /* R3: device-sourced apply renders only, never re-sends */
+  Midi.lastSent.set(key, val); /* device now holds val - keeps send dedupe truthful */
+  applyCC(ch, ccNum, val, "device");
+}
+
+function applyCC(bus, ccNum, val, source) {
+  const b = state.buses[bus];
+  if (ccNum === CC_SW) {
+    b.on = val >= 64;
+    updateBusChrome(bus);
+  } else if (ccNum === CC_FX) {
+    if (b.fx !== val) fxChange(bus, val, source);
+  } else {
+    const slot = CC_CTRL.indexOf(ccNum);
+    if (slot < 0) return;
+    b.cc[slot] = clamp(val, 0, 127);
+    queueSlotRender(bus, slot);
+    queueSyncSiblings(bus, slot);
+  }
+  saveState();
+}
+function queueSyncSiblings(bus, slot) {
+  /* a SYNC flip changes sibling displays (msec <-> note values) */
+  const def = fxDefFor(BUSES[bus].table, state.buses[bus].fx);
+  if (def && def.p[slot] && def.p[slot].n === "SYNC") {
+    def.p.forEach((p, i) => { if (p.sv) queueSlotRender(bus, i); });
+  }
+}
+
+/* ===== effect change sequence (the one deterministic sync point) ===== */
+function memKey(table, num) {
+  if (table === "bus12" && num >= 1 && num <= 5) {
+    const a = directName(num);
+    if (a) return "dfx:" + a; /* per assigned effect, not per slot */
+  }
+  return table + ":" + num;
+}
+const fxTimers = BUSES.map(() => []);
+function fxChange(bus, num, source) {
+  const B = BUSES[bus], b = state.buses[bus];
+  /* cancel a still-running ctrl push of a previous change (any source) */
+  fxTimers[bus].forEach(clearTimeout);
+  fxTimers[bus] = [];
+  if (b.fx > 0) state.mem[memKey(B.table, b.fx)] = b.cc.slice();
+  b.fx = num;
+  const def = fxDefFor(B.table, num);
+  const saved = state.mem[memKey(B.table, num)];
+  b.cc = saved ? saved.slice() : defaultCcs(def);
+  LfoRt.forEach((rt, i) => { /* effect switch moved the ground under running LFOs */
+    const t = state.lfos[i].target;
+    if (rt.on && t && t.bus === bus) rt.center = b.cc[t.slot];
+  });
+  if (source === "user" && num > 0) {
+    const r = state.recents[B.table].filter((n) => n !== num);
+    r.unshift(num); state.recents[B.table] = r.slice(0, 6);
+  }
+  if (source === "user") {
+    Midi.send(B.ch, CC_FX, num, true);
+    b.cc.forEach((v, i) => fxTimers[bus].push(setTimeout(() => Midi.send(B.ch, CC_CTRL[i], v, true), 5 * (i + 1))));
+    if ((bus === 2 || bus === 3) && b.on && num > 0) {
+      /* BUS 3/4 can sit in device-side bypass; an OFF->ON cycle re-arms
+         them (verified at the device by Martin) */
+      fxTimers[bus].push(setTimeout(() => Midi.send(B.ch, CC_SW, 0, true), 42));
+      fxTimers[bus].push(setTimeout(() => Midi.send(B.ch, CC_SW, 127, true), 50));
+    }
+  }
+  renderBus(bus);
+  saveState();
+}
+
+/* ===== 06 UI: TX led, banner, conn ===== */
+let txTimer = null, txLast = 0;
+function blinkTx() {
+  const now = performance.now();
+  if (now - txLast < 100) return;
+  txLast = now;
+  $("tx").classList.add("blink");
+  clearTimeout(txTimer);
+  txTimer = setTimeout(() => $("tx").classList.remove("blink"), 60);
+}
+let bannerTimer = null;
+function showBanner(text, cls, ms) {
+  const b = $("banner");
+  b.textContent = text;
+  b.className = "show" + (cls === "info" ? " info" : "");
+  clearTimeout(bannerTimer);
+  if (ms) bannerTimer = setTimeout(() => b.classList.remove("show"), ms);
+}
+function updateConnUi() {
+  const dot = $("conn-dot"), name = $("conn-name");
+  if (Midi.demo) { dot.className = ""; name.textContent = "Demo-Modus (kein MIDI)"; return; }
+  if (!navigator.requestMIDIAccess) { dot.className = "err"; name.textContent = "kein Web MIDI"; return; }
+  const o = Midi.out();
+  if (o) {
+    dot.className = "ok"; name.textContent = o.name;
+    $("banner").classList.remove("show");
+  } else {
+    dot.className = Midi.access ? "err" : "";
+    name.textContent = Midi.access ? "SP-404 nicht verbunden" : "nicht verbunden";
+    if (Midi.access && state.midi.outName) showBanner("SP-404 nicht verbunden - tippen zum Verbinden öffnet Setup", "warn", 6000);
+  }
+}
+
+/* ===== 07 controls (fader / toggle / stepper) ===== */
+const controls = BUSES.map(() => [null, null, null, null, null, null]); /* focus view */
+const stripControls = BUSES.map(() => [null, null, null, null, null, null]);
+/* drags must survive DOM rebuilds (device fx change, bus switch mid-drag):
+   otherwise activeCCs leaks and the CC goes deaf for device input */
+const liveDrags = new Map(); /* key ch<<8|cc -> { node, finish } */
+function finishDragsIn(host) {
+  for (const [k, d] of [...liveDrags]) {
+    if (host.contains(d.node)) d.finish();
+  }
+}
+const renderQueue = new Set();
+function queueSlotRender(bus, slot) {
+  renderQueue.add(bus * 8 + slot);
+  scheduleFlush();
+}
+let flushReq = 0;
+function scheduleFlush() {
+  if (flushReq) return;
+  flushReq = requestAnimationFrame(() => {
+    flushReq = 0;
+    const q = [...renderQueue];
+    renderQueue.clear();
+    for (const k of q) {
+      const bus = Math.floor(k / 8), slot = k % 8;
+      try {
+        if (controls[bus][slot]) controls[bus][slot].update();
+        if (stripControls[bus][slot]) stripControls[bus][slot].update();
+      } catch (e) { /* one broken control must never freeze the whole render loop */ }
+    }
+  });
+}
+
+function setBusCc(bus, slot, cc, opts) {
+  cc = clamp(cc | 0, 0, 127);
+  const b = state.buses[bus];
+  if (b.cc[slot] === cc && !(opts && opts.force)) return;
+  b.cc[slot] = cc;
+  Midi.send(BUSES[bus].ch, CC_CTRL[slot], cc, opts && opts.force);
+  queueSlotRender(bus, slot);
+  queueSyncSiblings(bus, slot);
+  saveState();
+}
+
+/* stepper popover (surgical +/-1) */
+const stepCtx = { bus: 0, slot: 0 };
+function openStepper(x, y, bus, slot) {
+  stepCtx.bus = bus; stepCtx.slot = slot;
+  const s = $("stepper");
+  s.classList.add("open");
+  const w = 136, h = 64;
+  s.style.left = clamp(x - w / 2, 8, window.innerWidth - w - 8) + "px";
+  s.style.top = clamp(y - h - 16, 8, window.innerHeight - h - 8) + "px";
+}
+function closeStepper() { $("stepper").classList.remove("open"); }
+
+/* one control in a slot; kind: "fader" | "snap" | "seg" | "toggle" */
+function buildControl(slotEl, bus, slot, mini) {
+  const B = BUSES[bus];
+  const def = fxDefFor(B.table, state.buses[bus].fx);
+  const p = def && def.p[slot];
+  slotEl.textContent = "";
+  slotEl.className = mini ? "slot" : "slot";
+  if (!p) {
+    slotEl.classList.add("empty");
+    slotEl.appendChild(el("div", "fader"));
+    slotEl.appendChild(el("div", "slot-label", "–"));
+    return null;
+  }
+  const label = el("div", "slot-label", p.n);
+  /* each branch defines its own block-scoped update() and MUST bind it here -
+     a shared { update } literal would capture the hoisted fader update */
+  const api = {};
+
+  if (!mini && p.t === "b") {
+    const btn = el("button", "slot-toggle pad", p.n);
+    slotEl.appendChild(btn);
+    slotEl.appendChild(label);
+    btn.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      const cur = state.buses[bus].cc[slot];
+      setBusCc(bus, slot, cur >= 64 ? 0 : 127, { force: true });
+    });
+    function update() {
+      const on = state.buses[bus].cc[slot] >= 64;
+      btn.classList.toggle("on", on);
+      btn.textContent = p.n + " " + (on ? "ON" : "OFF");
+    }
+    api.update = update;
+    update();
+    return api;
+  }
+
+  if (!mini && p.t === "e" && p.v.length <= 6) {
+    const seg = el("div", "seg");
+    const btns = p.v.map((v, i) => {
+      const b2 = el("button", "", v);
+      b2.addEventListener("pointerdown", (e) => {
+        e.preventDefault();
+        setBusCc(bus, slot, ccFromEnum(i, p.v.length), { force: true });
+      });
+      seg.appendChild(b2);
+      return b2;
+    });
+    slotEl.appendChild(seg);
+    slotEl.appendChild(label);
+    function update() {
+      const cur = enumFromCc(state.buses[bus].cc[slot], p.v.length);
+      btns.forEach((b2, i) => b2.classList.toggle("on", i === cur));
+    }
+    api.update = update;
+    update();
+    return api;
+  }
+
+  /* fader (continuous, snapped enum, bal, pan, nt, and everything in mini strips) */
+  const snapN = (p.t === "e") ? p.v.length : 0;
+  const fader = el("div", "fader");
+  const val = el("button", "fader-val display mono");
+  const wrap = el("div", "fader-track-wrap");
+  const track = el("div", "fader-track");
+  const fill = el("div", "fader-fill");
+  const thumb = el("div", "fader-thumb");
+  const big = el("div", "bigval display mono");
+  track.appendChild(fill); track.appendChild(thumb);
+  wrap.appendChild(track);
+  fader.appendChild(val); fader.appendChild(wrap); fader.appendChild(big);
+  slotEl.appendChild(fader);
+  slotEl.appendChild(label);
+
+  function curCc() { return state.buses[bus].cc[slot]; }
+  function disp(cc) { return dispFromCc(p, cc, syncOnFor(bus, def)); }
+  function update() {
+    const cc = curCc(), pct = cc / 127 * 100;
+    fill.style.height = pct + "%";
+    /* travel limited to track minus thumb height so the thumb never leaves the track */
+    thumb.style.bottom = "calc(" + (cc / 127) + " * (100% - var(--thumb-h)))";
+    const d = disp(cc);
+    val.textContent = d;
+    big.textContent = d;
+  }
+  api.update = update;
+  update();
+
+  const key = B.ch << 8 | CC_CTRL[slot];
+  let drag = null, hideT = 0, lastTap = 0;
+  function finishDrag() {
+    /* idempotent cleanup; also runs when a rebuild removes this fader mid-drag */
+    if (!drag) return;
+    drag = null;
+    liveDrags.delete(key);
+    Midi.activeCCs.delete(key);
+    fader.classList.remove("drag");
+    hideT = setTimeout(() => { big.classList.remove("show"); big.style.marginLeft = ""; }, 800);
+    /* trailing send: guarantee final value reaches the device */
+    Midi.send(B.ch, CC_CTRL[slot], curCc(), true);
+  }
+  fader.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    fader.setPointerCapture(e.pointerId);
+    drag = { id: e.pointerId, lastY: e.clientY, startX: e.clientX, startY: e.clientY,
+             acc: curCc(), moved: 0, h: Math.max(track.clientHeight, 60) };
+    Midi.activeCCs.add(key);
+    liveDrags.set(key, { node: fader, finish: finishDrag });
+    fader.classList.add("drag");
+    clearTimeout(hideT);
+    big.classList.add("show");
+    /* clamp the big readout to the viewport (edge slots) */
+    const r = big.getBoundingClientRect();
+    big.style.marginLeft = (Math.max(0, 8 - r.left) - Math.max(0, r.right - window.innerWidth + 8)) + "px";
+  });
+  fader.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const dx = Math.abs(e.clientX - drag.startX);
+    const fine = dx > 120 ? 0.1 : dx > 60 ? 0.25 : 1;
+    const dy = drag.lastY - e.clientY;
+    drag.lastY = e.clientY;
+    drag.moved = Math.max(drag.moved, Math.abs(e.clientY - drag.startY), dx);
+    drag.acc = clamp(drag.acc + dy * fine * 127 / drag.h, 0, 127);
+    const target = snapN ? ccFromEnum(enumFromCc(Math.round(drag.acc), snapN), snapN) : Math.round(drag.acc);
+    if (target !== curCc()) setBusCc(bus, slot, target, {});
+  });
+  function endDrag(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const moved = drag.moved;
+    finishDrag();
+    if (moved < 6) {
+      const now = performance.now();
+      if (now - lastTap < 300) { /* double tap -> default */
+        setBusCc(bus, slot, ccFromDefault(p), { force: true });
+        lastTap = 0;
+      } else lastTap = now;
+    }
+  }
+  fader.addEventListener("pointerup", endDrag);
+  fader.addEventListener("pointercancel", endDrag);
+  fader.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const step = (e.shiftKey ? 10 : 1) * (e.deltaY < 0 ? 1 : -1);
+    setBusCc(bus, slot, curCc() + step, { force: true });
+  }, { passive: false });
+  if (!mini) {
+    val.addEventListener("pointerdown", (e) => {
+      e.stopPropagation(); e.preventDefault();
+      const r = val.getBoundingClientRect();
+      openStepper(r.left + r.width / 2, r.top, bus, slot);
+    });
+  }
+  return api;
+}
+
+/* ===== 08 views ===== */
+function renderFocusSlots() {
+  const bus = state.activeBus;
+  const host = $("faders");
+  finishDragsIn(host);
+  host.textContent = "";
+  for (let i = 0; i < 6; i++) {
+    const slotEl = el("div", "slot");
+    host.appendChild(slotEl);
+    controls[bus][i] = buildControl(slotEl, bus, i, false);
+  }
+  /* other buses' focus controls are stale references now */
+  BUSES.forEach((_, b) => { if (b !== bus) controls[b] = [null, null, null, null, null, null]; });
+}
+function updateFocusHead() {
+  const bus = state.activeBus, b = state.buses[bus], B = BUSES[bus];
+  $("efx-pad").classList.toggle("on", b.on);
+  $("efx-pad").textContent = b.on ? "EFX ON" : "EFX";
+  $("fx-name").querySelector(".fx-title").textContent = fxDisplayName(B.table, b.fx);
+  $("fx-name").querySelector(".fx-sub").textContent = B.label + " · Effekt wählen";
+}
+function updateBusChrome(bus) {
+  const b = state.buses[bus];
+  tabLeds[bus].classList.toggle("on", b.on);
+  strips[bus].root.classList.toggle("on", b.on);
+  strips[bus].efx.classList.toggle("on", b.on);
+  strips[bus].efx.textContent = b.on ? "ON" : "EFX";
+  if (bus === state.activeBus) updateFocusHead();
+}
+function renderBus(bus) {
+  strips[bus].fx.textContent = fxDisplayName(BUSES[bus].table, state.buses[bus].fx);
+  buildStripFaders(bus);
+  if (bus === state.activeBus) { renderFocusSlots(); updateFocusHead(); }
+  updateBusChrome(bus);
+}
+function setActiveBus(bus) {
+  state.activeBus = bus;
+  tabs.forEach((t, i) => t.classList.toggle("active", i === bus));
+  renderFocusSlots();
+  updateFocusHead();
+  updateRndBtn();
+}
+function currentView() {
+  const b = document.body.classList;
+  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("overview") ? "overview" : "focus";
+}
+function setView(v) {
+  const b = document.body.classList;
+  b.remove("overview", "xy", "pattern", "play");
+  if (v !== "focus") b.add(v);
+  $("xy-btn").classList.toggle("on", v === "xy");
+  if (patternTab) patternTab.classList.toggle("active", v === "pattern");
+  if (playTab) playTab.classList.toggle("active", v === "play");
+  $("view-toggle").textContent = v === "overview" ? "Fokus" : "Übersicht";
+  if (v === "xy") renderXy();
+  if (v === "pattern") renderPattern();
+  if (v === "play") renderPlay();
+}
+function gotoFocus(bus) {
+  setActiveBus(bus);
+  setView("focus");
+}
+function toggleView() {
+  setView(currentView() === "overview" ? "focus" : "overview");
+}
+
+/* bus tabs */
+const tabs = [], tabLeds = [];
+let patternTab = null, playTab = null;
+function buildTabs() {
+  const host = $("bustabs");
+  BUSES.forEach((B, i) => {
+    const t = el("button", "bustab");
+    const led = el("span", "led");
+    t.appendChild(led);
+    t.appendChild(el("span", "", B.short));
+    t.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      /* in the playable tablet/desktop overview a tab tap only sets the
+         active bus - it must not yank the user out of the overview */
+      if (document.body.classList.contains("overview") && !PHONE.matches) setActiveBusSilent(i);
+      else gotoFocus(i);
+    });
+    host.appendChild(t);
+    tabs.push(t); tabLeds.push(led);
+  });
+  const pl = el("button", "bustab");
+  pl.appendChild(el("span", "", "PLAY"));
+  pl.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    setView(currentView() === "play" ? "focus" : "play");
+  });
+  host.appendChild(pl);
+  playTab = pl;
+  const pt = el("button", "bustab");
+  pt.appendChild(el("span", "", "PTN"));
+  pt.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    setView(currentView() === "pattern" ? "focus" : "pattern");
+  });
+  host.appendChild(pt);
+  patternTab = pt;
+}
+
+/* overview strips */
+const strips = [];
+function buildOverview() {
+  const host = $("view-overview");
+  BUSES.forEach((B, i) => {
+    const root = el("div", "busstrip");
+    const head = el("div", "strip-head");
+    const lab = el("button", "label", B.label);
+    const efx = el("button", "strip-efx pad", "EFX");
+    head.appendChild(lab); head.appendChild(efx);
+    const fx = el("button", "strip-fx display mono", "(OFF)");
+    const fads = el("div", "strip-faders");
+    root.appendChild(head); root.appendChild(fx); root.appendChild(fads);
+    host.appendChild(root);
+    /* click, not pointerdown: on phone these sit in a scroll container and
+       click does not fire after a pan gesture */
+    lab.addEventListener("click", () => gotoFocus(i));
+    fx.addEventListener("click", () => {
+      if (PHONE.matches) { gotoFocus(i); return; }
+      setActiveBusSilent(i); openPicker(i);
+    });
+    attachEfxPad(efx, i);
+    root.addEventListener("click", (e) => {
+      if (PHONE.matches && e.target === root) gotoFocus(i);
+    });
+    strips.push({ root, efx, fx, fads });
+  });
+}
+function setActiveBusSilent(bus) { /* picker needs a target without leaving overview */
+  state.activeBus = bus;
+  tabs.forEach((t, i) => t.classList.toggle("active", i === bus));
+  renderFocusSlots(); updateFocusHead();
+}
+function buildStripFaders(bus) {
+  const host = strips[bus].fads;
+  finishDragsIn(host);
+  host.textContent = "";
+  for (let i = 0; i < 6; i++) {
+    const slotEl = el("div", "slot");
+    host.appendChild(slotEl);
+    stripControls[bus][i] = buildControl(slotEl, bus, i, true);
+  }
+}
+
+/* EFX pad with momentary long-press (hold >=350ms from OFF: on while held) */
+function attachEfxPad(btn, busIdx) {
+  let t = null, momentary = false, downAt = 0;
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    btn.setPointerCapture(e.pointerId);
+    clearTimeout(t); t = null;
+    downAt = performance.now(); momentary = false;
+    const b = state.buses[busIdx];
+    if (!b.on) {
+      t = setTimeout(() => {
+        momentary = true;
+        sendSw(busIdx, true);
+      }, 350);
+    }
+  });
+  function up(e) {
+    clearTimeout(t); t = null;
+    if (!downAt) return;
+    downAt = 0;
+    const b = state.buses[busIdx];
+    if (momentary) { sendSw(busIdx, false); momentary = false; return; }
+    sendSw(busIdx, !b.on);
+  }
+  btn.addEventListener("pointerup", up);
+  btn.addEventListener("pointercancel", (e) => {
+    clearTimeout(t); t = null; downAt = 0;
+    if (momentary) { sendSw(busIdx, false); momentary = false; }
+  });
+}
+function sendSw(bus, on) {
+  state.buses[bus].on = on;
+  Midi.send(BUSES[bus].ch, CC_SW, on ? 127 : 0, true);
+  updateBusChrome(bus);
+  saveState();
+}
+
+/* ALL OFF with restore */
+function allOff() {
+  const btn = $("alloff");
+  if (!allOffSaved) {
+    allOffSaved = state.buses.map((b) => b.on);
+    if (!allOffSaved.some(Boolean)) { allOffSaved = null; return; }
+    BUSES.forEach((B, i) => { if (state.buses[i].on) sendSw(i, false); });
+    btn.classList.add("armed");
+    btn.textContent = "RESTORE";
+  } else {
+    BUSES.forEach((B, i) => { if (allOffSaved[i]) sendSw(i, true); });
+    allOffSaved = null;
+    btn.classList.remove("armed");
+    btn.textContent = "ALL OFF";
+  }
+}
+
+/* ===== snapshots ===== */
+function applyFullState(buses) {
+  /* full push: per bus CC#83, then ctrl CCs, then EFX switch, staggered */
+  allOffSaved = null;
+  $("alloff").classList.remove("armed");
+  $("alloff").textContent = "ALL OFF";
+  let d = 0;
+  BUSES.forEach((B, b) => {
+    const src = buses[b];
+    if (!src || !Array.isArray(src.cc)) return;
+    fxTimers[b].forEach(clearTimeout); fxTimers[b] = [];
+    const cur = state.buses[b];
+    if (cur.fx > 0) state.mem[memKey(B.table, cur.fx)] = cur.cc.slice();
+    cur.fx = src.fx | 0;
+    cur.cc = src.cc.map((v) => clamp(v | 0, 0, 127));
+    cur.on = !!src.on;
+    fxTimers[b].push(setTimeout(() => Midi.send(B.ch, CC_FX, cur.fx, true), d)); d += 6;
+    cur.cc.forEach((v, j) => { fxTimers[b].push(setTimeout(() => Midi.send(B.ch, CC_CTRL[j], v, true), d)); d += 6; });
+    fxTimers[b].push(setTimeout(() => Midi.send(B.ch, CC_SW, cur.on ? 127 : 0, true), d)); d += 6;
+    renderBus(b);
+  });
+  LfoRt.forEach((rt, i) => { /* snapshot moved the ground under running LFOs */
+    const t = state.lfos[i].target;
+    if (rt.on && t) rt.center = state.buses[t.bus].cc[t.slot];
+  });
+  saveState();
+}
+function busesSummary(buses, compact) {
+  /* compact: "1● Tape Echo · 3○ Lo-fi" (● an, ○ gesetzt aber aus) */
+  const parts = [];
+  BUSES.forEach((B, i) => {
+    const b = buses[i];
+    if (!b) return;
+    const name = b.fx > 0 ? fxDisplayName(B.table, b.fx) : null;
+    if (compact) {
+      if (name) parts.push((i + 1) + (b.on ? "●" : "○") + " " + name);
+    } else {
+      parts.push(B.label.padEnd(6) + " " + (name || "–") + (name ? (b.on ? "  AN" : "  aus") : ""));
+    }
+  });
+  if (compact) return parts.length ? parts.join(" · ") : "alle Busse leer";
+  return parts.join("\n");
+}
+function snapSave(i) {
+  /* saves immediately (offline, no dialog - prompt() is broken in some
+     WKWebView shim browsers); the name is edited inline afterwards */
+  const cur = state.snapshots[i];
+  state.snapshots[i] = {
+    t: Date.now(),
+    name: (cur && !cur.del && cur.name) || "Snapshot " + (i + 1),
+    buses: state.buses.map((b) => ({ on: b.on, fx: b.fx, cc: b.cc.slice() })),
+  };
+  saveState(); scheduleSync(); renderSnaps();
+  startRename(i);
+}
+function startRename(i) {
+  const slotEl = snapEls[i];
+  const s = state.snapshots[i];
+  if (!slotEl || !s || s.del) return;
+  const nameEl = slotEl.querySelector(".sn-name");
+  if (!nameEl) return;
+  const input = el("input", "sn-edit");
+  input.type = "text"; input.maxLength = 24; input.value = s.name;
+  nameEl.replaceWith(input);
+  input.addEventListener("pointerdown", (e) => e.stopPropagation());
+  input.addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") input.blur();
+    if (e.key === "Escape") { input.value = s.name; input.blur(); }
+  });
+  input.addEventListener("blur", () => {
+    const v = input.value.trim();
+    if (v && v !== s.name) { s.name = v.slice(0, 24); s.t = Date.now(); saveState(); scheduleSync(); }
+    renderSnaps();
+  });
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+}
+function snapLoad(i) {
+  const s = state.snapshots[i];
+  if (!s || s.del || !Array.isArray(s.buses)) return;
+  applyFullState(s.buses);
+  $("snaps").classList.remove("open");
+  showBanner("„" + s.name + "“ geladen", "info", 2000);
+}
+function snapDelete(i) {
+  state.snapshots[i] = { t: Date.now(), del: 1 }; /* tombstone so no device resurrects it */
+  saveState(); scheduleSync(); renderSnaps();
+}
+let snapEls = [];
+function renderSnaps() {
+  $("snap-current").textContent = busesSummary(state.buses, false);
+  const grid = $("snap-grid");
+  grid.textContent = "";
+  snapEls = [];
+  for (let i = 0; i < 8; i++) {
+    const s = state.snapshots[i];
+    const filled = !!(s && !s.del && Array.isArray(s.buses));
+    const slot = el("div", "snap-slot" + (filled ? "" : " empty")); /* div: contains the del button */
+    slot.appendChild(el("span", "sn-name", filled ? s.name : "Slot " + (i + 1)));
+    if (filled) slot.appendChild(el("span", "sn-sum", busesSummary(s.buses, true)));
+    slot.appendChild(el("span", "sn-meta", filled
+      ? new Date(s.t).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+      : "leer"));
+    let armed = false, moved = false, held = false, sx = 0, sy = 0, hT = null;
+    slot.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      armed = true; moved = false; held = false; sx = e.clientX; sy = e.clientY;
+      hT = setTimeout(() => { held = true; snapSave(i); }, 500);
+    });
+    slot.addEventListener("pointermove", (e) => {
+      if (armed && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) { moved = true; clearTimeout(hT); }
+    });
+    slot.addEventListener("pointerup", () => {
+      clearTimeout(hT);
+      if (!armed) return;
+      armed = false;
+      if (held || moved) return;
+      if (filled) snapLoad(i); else snapSave(i);
+    });
+    slot.addEventListener("pointercancel", () => { clearTimeout(hT); armed = false; });
+    if (filled) {
+      const del = el("button", "sn-del", "✕");
+      del.addEventListener("pointerdown", (e) => e.stopPropagation());
+      del.addEventListener("click", (e) => { e.stopPropagation(); snapDelete(i); });
+      slot.appendChild(del);
+    }
+    grid.appendChild(slot);
+    snapEls.push(slot);
+  }
+  updateSyncStatus();
+}
+function openSnaps() {
+  renderSnaps();
+  $("snaps").classList.add("open");
+  pullSync();
+}
+function doExport() {
+  const ta = $("exchange");
+  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots }, null, 1);
+  ta.focus(); ta.select();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ta.value)
+      .then(() => showBanner("JSON in die Zwischenablage kopiert", "info", 2500))
+      .catch(() => {});
+  }
+}
+function doImport() {
+  let d = null;
+  try { d = JSON.parse($("exchange").value); } catch (e) {}
+  if (!d || d.busdriver !== 1 || !Array.isArray(d.snapshots)) {
+    showBanner("Kein gültiges Busdriver-JSON im Textfeld", "warn", 3000);
+    return;
+  }
+  let ok = true;
+  try { ok = window.confirm("Import überschreibt belegte Slot-Nummern aus dem JSON. Fortfahren?"); } catch (e) {}
+  if (!ok) return;
+  let n = 0;
+  for (let i = 0; i < 8; i++) {
+    const r = d.snapshots[i];
+    if (r && !r.del && Array.isArray(r.buses)) {
+      state.snapshots[i] = { t: Date.now(), name: String(r.name || "Import " + (i + 1)).slice(0, 24), buses: r.buses };
+      n++;
+    }
+  }
+  saveState(); scheduleSync(); renderSnaps();
+  showBanner(n + " Snapshot(s) importiert", "info", 2500);
+}
+
+/* ===== randomizer (one-step undo via second tap within 6 s) ===== */
+const RND_SKIP = new Set(["LEVEL", "SEND", "GAIN"]);
+let rndUndo = null; /* { bus, cc, t } */
+function randomize(bus) {
+  const B = BUSES[bus], b = state.buses[bus];
+  const def = fxDefFor(B.table, b.fx);
+  if (!def) { showBanner("Erst einen Effekt wählen", "info", 2200); return; }
+  if (rndUndo && rndUndo.bus === bus && performance.now() - rndUndo.t < 6000) {
+    rndUndo.cc.forEach((v, i) => setBusCc(bus, i, v, { force: true }));
+    rndUndo = null;
+    updateRndBtn();
+    return;
+  }
+  rndUndo = { bus, cc: b.cc.slice(), t: performance.now() };
+  def.p.forEach((p, i) => {
+    if (i >= 6 || p.t !== "c" || RND_SKIP.has(p.n)) return;
+    setBusCc(bus, i, Math.floor(Math.random() * 128), { force: true });
+  });
+  updateRndBtn();
+  setTimeout(updateRndBtn, 6100);
+}
+function updateRndBtn() {
+  const active = rndUndo && rndUndo.bus === state.activeBus && performance.now() - rndUndo.t < 6000;
+  $("rnd-btn").textContent = active ? "UNDO" : "RND";
+  $("rnd-btn").classList.toggle("undo", !!active);
+}
+
+/* ===== device sync: removed in the public build =====
+   Snapshots live in localStorage; use Export/Import (Snap panel) to move
+   them between devices. */
+let syncTimer = null;
+function mergeRemote() { return false; }
+function pushSync() {}
+function scheduleSync() {}
+function pullSync() {}
+function updateSyncStatus() {
+  $("sync-status").textContent = "Lokal gespeichert – Geräte-Austausch über Export/Import.";
+}
+
+/* ===== 09 picker ===== */
+let pickerBus = 0, pressTimer = null, pressFired = false;
+function openPicker(bus, assignSlot) {
+  pickerBus = bus;
+  const B = BUSES[bus];
+  const body = $("picker-body");
+  body.textContent = "";
+  /* assign mode: choose which effect sits on a device Direct-FX slot */
+  if (typeof assignSlot === "number") {
+    const oj = $("jumpbar"); if (oj) oj.remove();
+    $("picker-title").textContent = "DIRECT FX" + (assignSlot + 1) + " · BELEGUNG";
+    body.appendChild(el("div", "pick-note",
+      "Sag der App, welcher Effekt am Gerät auf Direct FX" + (assignSlot + 1) +
+      " liegt (SYSTEM-Einstellung des SP-404) – dann zeigen die Fader die richtigen Parameternamen."));
+    const curName = directName(assignSlot + 1);
+    const mkA = (name, isClear) => {
+      const it = el("button", "pick-item" + (isClear ? " off-item" : "") +
+        ((isClear ? !curName : curName === name) ? " sel" : ""));
+      it.appendChild(el("span", "", isClear ? "(keine Angabe)" : name));
+      it.addEventListener("click", () => { setDirectFx(assignSlot, isClear ? null : name); closePicker(); });
+      return it;
+    };
+    const g0 = el("div", "pick-grid");
+    g0.appendChild(mkA(null, true));
+    body.appendChild(g0);
+    const byCat = {};
+    CAT_ORDER.forEach((c) => { byCat[c] = []; });
+    assignableNames().forEach((n) => {
+      const c = EFFECTS[n] ? EFFECTS[n].c : "weird";
+      (byCat[c] || byCat.weird).push(n);
+    });
+    CAT_ORDER.forEach((c) => {
+      if (!byCat[c] || !byCat[c].length) return;
+      const sec = el("div", "pick-cat");
+      sec.appendChild(el("h3", "", CAT_LABELS[c]));
+      const g = el("div", "pick-grid");
+      byCat[c].forEach((n) => g.appendChild(mkA(n, false)));
+      sec.appendChild(g);
+      body.appendChild(sec);
+    });
+    $("picker").classList.add("open");
+    return;
+  }
+  $("picker-title").textContent = B.label + " · EFFEKT";
+  const table = BUS_TABLES[B.table];
+  const cur = state.buses[bus].fx;
+
+  const mkItem = (num, wide) => {
+    const name = table[num];
+    const item = el("button", "pick-item" + (num === 0 ? " off-item" : "") + (num === cur ? " sel" : ""));
+    item.appendChild(el("span", "", fxDisplayName(B.table, num)));
+    if (num > 0) {
+      const star = el("span", "star" + (isFav(B.table, num) ? " fav" : ""), "★");
+      item.appendChild(star);
+    }
+    /* select only on a full down+up pair on THIS item without movement:
+       protects against scroll gestures and against the picker opening under
+       an already-down finger */
+    let armed = false, moved = false, sx = 0, sy = 0;
+    item.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      armed = true; moved = false; sx = e.clientX; sy = e.clientY;
+      pressFired = false;
+      clearTimeout(pressTimer);
+      if (num > 0) {
+        pressTimer = setTimeout(() => {
+          pressFired = true;
+          state.favs[B.table][num] = { on: !isFav(B.table, num), t: Date.now() };
+          saveState(); scheduleSync(); openPicker(bus); /* re-render, keep open */
+        }, 420);
+      }
+    });
+    item.addEventListener("pointermove", (e) => {
+      if (armed && Math.hypot(e.clientX - sx, e.clientY - sy) > 8) {
+        moved = true; clearTimeout(pressTimer);
+      }
+    });
+    item.addEventListener("pointerup", () => {
+      clearTimeout(pressTimer);
+      if (!armed) return;
+      armed = false;
+      if (pressFired || moved) return;
+      fxChange(bus, num, "user");
+      closePicker();
+    });
+    item.addEventListener("pointercancel", () => { clearTimeout(pressTimer); armed = false; });
+    item.addEventListener("pointerleave", () => clearTimeout(pressTimer));
+    return item;
+  };
+
+  /* the three bus types have different effect sets (Roland spec) */
+  const NOTES = {
+    bus12: "Effekt-Set von BUS 1+2. BUS 3/4 und INPUT haben eigene Sets (Roland-Vorgabe) – z. B. liegen Sync Delay, Isolator und Resonator nur auf BUS 3/4.",
+    bus34: "Effekt-Set von BUS 3+4 (Roland-Vorgabe) – u. a. mit Sync Delay, Isolator, Filter+Drive, Resonator und DJFX Looper.",
+    input: "Effekt-Set des INPUT-Busses (Roland-Vorgabe) – u. a. Auto Pitch, Vocoder, Harmony, Gt Amp Sim.",
+  };
+  body.appendChild(el("div", "pick-note", NOTES[B.table]));
+  const grid0 = el("div", "pick-grid");
+  grid0.appendChild(mkItem(0));
+  body.appendChild(grid0);
+
+  const addRow = (title, nums) => {
+    if (!nums.length) return;
+    const cat = el("div", "pick-cat");
+    cat.appendChild(el("h3", "", title));
+    const g = el("div", "pick-grid");
+    nums.forEach((n) => g.appendChild(mkItem(n)));
+    cat.appendChild(g);
+    body.appendChild(cat);
+  };
+  addRow("ZULETZT", state.recents[B.table].filter((n) => n < table.length));
+  addRow("FAVORITEN", favList(B.table).filter((n) => n < table.length));
+
+  const catSecs = {};
+  CAT_ORDER.forEach((c) => { catSecs[c] = []; });
+  for (let n = 1; n < table.length; n++) {
+    const def = fxDefFor(B.table, n);
+    const c = def ? def.c : "weird";
+    (catSecs[c] || catSecs.weird).push(n);
+  }
+  const oldJump = $("jumpbar");
+  if (oldJump) oldJump.remove();
+  const jump = el("div", ""); jump.id = "jumpbar";
+  CAT_ORDER.forEach((c) => {
+    if (!catSecs[c].length) return;
+    const sec = el("div", "pick-cat");
+    sec.dataset.cat = c;
+    sec.appendChild(el("h3", "", CAT_LABELS[c]));
+    const g = el("div", "pick-grid");
+    catSecs[c].forEach((n) => g.appendChild(mkItem(n)));
+    sec.appendChild(g);
+    body.appendChild(sec);
+    const jb = el("button", "", CAT_LABELS[c].slice(0, 2));
+    jb.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      sec.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+    jump.appendChild(jb);
+  });
+  $("picker-panel").appendChild(jump); /* outside the scroller so it stays put */
+  $("picker").classList.add("open");
+}
+function closePicker() { $("picker").classList.remove("open"); }
+
+/* ===== 10 setup panel ===== */
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function renderSetup() {
+  if (!$("setup").classList.contains("open")) return;
+  const lines = [];
+  lines.push("Build: <b>" + BUILD + "</b>");
+  lines.push("Web MIDI: " + (navigator.requestMIDIAccess ? "<b>verfügbar</b>" : "<b>nicht verfügbar</b>"));
+  lines.push("Zugriff: " + (Midi.access ? "<b>erteilt</b>" : Midi.demo ? "<b>Demo-Modus</b>" : "noch nicht angefragt"));
+  const o = Midi.out(), i_ = Midi.in_();
+  lines.push("Ausgang: " + (o ? "<b>" + esc(o.name) + "</b>" : "–"));
+  lines.push("Eingang: " + (i_ ? "<b>" + esc(i_.name) + "</b>" : "–"));
+  $("diag").innerHTML = lines.join("<br>");
+  const mkPortBtns = (host, ports, sel, pick) => {
+    host.textContent = "";
+    if (!ports.length) { host.appendChild(el("span", "label", "keine Ports")); return; }
+    ports.forEach((p) => {
+      const b = el("button", "setup-btn" + (p.name === sel ? " sel" : ""), p.name);
+      b.addEventListener("click", () => { pick(p.name); Midi.refreshPorts(); });
+      host.appendChild(b);
+    });
+  };
+  const outs = [], ins = [];
+  if (Midi.access) {
+    Midi.access.outputs.forEach((p) => { if (Midi.live(p)) outs.push(p); });
+    Midi.access.inputs.forEach((p) => { if (Midi.live(p)) ins.push(p); });
+  }
+  mkPortBtns($("out-list"), outs, state.midi.outName, (n) => { state.midi.outName = n; });
+  mkPortBtns($("in-list"), ins, state.midi.inName, (n) => { state.midi.inName = n; });
+  $("wake-toggle").textContent = "Bildschirm wachhalten: " + (state.wake ? "an" : "aus");
+  const dl = $("dfx-list");
+  dl.textContent = "";
+  for (let i = 0; i < 5; i++) {
+    const a = directName(i + 1);
+    const b = el("button", "setup-btn" + (a ? " sel" : ""), "DFX" + (i + 1) + ": " + (a || "–"));
+    b.addEventListener("click", () => {
+      $("setup").classList.remove("open"); /* picker sits below setup in z-order */
+      openPicker(state.activeBus, i);
+    });
+    dl.appendChild(b);
+  }
+}
+function openSetup() { $("setup").classList.add("open"); renderSetup(); }
+function pushStateToDevice() {
+  let d = 0;
+  BUSES.forEach((B, i) => {
+    const b = state.buses[i];
+    setTimeout(() => Midi.send(B.ch, CC_FX, b.fx, true), d); d += 8;
+    b.cc.forEach((v, j) => { setTimeout(() => Midi.send(B.ch, CC_CTRL[j], v, true), d); d += 8; });
+    setTimeout(() => Midi.send(B.ch, CC_SW, b.on ? 127 : 0, true), d); d += 8;
+  });
+  showBanner("Zustand gesendet (5 Busse)", "info", 2500);
+}
+
+/* wake lock */
+let wakeLock = null;
+async function applyWake() {
+  try {
+    if (state.wake && !wakeLock && "wakeLock" in navigator) {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", () => { wakeLock = null; });
+    } else if (!state.wake && wakeLock) {
+      await wakeLock.release(); wakeLock = null;
+    }
+  } catch (e) { /* not granted (battery, platform): ignore */ }
+}
+
+/* ===== MIDI clock -> BPM (Link route: any connected port may carry clock) ===== */
+const Clock = { src: null, last: 0, ticks: [], count: 0 };
+function onClockByte(st, srcName) {
+  const now = performance.now();
+  if (st === 0xFA || st === 0xFC) { Clock.ticks = []; Clock.count = 0; LfoRt.forEach((r) => { r.beats = 0; r.lastT = now; }); return; }
+  if (st !== 0xF8) return;
+  if (Clock.src && Clock.src !== srcName && now - Clock.last < 1500) return; /* lock to one source */
+  Clock.src = srcName; Clock.last = now;
+  Clock.ticks.push(now);
+  if (Clock.ticks.length > 49) Clock.ticks.shift();
+  if (++Clock.count % 24 === 0) { /* quarter-note pulse */
+    $("beat").classList.add("tick");
+    setTimeout(() => $("beat").classList.remove("tick"), 90);
+  }
+}
+function onClockOnly(e) {
+  const d = e.data;
+  if (!d || !d.length) return;
+  const src = (e.target && e.target.name) || "?";
+  if (window.busdriver && window.busdriver.monitor && d[0] !== 0xF8 && d[0] !== 0xFE)
+    console.log("MIDI in (" + src + "):",
+      Array.from(d).map((b) => b.toString(16).padStart(2, "0")).join(" "));
+  for (let i = 0; i < d.length; i++) if (d[i] >= 0xF8) onClockByte(d[i], src);
+}
+setInterval(() => {
+  const bpmEl = $("bpm");
+  const alive = performance.now() - Clock.last <= 1500 && Clock.last > 0;
+  if (!alive) {
+    Clock.src = null;
+    bpmEl.classList.remove("on");
+  } else if (Clock.ticks.length > 25) {
+    const t = Clock.ticks;
+    const mean = (t[t.length - 1] - t[0]) / (t.length - 1);
+    Clock.bpm = 60000 / (mean * 24);
+    $("bpm-val").textContent = Clock.bpm.toFixed(1);
+    bpmEl.title = "MIDI Clock von: " + (Clock.src || "?");
+    bpmEl.classList.add("on");
+  }
+  if (document.body.classList.contains("xy")) renderLfo(); /* CLK/TAP label follows source */
+  /* live clock diagnosis while the setup panel is open (iOS has no console) */
+  if ($("setup").classList.contains("open")) {
+    $("clock-diag").textContent = alive
+      ? "Clock: Quelle „" + (Clock.src || "?") + "“ · " + $("bpm-val").textContent + " BPM · " + Clock.count + " Ticks"
+      : "Clock: keine empfangen" + (Clock.count ? " (zuletzt: " + Clock.count + " Ticks)" : "");
+  }
+}, 500);
+
+/* ===== XY pad (third view, absolute Kaoss-style position = value) ===== */
+function xyAssign(axis) { return state.xy[axis]; }
+function xyParam(a) {
+  if (!a) return null;
+  const def = fxDefFor(BUSES[a.bus].table, state.buses[a.bus].fx);
+  return def ? (def.p[a.slot] || null) : null;
+}
+function xyLabelText(axis) {
+  const a = xyAssign(axis);
+  if (!a) return axis.toUpperCase() + ": – (tippen)";
+  const p = xyParam(a);
+  return axis.toUpperCase() + ": " + BUSES[a.bus].label + " · " + (p ? p.n : "CTRL " + (a.slot + 1));
+}
+function positionCross(nx, ny) {
+  $("xy-cross").style.left = (nx * 100) + "%";
+  $("xy-cross").style.top = (ny * 100) + "%";
+  $("xy-linev").style.left = (nx * 100) + "%";
+  $("xy-lineh").style.top = (ny * 100) + "%";
+}
+function updateXyVals() {
+  const parts = [];
+  for (const axis of ["x", "y"]) {
+    const a = xyAssign(axis);
+    if (!a) continue;
+    const p = xyParam(a);
+    const def = fxDefFor(BUSES[a.bus].table, state.buses[a.bus].fx);
+    const cc = state.buses[a.bus].cc[a.slot];
+    parts.push(axis.toUpperCase() + " " + (p ? dispFromCc(p, cc, syncOnFor(a.bus, def)) : cc));
+  }
+  $("xy-vals").textContent = parts.join("   ") || "Achsen oben zuweisen";
+}
+function renderXy() {
+  renderLfo();
+  $("xy-xa").textContent = xyLabelText("x");
+  $("xy-ya").textContent = xyLabelText("y");
+  $("xy-mom").classList.toggle("on", !!state.xy.mom);
+  const ax = xyAssign("x"), ay = xyAssign("y");
+  positionCross(ax ? state.buses[ax.bus].cc[ax.slot] / 127 : 0.5,
+                ay ? 1 - state.buses[ay.bus].cc[ay.slot] / 127 : 0.5);
+  updateXyVals();
+}
+function setupXyPad() {
+  const pad = $("xy-pad");
+  let drag = null;
+  const keyFor = (a) => a ? (BUSES[a.bus].ch << 8 | CC_CTRL[a.slot]) : null;
+  function applyPos(e) {
+    const r = pad.getBoundingClientRect();
+    const nx = clamp((e.clientX - r.left) / r.width, 0, 1);
+    const ny = clamp((e.clientY - r.top) / r.height, 0, 1);
+    const ax = xyAssign("x"), ay = xyAssign("y");
+    if (ax) setBusCc(ax.bus, ax.slot, Math.round(nx * 127), {});
+    if (ay) setBusCc(ay.bus, ay.slot, Math.round((1 - ny) * 127), {});
+    positionCross(nx, ny);
+    updateXyVals();
+  }
+  pad.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    if (drag) return; /* first pointer owns the pad */
+    pad.setPointerCapture(e.pointerId);
+    const ax = xyAssign("x"), ay = xyAssign("y");
+    drag = { id: e.pointerId, prev: {
+      x: ax ? state.buses[ax.bus].cc[ax.slot] : null,
+      y: ay ? state.buses[ay.bus].cc[ay.slot] : null } };
+    for (const a of [ax, ay]) { const k = keyFor(a); if (k !== null) Midi.activeCCs.add(k); }
+    applyPos(e);
+  });
+  pad.addEventListener("pointermove", (e) => { if (drag && e.pointerId === drag.id) applyPos(e); });
+  function end(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const prev = drag.prev;
+    drag = null;
+    const ax = xyAssign("x"), ay = xyAssign("y");
+    for (const a of [ax, ay]) { const k = keyFor(a); if (k !== null) Midi.activeCCs.delete(k); }
+    if (state.xy.mom) {
+      /* spring back: short ramp to the pre-touch values */
+      const from = {
+        x: ax ? state.buses[ax.bus].cc[ax.slot] : null,
+        y: ay ? state.buses[ay.bus].cc[ay.slot] : null };
+      const STEPS = 4;
+      for (let s = 1; s <= STEPS; s++) {
+        setTimeout(() => {
+          const f = s / STEPS;
+          if (ax && prev.x !== null) setBusCc(ax.bus, ax.slot, Math.round(from.x + (prev.x - from.x) * f), { force: s === STEPS });
+          if (ay && prev.y !== null) setBusCc(ay.bus, ay.slot, Math.round(from.y + (prev.y - from.y) * f), { force: s === STEPS });
+          if (s === STEPS) renderXy();
+        }, s * 30);
+      }
+    } else {
+      /* trailing send */
+      if (ax) Midi.send(BUSES[ax.bus].ch, CC_CTRL[ax.slot], state.buses[ax.bus].cc[ax.slot], true);
+      if (ay) Midi.send(BUSES[ay.bus].ch, CC_CTRL[ay.slot], state.buses[ay.bus].cc[ay.slot], true);
+    }
+  }
+  pad.addEventListener("pointerup", end);
+  pad.addEventListener("pointercancel", end);
+}
+let xyPickAxis = "x", xyPickBus = 0;
+function openXyPick(axis) {
+  xyPickAxis = axis;
+  const a = axis === "lfo" ? state.lfos[lfoSel].target : xyAssign(axis);
+  xyPickBus = a ? a.bus : state.activeBus;
+  $("xypick-title").textContent = axis === "lfo" ? "LFO-ZIEL" : (axis === "x" ? "X" : "Y") + "-ACHSE";
+  renderXyPick();
+  $("xypick").classList.add("open");
+}
+function renderXyPick() {
+  const bh = $("xypick-bus");
+  bh.textContent = "";
+  BUSES.forEach((B, i) => {
+    const b = el("button", "setup-btn" + (i === xyPickBus ? " sel" : ""), B.label);
+    b.addEventListener("click", () => { xyPickBus = i; renderXyPick(); });
+    bh.appendChild(b);
+  });
+  const sh = $("xypick-slot");
+  sh.textContent = "";
+  const def = fxDefFor(BUSES[xyPickBus].table, state.buses[xyPickBus].fx);
+  const cur = xyPickAxis === "lfo" ? state.lfos[lfoSel].target : xyAssign(xyPickAxis);
+  for (let i = 0; i < 6; i++) {
+    const p = def && def.p[i];
+    const sel = cur && cur.bus === xyPickBus && cur.slot === i;
+    const b = el("button", "setup-btn" + (sel ? " sel" : ""), (i + 1) + " · " + (p ? p.n : "CTRL " + (i + 1)));
+    b.addEventListener("click", () => {
+      if (xyPickAxis === "lfo") {
+        const rt = LfoRt[lfoSel];
+        const old = state.lfos[lfoSel].target;
+        if (rt.on && old && (old.bus !== xyPickBus || old.slot !== i))
+          setBusCc(old.bus, old.slot, rt.center, { force: true }); /* park the abandoned target */
+        LfoRt.forEach((r, j) => { /* one target belongs to one slot */
+          if (j !== lfoSel && r.on) {
+            const o = state.lfos[j].target;
+            if (o && o.bus === xyPickBus && o.slot === i) r.on = false;
+          }
+        });
+        state.lfos[lfoSel].target = { bus: xyPickBus, slot: i };
+        if (rt.on) { rt.center = state.buses[xyPickBus].cc[i]; rt.beats = 0; rt.lastT = performance.now(); }
+        renderLfo();
+      } else {
+        state.xy[xyPickAxis] = { bus: xyPickBus, slot: i };
+        renderXy();
+      }
+      saveState();
+      $("xypick").classList.remove("open");
+    });
+    sh.appendChild(b);
+  }
+}
+let xyReturnOverview = false;
+function toggleXyView() {
+  if (currentView() === "xy") setView(xyReturnOverview ? "overview" : "focus");
+  else { xyReturnOverview = currentView() === "overview"; setView("xy"); }
+}
+
+/* ===== beat LFOs (4 slots: 3 LFOs + drift; clock-synced, tap fallback) ===== */
+const LFO_WAVES = ["SIN", "TRI", "SQR", "SAW", "RND"];
+const LFO_RATES = [["4/1", 16], ["2/1", 8], ["1/1", 4], ["1/2", 2], ["1/4", 1], ["1/8", 0.5], ["1/16", 0.25]];
+const LFO_DEPTHS = [25, 50, 75, 100];
+const LfoRt = [0, 1, 2, 3].map(() => ({ on: false, beats: 0, lastT: 0, center: 64, cyc: -1, ra: 0, rb: 0 }));
+let lfoSel = 0, lfoTaps = [];
+const lfoChips = [];
+function clockAlive() { return Clock.last > 0 && performance.now() - Clock.last <= 1500; }
+function lfoBpm() { return (clockAlive() && Clock.bpm) ? Clock.bpm : state.tapBpm; }
+function lfoToggle() {
+  const rt = LfoRt[lfoSel], t = state.lfos[lfoSel].target;
+  if (!rt.on && !t) { showBanner("Erst ein LFO-Ziel wählen", "info", 2200); return; }
+  rt.on = !rt.on;
+  if (rt.on) {
+    LfoRt.forEach((r, j) => { /* one target belongs to one slot */
+      if (j !== lfoSel && r.on) {
+        const o = state.lfos[j].target;
+        if (o && o.bus === t.bus && o.slot === t.slot) r.on = false;
+      }
+    });
+    rt.center = state.buses[t.bus].cc[t.slot];
+    rt.beats = 0; rt.lastT = performance.now();
+    rt.cyc = -1; rt.ra = 0; rt.rb = 0;
+  } else if (t) {
+    setBusCc(t.bus, t.slot, rt.center, { force: true }); /* park at center */
+  }
+  renderLfo();
+}
+setInterval(() => {
+  const now = performance.now();
+  for (let i = 0; i < 4; i++) {
+    const rt = LfoRt[i];
+    if (!rt.on) continue;
+    const cfg = state.lfos[i], t = cfg.target;
+    if (!t) { rt.on = false; continue; }
+    const B = BUSES[t.bus], b = state.buses[t.bus];
+    if (Midi.activeCCs.has(B.ch << 8 | CC_CTRL[t.slot])) {
+      rt.center = b.cc[t.slot]; /* a finger wins and re-centers */
+      continue;
+    }
+    /* incremental phase: BPM jitter only affects the current slice */
+    rt.beats += Math.min(now - rt.lastT, 1000) / 60000 * lfoBpm();
+    rt.lastT = now;
+    const cyc = rt.beats / LFO_RATES[cfg.rate][1];
+    const ph = cyc - Math.floor(cyc);
+    const wave = LFO_WAVES[cfg.wave];
+    let w;
+    if (wave === "SIN") w = Math.sin(ph * 2 * Math.PI);
+    else if (wave === "TRI") w = ph < 0.5 ? ph * 4 - 1 : 3 - ph * 4;
+    else if (wave === "SQR") w = ph < 0.5 ? 1 : -1;
+    else if (wave === "SAW") w = ph * 2 - 1;
+    else { /* RND: drift between random anchors, renewed once per cycle */
+      const k = Math.floor(cyc);
+      if (k !== rt.cyc) { rt.cyc = k; rt.ra = rt.rb; rt.rb = Math.random() * 2 - 1; }
+      w = rt.ra + (rt.rb - rt.ra) * ph;
+    }
+    const amp = LFO_DEPTHS[cfg.depth] / 100 * 63.5;
+    const cc = clamp(Math.round(rt.center + w * amp), 0, 127);
+    if (b.cc[t.slot] !== cc) {
+      b.cc[t.slot] = cc; /* no saveState: a wobbling value is not worth persisting */
+      Midi.send(B.ch, CC_CTRL[t.slot], cc);
+      queueSlotRender(t.bus, t.slot);
+    }
+  }
+}, 33);
+function lfoTargetLabel(cfg) {
+  const t = cfg.target;
+  if (!t) return "Ziel: – (tippen)";
+  const def = fxDefFor(BUSES[t.bus].table, state.buses[t.bus].fx);
+  const p = def && def.p[t.slot];
+  return "Ziel: " + BUSES[t.bus].label + " · " + (p ? p.n : "CTRL " + (t.slot + 1));
+}
+function renderLfo() {
+  lfoChips.forEach((c, i) => {
+    c.classList.toggle("sel", i === lfoSel);
+    c.classList.toggle("running", LfoRt[i].on);
+  });
+  const cfg = state.lfos[lfoSel];
+  $("lfo-on").classList.toggle("on", LfoRt[lfoSel].on);
+  $("lfo-target").textContent = lfoTargetLabel(cfg);
+  $("lfo-wave").textContent = LFO_WAVES[cfg.wave];
+  $("lfo-rate").textContent = LFO_RATES[cfg.rate][0];
+  $("lfo-depth").textContent = LFO_DEPTHS[cfg.depth] + "%";
+  $("lfo-tap").textContent = clockAlive() ? "CLK " + Math.round(lfoBpm()) : "TAP " + Math.round(state.tapBpm);
+}
+function lfoTap() {
+  const now = performance.now();
+  lfoTaps = lfoTaps.filter((x) => now - x < 3000);
+  lfoTaps.push(now);
+  if (lfoTaps.length >= 2) {
+    const iv = (lfoTaps[lfoTaps.length - 1] - lfoTaps[0]) / (lfoTaps.length - 1);
+    state.tapBpm = clamp(Math.round(60000 / iv), 30, 300);
+    LfoRt.forEach((r) => { r.beats = 0; r.lastT = now; }); /* anchor phases to the tap */
+    saveState();
+  }
+  renderLfo();
+}
+
+/* ===== pattern grid (Program Change; bank = MIDI channel; needs Mode B) ===== */
+const BANK_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+function renderPattern() {
+  const bh = $("ptn-banks");
+  bh.textContent = "";
+  BANK_NAMES.forEach((n, i) => {
+    const b = el("button", i === state.ptn.bank ? "active" : "", n);
+    /* click, not pointerdown: the view scrolls in phone landscape */
+    b.addEventListener("click", () => { state.ptn.bank = i; saveState(); renderPattern(); });
+    bh.appendChild(b);
+  });
+  const g = $("ptn-grid");
+  g.textContent = "";
+  for (let pc = 0; pc < 16; pc++) {
+    const sent = state.ptn.last && state.ptn.last.bank === state.ptn.bank && state.ptn.last.pc === pc;
+    const b = el("button", "pad" + (sent ? " sent" : ""), String(pc + 1));
+    b.addEventListener("click", () => {
+      Midi.sendPc(state.ptn.bank, pc);
+      state.ptn.last = { bank: state.ptn.bank, pc };
+      saveState();
+      renderPattern();
+    });
+    g.appendChild(b);
+  }
+  renderAuto();
+}
+
+/* ===== pattern autopilot (markov-ish, quantized by bars from clock/tap) ===== */
+const AUTO_BARS = [2, 4, 8];
+let autoOn = false, autoLast = 0;
+function renderAuto() {
+  $("auto-on").classList.toggle("on", autoOn);
+  $("auto-bars").textContent = "alle " + state.auto.bars + " Takte";
+  $("auto-scope").textContent = state.auto.scope === "bank" ? "nur Bank" : "alle Bänke";
+}
+setInterval(() => {
+  if (!autoOn) return;
+  const ms = state.auto.bars * 4 * 60000 / lfoBpm();
+  const now = performance.now();
+  if (now - autoLast < ms) return;
+  autoLast = now;
+  /* mostly wander near the last pattern, sometimes jump; rare bank hops.
+     scope "bank" follows the bank the user SELECTED in the grid */
+  let bank = state.auto.scope === "bank" ? state.ptn.bank
+    : (state.ptn.last ? state.ptn.last.bank : state.ptn.bank);
+  let pc = (state.ptn.last && state.ptn.last.bank === bank) ? state.ptn.last.pc : 0;
+  if (state.auto.scope === "all" && Math.random() < 0.15) bank = Math.floor(Math.random() * 10);
+  pc = Math.random() < 0.6
+    ? clamp(pc + Math.floor(Math.random() * 5) - 2, 0, 15)
+    : Math.floor(Math.random() * 16);
+  Midi.sendPc(bank, pc);
+  state.ptn.last = { bank, pc };
+  state.ptn.bank = bank;
+  saveState();
+  if (currentView() === "pattern") renderPattern();
+}, 250);
+
+/* ===== play view: chromatic keys / vocoder keys / pad board =====
+   note map (Mode B): pads on two adjacent channels (device setting "Pad
+   MIDI Channels", default 1/2): lower = banks A-E, upper = F-J; block of 16
+   notes per bank starting at 12, in pad order 13..16/9..12/5..8/1..4.
+   Chromatic play: CH 16, notes 36-60. Vocoder pitch: CH 11 + pitch bend. */
+const PAD_ORDER = [13, 14, 15, 16, 9, 10, 11, 12, 5, 6, 7, 8, 1, 2, 3, 4];
+/* display rows top->bottom exactly like the device: pad 1 top-left, 13 bottom-left.
+   (note mapping is separate: PAD_ORDER, lowest notes on the bottom row) */
+const PAD_ROWS = [[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]];
+function padNote(bank, pad) {
+  const half = bank < 5 ? 0 : 1;
+  return { ch: state.play.padChPair + half, note: 12 + (bank % 5) * 16 + PAD_ORDER.indexOf(pad) };
+}
+const heldNotes = new Map(); /* pointerId -> {ch, note, el} */
+function flushNotesIn(host) {
+  /* rebuilds must never orphan a held note (mirrors finishDragsIn) */
+  for (const [id, h] of [...heldNotes]) {
+    if (!host || host.contains(h.el)) {
+      Midi.sendNote(h.ch, h.note, false);
+      h.el.classList.remove("on", "hit");
+      heldNotes.delete(id);
+    }
+  }
+}
+let flushBend = () => {};
+function noteName(n) { return NOTE_NAMES[n % 12] + (Math.floor(n / 12) - 1); }
+function attachNoteSource(btn, getNote) {
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    const nt = getNote();
+    if (!nt) return;
+    btn.setPointerCapture(e.pointerId);
+    heldNotes.set(e.pointerId, { ch: nt.ch, note: nt.note, el: btn });
+    btn.classList.add(btn.classList.contains("key") ? "on" : "hit");
+    Midi.sendNote(nt.ch, nt.note, true);
+  });
+  const up = (e) => {
+    const h = heldNotes.get(e.pointerId);
+    if (!h || h.el !== btn) return;
+    heldNotes.delete(e.pointerId);
+    btn.classList.remove("on", "hit");
+    Midi.sendNote(h.ch, h.note, false);
+  };
+  btn.addEventListener("pointerup", up);
+  btn.addEventListener("pointercancel", up);
+}
+function keysRange() {
+  const narrow = window.innerWidth < 700;
+  if (state.play.target === "sample") {
+    if (!narrow) return [36, 60];
+    return state.play.oct >= 1 ? [48, 60] : [36, 48];
+  }
+  const lo = clamp(48 + state.play.oct * 12, 12, 96);
+  return [lo, lo + (narrow ? 12 : 24)];
+}
+function playCh() { return state.play.target === "sample" ? 15 : 10; }
+const BLACKS = [1, 3, 6, 8, 10];
+function buildKeys() {
+  const host = $("keys");
+  flushNotesIn(host);
+  host.textContent = "";
+  const r = keysRange(), lo = r[0], hi = r[1];
+  let whiteCount = 0;
+  for (let n = lo; n <= hi; n++) if (BLACKS.indexOf(n % 12) < 0) whiteCount++;
+  const ww = 100 / whiteCount;
+  let wi = 0;
+  for (let n = lo; n <= hi; n++) {
+    const black = BLACKS.indexOf(n % 12) >= 0;
+    const key = el("button", "key " + (black ? "black" : "white"));
+    if (black) {
+      key.style.left = (wi * ww - ww * 0.3) + "%";
+      key.style.width = (ww * 0.6) + "%";
+    } else {
+      key.style.left = (wi * ww) + "%";
+      key.style.width = ww + "%";
+      if (n % 12 === 0) key.appendChild(el("span", "kl", noteName(n)));
+      wi++;
+    }
+    const note = n;
+    attachNoteSource(key, () => ({ ch: playCh(), note }));
+    host.appendChild(key);
+  }
+}
+let padPickSlot = 0, padPickBank = 0;
+function buildPads() {
+  const bh = $("pad-banks");
+  bh.textContent = "";
+  BANK_NAMES.concat("★").forEach((n, i) => {
+    const b = el("button", i === state.play.padBank ? "active" : "", n);
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); state.play.padBank = i; saveState(); buildPads(); });
+    bh.appendChild(b);
+  });
+  const g = $("pad-grid");
+  flushNotesIn(g);
+  g.textContent = "";
+  const custom = state.play.padBank === 10;
+  const cells = custom ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] : PAD_ROWS.reduce((a, r2) => a.concat(r2), []);
+  cells.forEach((cell) => {
+    const btn = el("button", "pad");
+    if (custom) {
+      const a = state.play.custom[cell];
+      btn.appendChild(el("span", "", a ? BANK_NAMES[a.bank] + a.pad : "–"));
+      btn.appendChild(el("span", "pl", a ? "halten: ändern" : "halten: belegen"));
+      attachNoteSource(btn, () => {
+        const asg = state.play.custom[cell];
+        return asg ? padNote(asg.bank, asg.pad) : null;
+      });
+      let hold = null;
+      btn.addEventListener("pointerdown", () => {
+        hold = setTimeout(() => {
+          /* long-press edits: silence the note the touch just started */
+          for (const [id, h] of [...heldNotes]) {
+            if (h.el === btn) { Midi.sendNote(h.ch, h.note, false); heldNotes.delete(id); btn.classList.remove("hit"); }
+          }
+          openPadPick(cell);
+        }, 500);
+      });
+      const clr = () => clearTimeout(hold);
+      btn.addEventListener("pointerup", clr);
+      btn.addEventListener("pointercancel", clr);
+    } else {
+      btn.textContent = String(cell);
+      attachNoteSource(btn, () => padNote(state.play.padBank, cell));
+    }
+    g.appendChild(btn);
+  });
+}
+function openPadPick(slot) {
+  padPickSlot = slot;
+  const a = state.play.custom[slot];
+  padPickBank = a ? a.bank : 0;
+  renderPadPick();
+  $("padpick").classList.add("open");
+}
+function renderPadPick() {
+  const bh = $("padpick-bank");
+  bh.textContent = "";
+  BANK_NAMES.forEach((n, i) => {
+    const b = el("button", "setup-btn" + (i === padPickBank ? " sel" : ""), n);
+    b.addEventListener("click", () => { padPickBank = i; renderPadPick(); });
+    bh.appendChild(b);
+  });
+  const ph = $("padpick-pad");
+  ph.textContent = "";
+  const a = state.play.custom[padPickSlot];
+  for (let p = 1; p <= 16; p++) {
+    const sel = a && a.bank === padPickBank && a.pad === p;
+    const b = el("button", "setup-btn" + (sel ? " sel" : ""), String(p));
+    b.addEventListener("click", () => {
+      state.play.custom[padPickSlot] = { bank: padPickBank, pad: p };
+      saveState();
+      $("padpick").classList.remove("open");
+      buildPads();
+    });
+    ph.appendChild(b);
+  }
+}
+const SCALES = [
+  ["DUR", [0, 2, 4, 5, 7, 9, 11]],
+  ["MOLL", [0, 2, 3, 5, 7, 8, 10]],
+  ["M-PENT", [0, 3, 5, 7, 10]],
+  ["D-PENT", [0, 2, 4, 7, 9]],
+  ["DOR", [0, 2, 3, 5, 7, 9, 10]],
+  ["MIXO", [0, 2, 4, 5, 7, 9, 10]],
+  ["BLUES", [0, 3, 5, 6, 7, 10]],
+];
+function buildScale() {
+  const g = $("scale-grid");
+  flushNotesIn(g);
+  g.textContent = "";
+  const iv = SCALES[state.play.scaleType][1];
+  const base = (state.play.target === "sample" ? 36 : 48) + state.play.scaleRoot;
+  const deg = (d) => base + Math.floor(d / iv.length) * 12 + iv[d % iv.length];
+  /* rows bottom-up; ISO = rows a musical 4th apart (Move/Push layout) */
+  for (let row = 3; row >= 0; row--) {
+    const start = state.play.iso ? row * 3 : row * 4;
+    for (let col = 0; col < 4; col++) {
+      const n = deg(start + col);
+      const oor = state.play.target === "sample" ? (n < 36 || n > 60) : (n < 0 || n > 127);
+      const isRoot = (n - base) % 12 === 0;
+      const btn = el("button", "pad" + (isRoot ? " root" : "") + (oor ? " oor" : ""), noteName(n));
+      if (!oor) attachNoteSource(btn, () => ({ ch: playCh(), note: n }));
+      g.appendChild(btn);
+    }
+  }
+}
+function renderPlay() {
+  const mode = state.play.mode;
+  $("view-play").classList.toggle("pads", mode === "pads");
+  $("view-play").classList.toggle("scale", mode === "scale");
+  $("play-keys-btn").classList.toggle("on", mode === "keys");
+  $("play-scale-btn").classList.toggle("on", mode === "scale");
+  $("play-pads-btn").classList.toggle("on", mode === "pads");
+  const show = (id, on) => { $(id).style.display = on ? "" : "none"; };
+  show("play-oct-down", mode === "keys");
+  show("play-oct-up", mode === "keys");
+  show("play-root", mode === "scale");
+  show("play-scalesel", mode === "scale");
+  show("play-layout", mode === "scale");
+  $("play-target").textContent = mode === "pads"
+    ? "PAD-CH " + (state.play.padChPair + 1) + "/" + (state.play.padChPair + 2)
+    : (state.play.target === "sample" ? "SAMPLE CH16" : "VOCODER CH11");
+  $("play-root").textContent = NOTE_NAMES[state.play.scaleRoot];
+  $("play-scalesel").textContent = SCALES[state.play.scaleType][0];
+  $("play-layout").textContent = state.play.iso ? "ISO" : "LIN";
+  $("bend").classList.toggle("off", !(mode === "keys" && state.play.target === "voc"));
+  $("play-note").textContent = mode === "pads"
+    ? "Note-Map Mode B, Kanäle " + (state.play.padChPair + 1) + "/" + (state.play.padChPair + 2) + " (Geräte-Setting „Pad MIDI Channels“). ★ = eigenes Layout."
+    : mode === "scale"
+      ? "Scale-Pads " + NOTE_NAMES[state.play.scaleRoot] + " " + SCALES[state.play.scaleType][0] + ": unten links = Grundton, " + (state.play.iso ? "Reihen im Quart-Versatz (Move-Layout)" : "Reihen fortlaufend") + ". Grundtöne markiert."
+      : state.play.target === "sample"
+        ? "Chromatisch: spielt das aktuelle Sample (CH 16, C2–C4)."
+        : "Vocoder: Tonhöhen für den INPUT-Vocoder (CH 11), rechts Pitch Bend.";
+  if (mode === "pads") buildPads(); else if (mode === "scale") buildScale(); else buildKeys();
+}
+function setupBend() {
+  const bend = $("bend"), ind = $("bend-ind");
+  let bid = null;
+  function pos(e) {
+    const r = bend.getBoundingClientRect();
+    const ny = clamp((e.clientY - r.top) / r.height, 0, 1);
+    ind.style.top = "calc(" + (ny * 100) + "% - 12px)";
+    Midi.sendBend(10, Math.round((1 - ny) * 16383));
+  }
+  bend.addEventListener("pointerdown", (e) => { e.preventDefault(); bend.setPointerCapture(e.pointerId); bid = e.pointerId; pos(e); });
+  bend.addEventListener("pointermove", (e) => { if (e.pointerId === bid) pos(e); });
+  flushBend = () => {
+    bid = null;
+    ind.style.top = "calc(50% - 12px)";
+    Midi.sendBend(10, 8192); /* spring back to center (idempotent) */
+  };
+  const end = (e) => { if (e.pointerId === bid) flushBend(); };
+  bend.addEventListener("pointerup", end);
+  bend.addEventListener("pointercancel", end);
+}
+
+/* ===== 11 fx prev/next through favorites ===== */
+function fxStep(dir) {
+  const bus = state.activeBus, B = BUSES[bus], table = BUS_TABLES[B.table];
+  let list = favList(B.table);
+  if (!list.length) list = state.recents[B.table].slice();
+  if (!list.length) list = Array.from({ length: table.length - 1 }, (_, i) => i + 1);
+  list = list.filter((n) => n > 0 && n < table.length);
+  if (!list.length) return;
+  const pos = list.indexOf(state.buses[bus].fx);
+  const next = pos < 0 ? list[0] : list[(pos + dir + list.length) % list.length];
+  fxChange(bus, next, "user");
+}
+
+/* ===== 12 BOOT ===== */
+function boot() {
+  loadState();
+  buildTabs();
+  buildOverview();
+  BUSES.forEach((_, i) => renderBus(i));
+  setActiveBus(state.activeBus || 0);
+  if (window.innerWidth >= 900) { document.body.classList.add("overview"); $("view-toggle").textContent = "Fokus"; }
+
+  attachEfxPadDynamic($("efx-pad")); /* focus-header pad follows the active bus */
+
+  $("fx-name").addEventListener("click", () => openPicker(state.activeBus));
+  $("fx-prev").addEventListener("click", () => fxStep(-1));
+  $("fx-next").addEventListener("click", () => fxStep(1));
+  $("view-toggle").addEventListener("click", toggleView);
+  $("xy-btn").addEventListener("click", toggleXyView);
+  $("xy-xa").addEventListener("click", () => openXyPick("x"));
+  $("xy-ya").addEventListener("click", () => openXyPick("y"));
+  $("xy-mom").addEventListener("click", () => { state.xy.mom = !state.xy.mom; saveState(); renderXy(); });
+  $("xypick-close").addEventListener("click", () => $("xypick").classList.remove("open"));
+  $("xypick").addEventListener("pointerdown", (e) => { if (e.target === $("xypick")) $("xypick").classList.remove("open"); });
+  $("xypick-none").addEventListener("click", () => {
+    if (xyPickAxis === "lfo") {
+      const rt = LfoRt[lfoSel], old = state.lfos[lfoSel].target;
+      if (rt.on && old) setBusCc(old.bus, old.slot, rt.center, { force: true }); /* park */
+      state.lfos[lfoSel].target = null;
+      rt.on = false;
+      renderLfo();
+    } else { state.xy[xyPickAxis] = null; renderXy(); }
+    saveState();
+    $("xypick").classList.remove("open");
+  });
+  setupXyPad();
+  for (let i = 0; i < 4; i++) {
+    const c = el("button", "", String(i + 1));
+    c.addEventListener("click", () => { lfoSel = i; renderLfo(); });
+    $("lfo-slots").appendChild(c);
+    lfoChips.push(c);
+  }
+  $("lfo-on").addEventListener("click", lfoToggle);
+  $("lfo-target").addEventListener("click", () => openXyPick("lfo"));
+  $("lfo-wave").addEventListener("click", () => { const l = state.lfos[lfoSel]; l.wave = (l.wave + 1) % LFO_WAVES.length; saveState(); renderLfo(); });
+  $("lfo-rate").addEventListener("click", () => { const l = state.lfos[lfoSel]; l.rate = (l.rate + 1) % LFO_RATES.length; saveState(); renderLfo(); });
+  $("lfo-depth").addEventListener("click", () => { const l = state.lfos[lfoSel]; l.depth = (l.depth + 1) % LFO_DEPTHS.length; saveState(); renderLfo(); });
+  $("lfo-tap").addEventListener("click", lfoTap);
+  /* play view */
+  setupBend();
+  $("play-keys-btn").addEventListener("click", () => { state.play.mode = "keys"; saveState(); renderPlay(); });
+  $("play-scale-btn").addEventListener("click", () => { state.play.mode = "scale"; saveState(); renderPlay(); });
+  $("play-pads-btn").addEventListener("click", () => { state.play.mode = "pads"; saveState(); renderPlay(); });
+  $("play-root").addEventListener("click", () => { state.play.scaleRoot = (state.play.scaleRoot + 1) % 12; saveState(); renderPlay(); });
+  $("play-scalesel").addEventListener("click", () => { state.play.scaleType = (state.play.scaleType + 1) % SCALES.length; saveState(); renderPlay(); });
+  $("play-layout").addEventListener("click", () => { state.play.iso = !state.play.iso; saveState(); renderPlay(); });
+  $("play-target").addEventListener("click", () => {
+    if (state.play.mode === "pads") state.play.padChPair = (state.play.padChPair + 1) % 10;
+    else { state.play.target = state.play.target === "sample" ? "voc" : "sample"; state.play.oct = 0; }
+    saveState(); renderPlay();
+  });
+  $("play-oct-down").addEventListener("click", () => {
+    const lim = state.play.target === "sample" ? [0, 1] : [-2, 2];
+    state.play.oct = clamp(state.play.oct - 1, lim[0], lim[1]);
+    saveState(); renderPlay();
+  });
+  $("play-oct-up").addEventListener("click", () => {
+    const lim = state.play.target === "sample" ? [0, 1] : [-2, 2];
+    state.play.oct = clamp(state.play.oct + 1, lim[0], lim[1]);
+    saveState(); renderPlay();
+  });
+  $("padpick-close").addEventListener("click", () => $("padpick").classList.remove("open"));
+  $("padpick").addEventListener("pointerdown", (e) => { if (e.target === $("padpick")) $("padpick").classList.remove("open"); });
+  $("padpick-none").addEventListener("click", () => {
+    state.play.custom[padPickSlot] = null;
+    saveState();
+    $("padpick").classList.remove("open");
+    buildPads();
+  });
+  /* looper (device in looper mode, CH 1) */
+  let lpRec = false;
+  $("lp-rec").addEventListener("click", () => { lpRec = !lpRec; Midi.send(0, 88, lpRec ? 127 : 0, true); $("lp-rec").classList.toggle("on", lpRec); });
+  $("lp-dub").addEventListener("click", () => Midi.send(0, 89, 127, true));
+  $("lp-del").addEventListener("click", () => Midi.send(0, 87, 127, true));
+  $("lp-undo").addEventListener("click", () => Midi.send(0, 91, 127, true));
+  $("lp-redo").addEventListener("click", () => Midi.send(0, 91, 0, true));
+  $("lp-stop").addEventListener("click", () => Midi.send(0, 85, 127, true));
+  $("lp-treset").addEventListener("click", () => Midi.send(0, 86, 127, true));
+  $("loop-bpm").addEventListener("input", (e) => Midi.send(0, 90, +e.target.value, true));
+  /* pattern autopilot */
+  $("auto-on").addEventListener("click", () => { autoOn = !autoOn; autoLast = performance.now(); renderAuto(); });
+  $("auto-bars").addEventListener("click", () => { state.auto.bars = AUTO_BARS[(AUTO_BARS.indexOf(state.auto.bars) + 1) % AUTO_BARS.length]; saveState(); renderAuto(); });
+  $("auto-scope").addEventListener("click", () => { state.auto.scope = state.auto.scope === "bank" ? "all" : "bank"; saveState(); renderAuto(); });
+  $("alloff").addEventListener("click", allOff);
+  $("snaps-btn").addEventListener("click", openSnaps);
+  $("snaps-close").addEventListener("click", () => $("snaps").classList.remove("open"));
+  $("snaps").addEventListener("pointerdown", (e) => { if (e.target === $("snaps")) $("snaps").classList.remove("open"); });
+  $("exp-btn").addEventListener("click", doExport);
+  $("imp-btn").addEventListener("click", doImport);
+  $("rnd-btn").addEventListener("click", () => randomize(state.activeBus));
+  $("setup-btn").addEventListener("click", openSetup);
+  $("conn").addEventListener("click", openSetup);
+  $("banner").addEventListener("click", () => {
+    if ($("banner").classList.contains("info")) return;
+    $("banner").classList.remove("show");
+    openSetup();
+  });
+  $("picker-close").addEventListener("click", closePicker);
+  $("picker").addEventListener("pointerdown", (e) => { if (e.target === $("picker")) closePicker(); });
+  $("setup-close").addEventListener("click", () => $("setup").classList.remove("open"));
+  $("setup").addEventListener("pointerdown", (e) => { if (e.target === $("setup")) $("setup").classList.remove("open"); });
+  $("midi-connect").addEventListener("click", () => Midi.connect(true));
+  $("midi-rescan").addEventListener("click", () => Midi.connect(true));
+  $("push-state").addEventListener("click", pushStateToDevice);
+  $("wake-toggle").addEventListener("click", () => { state.wake = !state.wake; saveState(); applyWake(); renderSetup(); });
+  $("help-btn").addEventListener("click", () => $("help").classList.add("open"));
+  $("help-close").addEventListener("click", () => $("help").classList.remove("open"));
+  $("help").addEventListener("pointerdown", (e) => { if (e.target === $("help")) $("help").classList.remove("open"); });
+  $("step-minus").addEventListener("click", () => setBusCc(stepCtx.bus, stepCtx.slot, state.buses[stepCtx.bus].cc[stepCtx.slot] - 1, { force: true }));
+  $("step-plus").addEventListener("click", () => setBusCc(stepCtx.bus, stepCtx.slot, state.buses[stepCtx.bus].cc[stepCtx.slot] + 1, { force: true }));
+  document.addEventListener("pointerdown", (e) => {
+    if (!$("stepper").contains(e.target) && !e.target.classList.contains("fader-val")) closeStepper();
+  }, true);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
+    if (e.target.tagName === "INPUT") return;
+    if (e.key >= "1" && e.key <= "5") gotoFocus(+e.key - 1);
+    else if (e.key === " ") { e.preventDefault(); const b = state.activeBus; sendSw(b, !state.buses[b].on); }
+    else if (e.key === "o" || e.key === "O") toggleView();
+    else if (e.key === "x" || e.key === "X") toggleXyView();
+  });
+
+  ["gesturestart", "gesturechange", "gestureend"].forEach((t) =>
+    document.addEventListener(t, (e) => e.preventDefault(), { passive: false }));
+  document.addEventListener("contextmenu", (e) => e.preventDefault());
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      applyWake();
+      if (Midi.access) Midi.refreshPorts(); /* Web MIDI Browser app: statechange unreliable */
+      pullSync();
+    } else {
+      flushState(); clearTimeout(syncTimer); pushSync();
+      flushNotesIn(null); /* no stuck notes */
+      flushBend();
+    }
+  });
+  window.addEventListener("pagehide", () => { flushState(); clearTimeout(syncTimer); pushSync(); });
+  window.addEventListener("focus", () => { if (Midi.access) Midi.refreshPorts(); });
+  window.addEventListener("resize", () => {
+    BUSES.forEach((_, i) => queueAllSlots(i));
+    if (currentView() === "play") renderPlay();
+  });
+
+  if (!navigator.requestMIDIAccess) {
+    $("nomidi").classList.add("open");
+    $("demo-btn").addEventListener("click", () => {
+      Midi.demo = true;
+      $("nomidi").classList.remove("open");
+      updateConnUi();
+      showBanner("Demo-Modus: es wird kein MIDI gesendet", "info", 4000);
+    });
+  } else if (state.midi.outName) {
+    Midi.connect(false); /* previously granted: resolves silently */
+  }
+  updateConnUi();
+  applyWake();
+  updateRndBtn();
+  pullSync();
+}
+function queueAllSlots(bus) { for (let i = 0; i < 6; i++) queueSlotRender(bus, i); }
+
+/* focus-header EFX pad bound to the *active* bus */
+function attachEfxPadDynamic(btn) {
+  let t = null, momentary = false, mBus = 0, downAt = 0;
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    btn.setPointerCapture(e.pointerId);
+    clearTimeout(t); t = null;
+    downAt = performance.now();
+    mBus = state.activeBus; momentary = false;
+    if (!state.buses[mBus].on) {
+      t = setTimeout(() => { momentary = true; sendSw(mBus, true); }, 350);
+    }
+  });
+  btn.addEventListener("pointerup", () => {
+    clearTimeout(t); t = null;
+    if (!downAt) return;
+    downAt = 0;
+    if (momentary) { sendSw(mBus, false); momentary = false; return; }
+    sendSw(mBus, !state.buses[mBus].on);
+  });
+  btn.addEventListener("pointercancel", () => {
+    clearTimeout(t); t = null; downAt = 0;
+    if (momentary) { sendSw(mBus, false); momentary = false; }
+  });
+}
+
+/* dev hook for hardware probing from the browser console:
+   busdriver.send(0, 83, 43)   raw CC send (ch 0-based: 0 = BUS 1)
+   busdriver.monitor = true    log all incoming MIDI (except clock/active sensing) */
+window.busdriver = { monitor: false, send: (ch, cc, val) => Midi.send(ch | 0, cc | 0, val | 0, true) };
+
+boot();
+})();
+  </script>
+</body>
+</html>
