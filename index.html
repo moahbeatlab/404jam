@@ -1726,6 +1726,10 @@ const Midi = {
      (null = primary SP-404 output) instead of always the primary port */
   sendToPort(portName, ch, ccNum, val) {
     val = clamp(val | 0, 0, 127);
+    /* log to echoLog same as send() - lets applyRawCC recognize this value
+       bouncing back from a device that echoes its own incoming CCs, instead
+       of misreading it as an external change a moment later */
+    this.echoLog.set(ch << 8 | ccNum, { val, t: performance.now() });
     if (this.sendBytesTo(portName, [0xB0 | ch, ccNum, val])) blinkTx();
   },
   sendNoteTo(portName, ch, note, on, vel) {
@@ -1788,6 +1792,10 @@ function onMidiMessage(e) {
   if (rt) msg = Array.from(d).filter((b) => b < 0xF8);
   if (msg.length < 3) return;
   const type = msg[0] & 0xF0, ch = msg[0] & 0x0F;
+  /* JAM raw controls can be pinned to any channel (e.g. a second device),
+     so this check runs independently of the ch<=4/RECV_CCS gate below,
+     which is specific to the SP-404's own 5-bus CC set */
+  if (type === 0xB0) applyRawCC(ch, msg[1], msg[2]);
   if (type !== 0xB0 || ch > 4 || !RECV_CCS.has(msg[1])) return;
   handleBytes(ch, msg[1], msg[2]);
 }
@@ -1825,6 +1833,43 @@ function queueSyncSiblings(bus, slot) {
   if (def && def.p[slot] && def.p[slot].n === "SYNC") {
     def.p.forEach((p, i) => { if (p.sv) queueSlotRender(bus, i); });
   }
+}
+
+/* incoming CC from ANY connected input, matched against JAM raw controls by
+   channel+CC number - applyCC/handleBytes above is the SP-404-specific
+   pipeline (bus-indexed, only looks at the primary input's ch 0-4), so a
+   second device pinned in JAM (e.g. an MC-101's own hardware knobs on ch
+   11-14) needs its own path that scans every connected port instead of
+   just the one selected as the primary SP-404 input. */
+const jamRawRenderQueue = new Set(); /* cfg.id values needing repaint */
+let jamRawFlushReq = 0;
+function queueJamRawRender(id) {
+  jamRawRenderQueue.add(id);
+  if (jamRawFlushReq) return;
+  jamRawFlushReq = requestAnimationFrame(() => {
+    jamRawFlushReq = 0;
+    const q = [...jamRawRenderQueue];
+    jamRawRenderQueue.clear();
+    q.forEach((rid) => {
+      const fns = jamRawUpdateFns.get(rid);
+      if (fns) fns.forEach((fn) => { try { fn(); } catch (e) { /* one broken control must never freeze the render loop */ } });
+    });
+  });
+}
+function applyRawCC(ch, ccNum, val) {
+  const key = ch << 8 | ccNum;
+  if (Midi.activeCCs.has(key)) return; /* a finger is dragging this control */
+  const e = Midi.echoLog.get(key);
+  if (e && e.val === val && performance.now() - e.t < 400) return; /* our own send bouncing back */
+  let touched = false;
+  state.jam.slots.forEach((cfg) => {
+    if (cfg.source === "raw" && cfg.type === "cc" && cfg.ch === ch && cfg.num === ccNum) {
+      cfg.val = clamp(val, 0, 127);
+      touched = true;
+      queueJamRawRender(cfg.id);
+    }
+  });
+  if (touched) saveState();
 }
 
 /* ===== effect change sequence (the one deterministic sync point) ===== */
@@ -1911,6 +1956,10 @@ const liveDrags = new Map(); /* key ch<<8|cc -> { node, finish } */
    the focus/overview faders for that slot (hardware encoder input, effect
    switch, snapshot load) - keyed the same as renderQueue (bus*8+slot) */
 const jamByBusSlot = new Map(); /* key -> Set<() => void> */
+/* same idea for JAM raw controls pinned to a second device (e.g. an MC-101's
+   own hardware knobs) - keyed by the JAM slot's own id since raw controls
+   aren't tied to a bus/slot pair the way jamByBusSlot's keys are */
+const jamRawUpdateFns = new Map(); /* cfg.id -> Set<() => void> */
 function finishDragsIn(host) {
   for (const [k, d] of [...liveDrags]) {
     if (host.contains(d.node)) d.finish();
@@ -1971,16 +2020,19 @@ function paintFader(fill, thumb, pct) {
 }
 
 /* JAM's alternate "rotary knob" style (Setup > JAM style). Same 0-100 pct
-   as paintFader, just mapped onto a full clockwise sweep starting at 12
-   o'clock (0 = straight up, unfilled ring) instead of a bar height - the
-   drag engine that drives it is unchanged, only the paint differs. Both
-   the pointer and the conic-gradient use the same 0deg-is-up, clockwise
-   reference, so they always agree with each other. */
+   as paintFader, remapped as a left/right tilt from straight-up (12
+   o'clock = the 0-127 midpoint, ~64): drag right of center to increase
+   toward 127, left of center to decrease toward 0, same balance-pot
+   convention as .fader's "bal" display. The arc fills from the 12 o'clock
+   reference out toward whichever side the pointer has tilted, so a
+   centered value shows an empty ring. */
+const KNOB_MAX_TILT = 60; /* degrees off vertical at either extreme */
 function paintKnob(dial, pointer, pct) {
-  const angle = pct / 100 * 360;
+  const angle = (pct - 50) / 50 * KNOB_MAX_TILT;
   pointer.style.transform = "rotate(" + angle + "deg)";
+  const lo = Math.min(0, angle), hi = Math.max(0, angle);
   dial.style.background =
-    "conic-gradient(var(--accent) 0deg " + angle + "deg, var(--track-bg) " + angle + "deg 360deg)";
+    "conic-gradient(from " + lo + "deg, var(--accent) 0deg " + (hi - lo) + "deg, var(--track-bg) " + (hi - lo) + "deg 360deg)";
 }
 
 /* generic relative-drag fader engine, shared by bus focus faders and
@@ -2241,7 +2293,14 @@ function renderFocusFavs() {
   host.textContent = "";
   nums.forEach((n) => {
     const chip = el("button", "focus-fav-chip" + (n === state.buses[bus].fx ? " sel" : ""), fxNameFor(table, n));
-    chip.addEventListener("click", () => fxChange(bus, n, "user"));
+    chip.addEventListener("click", () => {
+      fxChange(bus, n, "user");
+      /* a favorite chip is for loading an effect to go tweak it, not for
+         punching it in live - always land with EFX off so nothing is heard
+         until you deliberately hit EFX, unlike the picker (which is a more
+         deliberate action to begin with) */
+      sendSw(bus, false);
+    });
     host.appendChild(chip);
   });
 }
@@ -2950,7 +3009,14 @@ function onClockOnly(e) {
   if (window.busdriver && window.busdriver.monitor && d[0] !== 0xF8 && d[0] !== 0xFE)
     console.log("MIDI in (" + src + "):",
       Array.from(d).map((b) => b.toString(16).padStart(2, "0")).join(" "));
-  for (let i = 0; i < d.length; i++) if (d[i] >= 0xF8) onClockByte(d[i], src);
+  let msg = d, rt = false;
+  for (let i = 0; i < d.length; i++) if (d[i] >= 0xF8) { rt = true; onClockByte(d[i], src); }
+  /* despite the name, this port isn't ONLY for clock - a second device
+     pinned in JAM (e.g. an MC-101) is very likely connected as one of
+     these non-primary ports, not as the one selected SP-404 input */
+  if (rt) msg = Array.from(d).filter((b) => b < 0xF8);
+  if (msg.length < 3) return;
+  if ((msg[0] & 0xF0) === 0xB0) applyRawCC(msg[0] & 0x0F, msg[1], msg[2]);
 }
 setInterval(() => {
   const bpmEl = $("bpm");
@@ -3781,7 +3847,8 @@ function buildJamFaderDom(cfg) {
     big.textContent = String(v);
   }
   update();
-  const echoKey = cfg.source === "bus" ? (BUSES[cfg.bus].ch << 8 | CC_CTRL[cfg.ctrl]) : null;
+  const echoKey = cfg.source === "bus" ? (BUSES[cfg.bus].ch << 8 | CC_CTRL[cfg.ctrl])
+    : (cfg.source === "raw" && cfg.type === "cc") ? (cfg.ch << 8 | cfg.num) : null;
   attachFaderDrag(fader, { val, big, track }, {
     key: "jam:" + cfg.id, echoKey, allowHoriz: false, sensitivity: 180,
     get: () => jamGet(cfg),
@@ -3799,10 +3866,14 @@ function buildJamFaderDom(cfg) {
   return { fader, update };
 }
 function registerJamUpdate(cfg, fn) {
-  if (cfg.source !== "bus") return;
-  const k = cfg.bus * 8 + cfg.ctrl;
-  if (!jamByBusSlot.has(k)) jamByBusSlot.set(k, new Set());
-  jamByBusSlot.get(k).add(fn);
+  if (cfg.source === "bus") {
+    const k = cfg.bus * 8 + cfg.ctrl;
+    if (!jamByBusSlot.has(k)) jamByBusSlot.set(k, new Set());
+    jamByBusSlot.get(k).add(fn);
+  } else if (cfg.source === "raw" && cfg.type === "cc") {
+    if (!jamRawUpdateFns.has(cfg.id)) jamRawUpdateFns.set(cfg.id, new Set());
+    jamRawUpdateFns.get(cfg.id).add(fn);
+  }
 }
 let jamEditing = false;
 /* select mode: mutually exclusive with edit mode so a tap on a tile is
@@ -3952,6 +4023,7 @@ function buildJam() {
   [...jamSelected].forEach((id) => { if (!liveIds.has(id)) jamSelected.delete(id); });
   host.textContent = "";
   jamByBusSlot.clear();
+  jamRawUpdateFns.clear();
   document.body.classList.toggle("jam-editing", jamEditing);
   document.body.classList.toggle("jam-selecting", jamSelectMode);
   $("jam-edit-btn").classList.toggle("on", jamEditing);
@@ -4144,13 +4216,17 @@ function deleteJamEditor() {
 const JAM_PRESETS = [
   {
     id: "mc101-knobs",
-    name: "MC-101 — 4 tracks × Filter/Mod/FX/Sound",
-    note: "CC 80–83 (FILTER/MOD/FX/SOUND knobs) per track, from Roland's MC-101 " +
+    name: "MC-101 — 4 tracks × Sound/Filter/Mod/FX",
+    note: "CC 80–83 (SOUND/FILTER/MOD/FX knobs, in the device's own left-to-right " +
+      "order) per track, from Roland's MC-101 " +
       "MIDI implementation chart — both transmit and receive, so these mirror the " +
       "hardware knobs live. Track channels default to 1–4; check yours against " +
       "SHIFT + TRACK SEL on the device if it differs.",
     build() {
-      const knobs = [["FILTER", 80], ["MOD", 81], ["FX", 82], ["SOUND", 83]];
+      /* physical knob order on the MC-101 itself: CTRL1 SOUND, CTRL2 FILTER,
+         CTRL3 MOD, CTRL4 FX - matches left-to-right so the JAM grid mirrors
+         the hardware layout */
+      const knobs = [["SOUND", 83], ["FILTER", 80], ["MOD", 81], ["FX", 82]];
       const slots = [];
       for (let t = 0; t < 4; t++) {
         knobs.forEach(([label, num]) => {

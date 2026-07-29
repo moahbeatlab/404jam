@@ -22,17 +22,18 @@ HTML file, no installation, no dependencies, no account.
   board incl. a freely assignable custom layout.
 - **Pattern grid** with a quantized markov autopilot, plus a looper remote.
 - **JAM tab:** your own pinned pads/faders — SP-404 bus parameters that stay
-  put regardless of the loaded effect, raw MIDI (any channel/CC/Note/PC) to
-  any connected device (e.g. a second synth), or a captured **bus scene**
-  (a whole bus's state momentarily recalled on hold, reverting to whatever
-  was playing on release). Drag to reorder or swipe-to-delete in edit mode,
-  multi-select to batch-set a MIDI channel or delete several at once, CLEAR
-  to start over. **Presets** add a whole set of controls in one tap, built
-  from real MIDI implementation charts (ships with an MC-101 4-track ×
-  Filter/Mod/FX/Sound template).
+  put regardless of the loaded effect, raw MIDI (any channel/CC/Note/PC,
+  two-way for CC controls) to any connected device (e.g. a second synth),
+  or a captured **bus scene** (a whole bus's state momentarily recalled on
+  hold, reverting to whatever was playing on release). Drag to reorder or
+  swipe-to-delete in edit mode, multi-select to batch-set a MIDI channel or
+  delete several at once, CLEAR to start over. **Presets** add a whole set
+  of controls in one tap, built from real MIDI implementation charts (ships
+  with an MC-101 4-track × Sound/Filter/Mod/FX template, in the device's own
+  knob order).
 - **Light/dark theme**, an optional horizontal fader layout for wide
-  tablets, and rotary knobs as an alternative to bars for JAM controls, all
-  in Setup.
+  tablets, and balance-style rotary knobs as an alternative to bars for JAM
+  controls, all in Setup.
 
 ## Requirements
 

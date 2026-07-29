@@ -74,7 +74,10 @@ INPUT.
 
 Favorited effects for the bus you're looking at also show as small chips
 right under the header in Focus view — a one-tap shortcut that skips the
-picker entirely. Scrolls sideways if you have more than fit.
+picker entirely. Scrolls sideways if you have more than fit. Tapping a chip
+always lands with EFX off, even if it was on before — the point is loading
+an effect to dial it in, not punching it in live; hit EFX yourself once
+you're happy with it.
 
 **Direct FX (BUS 1/2):** the five DFX slots are freely assignable on the
 device. Mirror the assignment in Setup ("Direct FX assignment") — the faders
@@ -163,7 +166,12 @@ be loaded. Two kinds of control per slot:
   slot always sends the same CC, its effect depends on whatever's loaded.
 - **Raw MIDI:** any channel/CC/Note/Program Change to any currently connected
   MIDI output — not just the SP-404. Use this to reach a second device (e.g.
-  an MC-101) from the same page.
+  an MC-101) from the same page. CC controls are two-way: turning the actual
+  hardware knob on that channel/CC updates the app too, from *any* connected
+  MIDI input (not just the one selected as the primary SP-404 input) — so a
+  second device just needs to reach the browser somehow, either connected
+  directly (e.g. the MC-101 over its own USB) or passed through another
+  device, whichever your setup allows.
 - **Bus scene:** captures one bus's full state (effect + all six values +
   on/off) into a pad. Pressing always switches EFX **on** regardless of
   what was captured (the point is to hear it), even if the bus was off when
@@ -204,8 +212,9 @@ MC-101 template) to different track channels without opening each tile.
 
 **PRESETS:** factory templates that add a set of controls in one tap, built
 from the target device's actual MIDI implementation chart rather than
-guesswork. Currently ships one: **MC-101 — 4 tracks × Filter/Mod/FX/Sound**
-(CC 80–83, the four hardware knobs, one row per track). Picking a preset
+guesswork. Currently ships one: **MC-101 — 4 tracks × Sound/Filter/Mod/FX**
+(CC 80–83, the four hardware knobs, one row per track, in the device's own
+left-to-right knob order). Picking a preset
 asks which connected output to route it to (so it doesn't silently reuse
 whatever the SP-404 is on), then appends the controls to your existing JAM
 grid — nothing is removed. Track channels default to 1–4; verify against
@@ -224,8 +233,9 @@ Setup has two display toggles:
   work with than a narrow vertical one.
 - **JAM style:** bars (default) or rotary knobs for every fader-type control
   in the JAM tab — same drag behavior (relative drag, fine-tune pull,
-  double-tap default, wheel ±1), just drawn as a hardware-style dial with an
-  orange sweep instead of a bar.
+  double-tap default, wheel ±1), just drawn as a balance-style dial: pointer
+  straight up at the center value (64), tilts right and fills orange toward
+  127, tilts left toward 0.
 
 ## Tempo and Ableton Link
 
