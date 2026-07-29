@@ -126,6 +126,20 @@
   }
   #fx-name .fx-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   #fx-name .fx-sub { font-size: 9px; letter-spacing: .12em; color: var(--muted); text-shadow: none; }
+  /* one-tap favorite-effect chips for the active bus, right under the
+     header - saves a trip through the picker for effects you use a lot.
+     Collapses away entirely when the active bus's table has no favorites. */
+  #focus-favs { display: none; flex: none; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+  #focus-favs.show { display: flex; }
+  #focus-favs .focus-fav-chip {
+    /* no star icon here - every chip in this strip is a favorite by
+       definition, so it'd just be redundant weight eating width */
+    flex: none; max-width: 84px; height: 26px; padding: 0 10px; border-radius: 13px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #focus-favs .focus-fav-chip.sel { background: var(--accent); color: #1a1105; box-shadow: 0 0 10px var(--glow); }
   #focus-body { flex: 1; display: flex; gap: 10px; min-height: 0; min-width: 0; }
   #faders { flex: 1; display: flex; gap: 10px; min-height: 0; min-width: 0; }
   /* saved bus-scene pads for the active bus, recalled without leaving Focus.
@@ -590,6 +604,7 @@
             <button id="bus-save-btn" title="Save this bus's state as a JAM scene pad">SAVE</button>
           </div>
         </div>
+        <div id="focus-favs"></div>
         <div id="focus-body">
           <div id="focus-scenes"></div>
           <div id="faders"></div>
@@ -2209,6 +2224,26 @@ function updateFocusHead() {
   $("efx-pad").textContent = b.on ? "EFX ON" : "EFX";
   $("fx-name").querySelector(".fx-title").textContent = fxDisplayName(B.table, b.fx);
   $("fx-name").querySelector(".fx-sub").textContent = B.label + " · choose effect";
+  renderFocusFavs();
+}
+/* one-tap favorite-effect chips for the bus currently shown in Focus - the
+   same favorites the picker's FAVORITES section and its "FA" jump button
+   surface, just reachable without opening the picker at all. Re-rendered
+   from updateFocusHead() (covers setActiveBus/renderBus/bus switches) and
+   from the picker's star-hold handler (favoriting doesn't change fx, so
+   nothing else would refresh this strip). */
+function renderFocusFavs() {
+  const host = $("focus-favs");
+  if (!host) return;
+  const bus = state.activeBus, B = BUSES[bus], table = B.table;
+  const nums = favList(table).filter((n) => n < BUS_TABLES[table].length);
+  host.classList.toggle("show", nums.length > 0);
+  host.textContent = "";
+  nums.forEach((n) => {
+    const chip = el("button", "focus-fav-chip" + (n === state.buses[bus].fx ? " sel" : ""), fxNameFor(table, n));
+    chip.addEventListener("click", () => fxChange(bus, n, "user"));
+    host.appendChild(chip);
+  });
 }
 function updateBusChrome(bus) {
   const b = state.buses[bus];
@@ -2559,7 +2594,7 @@ function openSnaps() {
 }
 function doExport() {
   const ta = $("exchange");
-  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots, jam: state.jam.slots }, null, 1);
+  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots, jam: state.jam.slots, xyPresets: state.xyPresets }, null, 1);
   ta.focus(); ta.select();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(ta.value)
@@ -2570,11 +2605,12 @@ function doExport() {
 /* same window.confirm() unreliability as clearJam() (see its comment) -
    act immediately and allow undo instead of gating on a dialog that some
    Web MIDI wrapper browsers silently stub to false */
-let importUndo = null; /* { snapshots, jam, t } */
+let importUndo = null; /* { snapshots, jam, xyPresets, t } */
 function doImport() {
   if (importUndo && performance.now() - importUndo.t < 8000) {
     state.snapshots = importUndo.snapshots;
     state.jam.slots = importUndo.jam;
+    state.xyPresets = importUndo.xyPresets;
     importUndo = null;
     saveState(); scheduleSync(); renderSnaps(); buildJam();
     updateImportBtn();
@@ -2583,11 +2619,11 @@ function doImport() {
   }
   let d = null;
   try { d = JSON.parse($("exchange").value); } catch (e) {}
-  if (!d || d.busdriver !== 1 || (!Array.isArray(d.snapshots) && !Array.isArray(d.jam))) {
+  if (!d || d.busdriver !== 1 || (!Array.isArray(d.snapshots) && !Array.isArray(d.jam) && !Array.isArray(d.xyPresets))) {
     showBanner("No valid Busdriver JSON in the text field", "warn", 3000);
     return;
   }
-  importUndo = { snapshots: state.snapshots.slice(), jam: state.jam.slots.slice(), t: performance.now() };
+  importUndo = { snapshots: state.snapshots.slice(), jam: state.jam.slots.slice(), xyPresets: state.xyPresets.slice(), t: performance.now() };
   let n = 0;
   if (Array.isArray(d.snapshots)) {
     for (let i = 0; i < 8; i++) {
@@ -2604,8 +2640,14 @@ function doImport() {
     jn = state.jam.slots.length;
     buildJam();
   }
+  let xn = 0;
+  if (Array.isArray(d.xyPresets)) {
+    state.xyPresets = d.xyPresets.map(sanitizeXyPreset).filter(Boolean).slice(0, XY_PRESETS_MAX);
+    xn = state.xyPresets.length;
+    renderXyCustomList();
+  }
   saveState(); scheduleSync(); renderSnaps();
-  showBanner(n + " snapshot(s), " + jn + " JAM control(s) imported – tap Import again within 8s to undo", "info", 3500);
+  showBanner(n + " snapshot(s), " + jn + " JAM control(s), " + xn + " XY combo(s) imported – tap Import again within 8s to undo", "info", 3500);
   updateImportBtn();
   setTimeout(updateImportBtn, 8100);
 }
@@ -2724,6 +2766,7 @@ function openPicker(bus, assignSlot) {
           pressFired = true;
           state.favs[B.table][num] = { on: !isFav(B.table, num), t: Date.now() };
           saveState(); scheduleSync(); openPicker(bus); /* re-render, keep open */
+          renderFocusFavs(); /* favoriting doesn't change fx, nothing else would refresh this */
         }, 420);
       }
     });
@@ -2756,17 +2799,36 @@ function openPicker(bus, assignSlot) {
   grid0.appendChild(mkItem(0));
   body.appendChild(grid0);
 
+  /* jump bar built up front so RECENT/FAVORITES get a shortcut too, same as
+     the categories below - favorites in particular can end up far down a
+     long list (e.g. bus34's 40 effects), so it needs the same one-tap
+     jump the categories already get, not just a scroll */
+  const oldJump = $("jumpbar");
+  if (oldJump) oldJump.remove();
+  const jump = el("div", ""); jump.id = "jumpbar";
+  const addJumpBtn = (label, sec) => {
+    const jb = el("button", "", label);
+    jb.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      sec.scrollIntoView({ block: "start", behavior: "smooth" });
+    });
+    jump.appendChild(jb);
+  };
+
   const addRow = (title, nums) => {
-    if (!nums.length) return;
+    if (!nums.length) return null;
     const cat = el("div", "pick-cat");
     cat.appendChild(el("h3", "", title));
     const g = el("div", "pick-grid");
     nums.forEach((n) => g.appendChild(mkItem(n)));
     cat.appendChild(g);
     body.appendChild(cat);
+    return cat;
   };
-  addRow("RECENT", state.recents[B.table].filter((n) => n < table.length));
-  addRow("FAVORITES", favList(B.table).filter((n) => n < table.length));
+  const recentSec = addRow("RECENT", state.recents[B.table].filter((n) => n < table.length));
+  const favSec = addRow("FAVORITES", favList(B.table).filter((n) => n < table.length));
+  if (recentSec) addJumpBtn("RE", recentSec);
+  if (favSec) addJumpBtn("FA", favSec);
 
   const catSecs = {};
   CAT_ORDER.forEach((c) => { catSecs[c] = []; });
@@ -2775,9 +2837,6 @@ function openPicker(bus, assignSlot) {
     const c = def ? def.c : "weird";
     (catSecs[c] || catSecs.weird).push(n);
   }
-  const oldJump = $("jumpbar");
-  if (oldJump) oldJump.remove();
-  const jump = el("div", ""); jump.id = "jumpbar";
   CAT_ORDER.forEach((c) => {
     if (!catSecs[c].length) return;
     const sec = el("div", "pick-cat");
@@ -2787,12 +2846,7 @@ function openPicker(bus, assignSlot) {
     catSecs[c].forEach((n) => g.appendChild(mkItem(n)));
     sec.appendChild(g);
     body.appendChild(sec);
-    const jb = el("button", "", CAT_LABELS[c].slice(0, 2));
-    jb.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      sec.scrollIntoView({ block: "start", behavior: "smooth" });
-    });
-    jump.appendChild(jb);
+    addJumpBtn(CAT_LABELS[c].slice(0, 2), sec);
   });
   $("picker-panel").appendChild(jump); /* outside the scroller so it stays put */
   $("picker").classList.add("open");

@@ -66,10 +66,15 @@ view.
 ## Choosing effects
 
 Tap the effect name to open the picker: "Recent", "Favorites" (star an entry
-by **holding** it), then categories with a jump bar. Note: **the three bus
-types have different effect sets** (Roland's spec) — e.g. Sync Delay,
-Isolator and Resonator only exist on BUS 3/4, the voice effects only on
+by **holding** it), then categories with a jump bar — RECENT and FAVORITES
+get their own jump-bar shortcuts too. Note: **the three bus types have
+different effect sets** (Roland's spec) — e.g. Sync Delay, Isolator,
+Resonator and Filter+Drive only exist on BUS 3/4, the voice effects only on
 INPUT.
+
+Favorited effects for the bus you're looking at also show as small chips
+right under the header in Focus view — a one-tap shortcut that skips the
+picker entirely. Scrolls sideways if you have more than fit.
 
 **Direct FX (BUS 1/2):** the five DFX slots are freely assignable on the
 device. Mirror the assignment in Setup ("Direct FX assignment") — the faders
