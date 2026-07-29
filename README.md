@@ -12,9 +12,11 @@ HTML file, no installation, no dependencies, no account.
   relative drag and fine-tune pull-out, bidirectional sync with the hardware
   encoders.
 - **Snapshots** (8 slots) with JSON export/import.
-- **XY pad** (Kaoss-style, freely mappable, momentary spring-back) and
-  **four beat-synced LFOs** (incl. random drift), clocked by incoming MIDI
-  clock or tap tempo.
+- **XY pad** (Kaoss-style, freely mappable, momentary spring-back) with
+  **presets** — curated axis pairs for specific effects (built from real
+  parameter names, auto-switches the bus's effect if needed) plus your own
+  saved combos — and **four beat-synced LFOs** (incl. random drift), clocked
+  by incoming MIDI clock or tap tempo.
 - **Play surfaces:** chromatic keyboard (CH 16), scale pads with isometric
   Move-style layout, vocoder keyboard with pitch bend (CH 11), and a pad
   board incl. a freely assignable custom layout.

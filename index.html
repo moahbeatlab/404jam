@@ -246,15 +246,15 @@
   #jumpbar { position: absolute; right: calc(6px + env(safe-area-inset-right)); top: calc(70px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; z-index: 3; }
   #jumpbar button { width: 36px; height: 40px; font-size: 9px; font-weight: 700; color: var(--muted); border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); }
   /* ============ 09 setup ============ */
-  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel, #jamedit-panel, #jampreset-panel {
+  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel, #jamedit-panel, #jampreset-panel, #xypreset-panel {
     margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px);
     background: var(--panel); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px var(--line);
     display: flex; flex-direction: column; overflow: hidden;
   }
-  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head, #jamedit-head, #jampreset-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
-  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2, #jamedit-head h2, #jampreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
-  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body, #jamedit-body, #jampreset-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
-  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4, #jamedit-body h4, #jampreset-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head, #jamedit-head, #jampreset-head, #xypreset-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
+  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2, #jamedit-head h2, #jampreset-head h2, #xypreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
+  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body, #jamedit-body, #jampreset-body, #xypreset-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4, #jamedit-body h4, #jampreset-body h4, #xypreset-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
   #jamedit-body > div > h4:not(:first-child) { margin-top: 4px; }
   .je-field { display: flex; flex-direction: column; gap: 4px; font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; font-weight: 700; flex: 1; min-width: 90px; }
   .je-field input, .je-field-wide { font: inherit; color: var(--text); background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-height: 44px; }
@@ -361,6 +361,14 @@
   #snap-current { padding: 8px 10px; font-size: 11.5px; line-height: 1.65; white-space: pre-line; }
   .snap-slot .sn-del { position: absolute; top: 2px; right: 2px; width: 30px; height: 30px; border-radius: 7px; color: var(--muted); font-size: 12px; }
   #sync-status { font-size: 11px; color: var(--muted); letter-spacing: .05em; }
+  /* XY presets: curated templates + user-saved axis combos */
+  #xy-presets-btn { width: 84px; flex: none; font-size: 10px; font-weight: 700; letter-spacing: .05em; border-radius: 8px; }
+  .xy-custom-row { display: flex; align-items: stretch; gap: 6px; margin-bottom: 6px; }
+  .xy-custom-row .xy-custom-name { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xy-custom-icon { width: 40px; flex: none; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); color: var(--muted); font-size: 13px; }
+  .xy-custom-edit { flex: 1; min-width: 0; background: #000; border: 1px solid var(--accent); color: var(--text);
+    border-radius: 8px; font: inherit; font-size: 12.5px; padding: 0 10px; text-align: left;
+    user-select: text; -webkit-user-select: text; }
   #exchange { width: 100%; min-height: 90px; background: #000; color: var(--text);
     font-family: var(--font-mono); font-size: 11px; border-radius: 6px;
     border: 1px solid var(--line); padding: 8px; resize: vertical; margin-bottom: 8px; }
@@ -593,6 +601,7 @@
           <button id="xy-xa" class="display mono">X: &ndash;</button>
           <button id="xy-ya" class="display mono">Y: &ndash;</button>
           <button id="xy-mom" class="pad">MOMENTARY</button>
+          <button id="xy-presets-btn" class="pad">PRESETS</button>
         </div>
         <div id="lfo-row">
           <div id="lfo-slots"></div>
@@ -814,6 +823,29 @@
         <p class="pick-note" id="jampreset-note">Adds the preset's controls to your JAM grid &ndash;
         existing controls are kept. Every added control keeps its own editable
         channel/CC/label afterward, same as anything else in JAM.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="xypreset" class="overlay">
+    <div id="xypreset-panel">
+      <div id="xypreset-head">
+        <h2 id="xypreset-title">XY PRESETS</h2>
+        <button id="xypreset-close" class="setup-btn">Close</button>
+      </div>
+      <div id="xypreset-body">
+        <div>
+          <h4>Templates</h4>
+          <div class="setup-row" id="xypreset-templates"></div>
+        </div>
+        <div>
+          <h4>Your combos</h4>
+          <div id="xypreset-custom"></div>
+          <div class="setup-row"><button id="xypreset-save" class="setup-btn primary">Save current X/Y as&hellip;</button></div>
+        </div>
+        <p class="pick-note" id="xypreset-note">Templates switch the bus to that effect if it isn't
+        already loaded, then assign both axes from its real parameter names. Your own combos just
+        re-point X/Y to wherever they were pointed when you saved them.</p>
       </div>
     </div>
   </div>
@@ -1442,6 +1474,7 @@ let state = {
   jamKnobs: false, /* Setup toggle: rotary knobs instead of bars for JAM faders */
   theme: "dark", /* Setup toggle: "dark" | "light" */
   jam: { slots: [] }, /* JAM tab: user-programmable pinned bus params + raw MIDI */
+  xyPresets: [], /* XY tab: user-saved axis combos, { id, name, x:{bus,slot}, y:{bus,slot}, mom } */
 };
 function directName(num) { /* num = CC#83 value 1..5 in the bus12 table */
   const r = state.directFx[num - 1];
@@ -1601,12 +1634,15 @@ function loadState() {
     if (s.jam && Array.isArray(s.jam.slots)) {
       state.jam.slots = s.jam.slots.map(sanitizeJamSlot).filter(Boolean).slice(0, JAM_MAX);
     }
+    if (Array.isArray(s.xyPresets)) {
+      state.xyPresets = s.xyPresets.map(sanitizeXyPreset).filter(Boolean).slice(0, XY_PRESETS_MAX);
+    }
   } catch (e) { /* corrupt storage: start fresh */ }
 }
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, theme: state.theme }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {
@@ -2981,6 +3017,154 @@ function setupXyPad() {
   pad.addEventListener("pointerup", end);
   pad.addEventListener("pointercancel", end);
 }
+
+/* ===== XY presets: curated templates (real parameter names, like the JAM
+   presets) plus the user's own saved axis combos ===== */
+const XY_TEMPLATES = [
+  { id: "isolator", name: "Isolator — LOW × HIGH", fx: "Isolator", x: "LOW", y: "HIGH",
+    note: "Cut the lows on one side, the highs on the other — park in a corner to isolate the mids." },
+  { id: "super-filter", name: "Super Filter — CUTOFF × RESONANCE", fx: "Super Filter", x: "CUTOFF", y: "RESONANCE",
+    note: "Classic filter sweep, with resonance piling on as you go." },
+  { id: "tape-echo", name: "Tape Echo — TIME × FEEDBACK", fx: "Tape Echo", x: "TIME", y: "FEEDBACK",
+    note: "Drag right for longer echoes, up for more repeats." },
+  { id: "phaser", name: "Phaser — RATE × DEPTH", fx: "Phaser", x: "RATE", y: "DEPTH",
+    note: "How fast it sweeps vs. how far — anywhere from a subtle swirl to full jet-flange." },
+  { id: "wah", name: "Wah — MANUAL × PEAK", fx: "Wah", x: "MANUAL", y: "PEAK",
+    note: "Pedal position and resonance peak in one gesture, DJ-scratch style." },
+  { id: "resonator", name: "Resonator — BRIGHT × FEEDBACK", fx: "Resonator", x: "BRIGHT", y: "FEEDBACK",
+    note: "Tone and ring-out length of the pitched resonance." },
+];
+function xyTemplateBuses(t) {
+  return BUSES.map((B, i) => (BUS_TABLES[B.table].includes(t.fx) ? i : null)).filter((i) => i !== null);
+}
+const XY_PRESETS_MAX = 16;
+function sanitizeXyPreset(p) {
+  if (!p || typeof p !== "object") return null;
+  const axis = (a) => (a && a.bus >= 0 && a.bus < 5 && a.slot >= 0 && a.slot < 6) ? { bus: a.bus | 0, slot: a.slot | 0 } : null;
+  const x = axis(p.x), y = axis(p.y);
+  if (!x || !y) return null;
+  return {
+    id: (typeof p.id === "string" && p.id) ? p.id : "xy" + Date.now() + Math.random().toString(36).slice(2, 7),
+    name: (typeof p.name === "string" && p.name.trim()) ? p.name.slice(0, 24) : "Combo",
+    x, y, mom: !!p.mom,
+  };
+}
+function openXyPresets() {
+  $("xypreset-title").textContent = "XY PRESETS";
+  $("xypreset-note").textContent = "Templates switch the bus to that effect if it isn't already " +
+    "loaded, then assign both axes from its real parameter names. Your own combos just re-point " +
+    "X/Y to wherever they were pointed when you saved them.";
+  renderXyTemplateList();
+  renderXyCustomList();
+  $("xypreset").classList.add("open");
+}
+function renderXyTemplateList() {
+  const host = $("xypreset-templates");
+  host.textContent = "";
+  XY_TEMPLATES.forEach((t) => {
+    const b = el("button", "setup-btn", t.name);
+    b.addEventListener("click", () => openXyTemplateBusPick(t));
+    host.appendChild(b);
+  });
+}
+function openXyTemplateBusPick(t) {
+  const host = $("xypreset-templates");
+  host.textContent = "";
+  const back = el("button", "setup-btn", "‹ Back");
+  back.addEventListener("click", renderXyTemplateList);
+  host.appendChild(back);
+  xyTemplateBuses(t).forEach((i) => {
+    const b = el("button", "setup-btn", BUSES[i].label);
+    b.addEventListener("click", () => applyXyTemplate(t, i));
+    host.appendChild(b);
+  });
+  $("xypreset-note").textContent = t.note + " Pick which bus.";
+}
+function applyXyTemplate(t, bus) {
+  const table = BUSES[bus].table;
+  const fxNum = BUS_TABLES[table].indexOf(t.fx);
+  if (fxNum < 0) { showBanner("That effect isn't on this bus", "warn", 2500); return; }
+  if (state.buses[bus].fx !== fxNum) fxChange(bus, fxNum, "user");
+  const def = fxDefFor(table, fxNum);
+  const xi = def.p.findIndex((p) => p.n === t.x);
+  const yi = def.p.findIndex((p) => p.n === t.y);
+  if (xi < 0 || yi < 0) { showBanner("Couldn't find those parameters", "warn", 2500); return; }
+  state.xy.x = { bus, slot: xi };
+  state.xy.y = { bus, slot: yi };
+  saveState();
+  setActiveBus(bus);
+  renderXy();
+  $("xypreset").classList.remove("open");
+  showBanner("\"" + t.name + "\" applied to " + BUSES[bus].label, "info", 2500);
+}
+function renderXyCustomList() {
+  const host = $("xypreset-custom");
+  host.textContent = "";
+  if (!state.xyPresets.length) {
+    host.appendChild(el("p", "pick-note", "No saved combos yet — dial in an X/Y pair below, then “Save current”."));
+    return;
+  }
+  state.xyPresets.forEach((p) => {
+    const row = el("div", "xy-custom-row");
+    const nameBtn = el("button", "setup-btn xy-custom-name", p.name);
+    nameBtn.addEventListener("click", () => applyXyCustom(p));
+    const ren = el("button", "xy-custom-icon", "✎");
+    ren.addEventListener("click", (e) => { e.stopPropagation(); renameXyPreset(row, p); });
+    const del = el("button", "xy-custom-icon", "✕");
+    del.addEventListener("click", (e) => { e.stopPropagation(); deleteXyPreset(p.id); });
+    row.appendChild(nameBtn); row.appendChild(ren); row.appendChild(del);
+    host.appendChild(row);
+  });
+}
+function renameXyPreset(row, p) {
+  const nameBtn = row.querySelector(".xy-custom-name");
+  const input = el("input", "xy-custom-edit");
+  input.type = "text"; input.maxLength = 24; input.value = p.name;
+  nameBtn.replaceWith(input);
+  input.addEventListener("pointerdown", (e) => e.stopPropagation());
+  input.addEventListener("keydown", (e) => {
+    e.stopPropagation();
+    if (e.key === "Enter") input.blur();
+    if (e.key === "Escape") { input.value = p.name; input.blur(); }
+  });
+  input.addEventListener("blur", () => {
+    const v = input.value.trim();
+    if (v) p.name = v.slice(0, 24);
+    saveState();
+    renderXyCustomList();
+  });
+  setTimeout(() => { input.focus(); input.select(); }, 30);
+}
+function applyXyCustom(p) {
+  state.xy.x = { bus: p.x.bus, slot: p.x.slot };
+  state.xy.y = { bus: p.y.bus, slot: p.y.slot };
+  state.xy.mom = !!p.mom;
+  saveState();
+  renderXy();
+  $("xypreset").classList.remove("open");
+  showBanner("\"" + p.name + "\" applied", "info", 2000);
+}
+function deleteXyPreset(id) {
+  state.xyPresets = state.xyPresets.filter((p) => p.id !== id);
+  saveState();
+  renderXyCustomList();
+}
+function saveCurrentXyPreset() {
+  const ax = xyAssign("x"), ay = xyAssign("y");
+  if (!ax || !ay) { showBanner("Assign both X and Y first", "info", 2500); return; }
+  if (state.xyPresets.length >= XY_PRESETS_MAX) { showBanner("Combo list is full — delete one first", "warn", 2500); return; }
+  const p = {
+    id: "xy" + Date.now() + Math.random().toString(36).slice(2, 7),
+    name: "Combo " + (state.xyPresets.length + 1),
+    x: { bus: ax.bus, slot: ax.slot }, y: { bus: ay.bus, slot: ay.slot }, mom: !!state.xy.mom,
+  };
+  state.xyPresets.push(p);
+  saveState();
+  renderXyCustomList();
+  const row = [...$("xypreset-custom").children].find((r) => r.querySelector(".xy-custom-name")?.textContent === p.name);
+  if (row) renameXyPreset(row, p);
+}
+
 let xyPickAxis = "x", xyPickBus = 0;
 function openXyPick(axis) {
   xyPickAxis = axis;
@@ -3991,6 +4175,10 @@ function boot() {
   $("xy-xa").addEventListener("click", () => openXyPick("x"));
   $("xy-ya").addEventListener("click", () => openXyPick("y"));
   $("xy-mom").addEventListener("click", () => { state.xy.mom = !state.xy.mom; saveState(); renderXy(); });
+  $("xy-presets-btn").addEventListener("click", openXyPresets);
+  $("xypreset-close").addEventListener("click", () => $("xypreset").classList.remove("open"));
+  $("xypreset").addEventListener("pointerdown", (e) => { if (e.target === $("xypreset")) $("xypreset").classList.remove("open"); });
+  $("xypreset-save").addEventListener("click", saveCurrentXyPreset);
   $("xypick-close").addEventListener("click", () => $("xypick").classList.remove("open"));
   $("xypick").addEventListener("pointerdown", (e) => { if (e.target === $("xypick")) $("xypick").classList.remove("open"); });
   $("xypick-none").addEventListener("click", () => {
@@ -4162,7 +4350,7 @@ function boot() {
   }, true);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
+    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
     if (e.target.tagName === "INPUT") return;
     if (e.key >= "1" && e.key <= "5") gotoFocus(+e.key - 1);
     else if (e.key === " ") { e.preventDefault(); const b = state.activeBus; sendSw(b, !state.buses[b].on); }

@@ -100,6 +100,16 @@ undo.
 behavior: position = value. **MOMENTARY** springs both values back to the
 pre-touch state on release.
 
+**PRESETS:** one-tap axis assignments. **Templates** are curated pairs for
+specific effects (e.g. "Isolator — LOW × HIGH", "Tape Echo — TIME ×
+FEEDBACK"), built from their real parameter names — picking one asks which
+bus (only buses that actually have that effect are offered), switches that
+bus to the effect if it isn't already loaded, and assigns both axes. **Your
+combos** are your own saved X/Y pairs: dial in an assignment, "Save current
+X/Y as…", rename with the ✎, tap the name to recall it later, ✕ to delete.
+Unlike templates these just re-point to whatever bus+slot you saved, no
+effect-switching involved.
+
 **LFO row:** four modulator slots (chips 1–4; orange dot = running). Per
 slot: target, waveform (SIN/TRI/SQR/SAW/**RND** = drift between random
 anchors), rate in note values (4/1 to 1/16), depth. The time source shows on
