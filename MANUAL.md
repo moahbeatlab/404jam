@@ -207,6 +207,10 @@ Setup has two display toggles:
   vertical bars to full-width horizontal strips stacked top to bottom —
   useful on a wide/landscape tablet where a sideways drag has more travel to
   work with than a narrow vertical one.
+- **JAM style:** bars (default) or rotary knobs for every fader-type control
+  in the JAM tab — same drag behavior (relative drag, fine-tune pull,
+  double-tap default, wheel ±1), just drawn as a hardware-style dial with an
+  orange sweep instead of a bar.
 
 ## Tempo and Ableton Link
 

@@ -28,8 +28,9 @@ HTML file, no installation, no dependencies, no account.
   to start over. **Presets** add a whole set of controls in one tap, built
   from real MIDI implementation charts (ships with an MC-101 4-track ×
   Filter/Mod/FX/Sound template).
-- **Light/dark theme** and an optional horizontal fader layout for wide
-  tablets, both in Setup.
+- **Light/dark theme**, an optional horizontal fader layout for wide
+  tablets, and rotary knobs as an alternative to bars for JAM controls, all
+  in Setup.
 
 ## Requirements
 
