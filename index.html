@@ -471,8 +471,12 @@
     background: var(--raised); box-shadow: inset 0 0 0 1px var(--line), 0 1px 3px rgba(0,0,0,.35);
   }
   .jam-knob-pointer {
-    position: absolute; left: 50%; top: 50%; width: 3px; height: 32%;
-    background: #fff; border-radius: 2px; transform-origin: 50% 0%; z-index: 1;
+    /* rests pointing straight up (12 o'clock, matching angle 0) so its
+       rotation reference agrees with the conic-gradient's - bottom:50% +
+       transform-origin:50% 100% pivots at the dial center with the bar
+       extending upward before any rotate() is applied */
+    position: absolute; left: 50%; bottom: 50%; width: 3px; height: 32%;
+    background: #fff; border-radius: 2px; transform-origin: 50% 100%; z-index: 1;
     box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 0 6px var(--glow);
   }
   .fader.drag .jam-knob-pointer { box-shadow: 0 0 10px var(--glow); }
@@ -1916,14 +1920,16 @@ function paintFader(fill, thumb, pct) {
 }
 
 /* JAM's alternate "rotary knob" style (Setup > JAM style). Same 0-100 pct
-   as paintFader, just mapped onto a 270deg sweep (-135deg..135deg, the
-   classic hardware-knob dead zone at the bottom) instead of a bar height -
-   the drag engine that drives it is unchanged, only the paint differs. */
+   as paintFader, just mapped onto a full clockwise sweep starting at 12
+   o'clock (0 = straight up, unfilled ring) instead of a bar height - the
+   drag engine that drives it is unchanged, only the paint differs. Both
+   the pointer and the conic-gradient use the same 0deg-is-up, clockwise
+   reference, so they always agree with each other. */
 function paintKnob(dial, pointer, pct) {
-  const sweep = pct / 100 * 270;
-  pointer.style.transform = "rotate(" + (-135 + sweep) + "deg)";
+  const angle = pct / 100 * 360;
+  pointer.style.transform = "rotate(" + angle + "deg)";
   dial.style.background =
-    "conic-gradient(from -135deg, var(--accent) 0deg " + sweep + "deg, var(--track-bg) " + sweep + "deg 270deg, transparent 270deg 360deg)";
+    "conic-gradient(var(--accent) 0deg " + angle + "deg, var(--track-bg) " + angle + "deg 360deg)";
 }
 
 /* generic relative-drag fader engine, shared by bus focus faders and
