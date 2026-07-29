@@ -433,6 +433,25 @@
   body.jam-editing .jam-slot.jam-lift { transform: scale(1.05); box-shadow: 0 10px 26px rgba(0,0,0,.55), 0 0 0 2px var(--accent); z-index: 6; opacity: .95; }
   body.jam-editing .jam-slot.jam-drop-before { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 1px var(--line); }
   body.jam-editing .jam-add { opacity: .5; pointer-events: none; }
+  /* swipe-to-delete: a big, mostly-horizontal swipe overrides the drop
+     target and tints the tile red as a "let go now and this is gone" cue -
+     grids can't rely on direction alone (dragging left is also "reorder
+     onto the tile to my left"), so this only arms past a real distance */
+  body.jam-editing .jam-slot.jam-delete-hint { background: var(--warn); box-shadow: 0 0 0 2px var(--warn); }
+  body.jam-editing .jam-slot.jam-delete-hint::before { content: "🗑"; background: transparent; box-shadow: none; }
+  /* select mode: mutually exclusive with edit/reorder so a tap is never
+     ambiguous between "select this" and "start dragging this" */
+  body.jam-selecting .jam-slot { box-shadow: 0 0 0 1px var(--line); }
+  body.jam-selecting .jam-slot::before {
+    content: ""; position: absolute; top: 6px; left: 6px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--raised); box-shadow: 0 0 0 1px var(--line); z-index: 2;
+  }
+  body.jam-selecting .jam-slot.jam-selected { box-shadow: 0 0 0 2px var(--accent); }
+  body.jam-selecting .jam-slot.jam-selected::before { content: "✓"; background: var(--accent); color: #1a1105; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  body.jam-selecting .jam-add { opacity: .5; pointer-events: none; }
+  #jam-select-btn.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 12px var(--glow); }
+  #jam-batch-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: none; padding: 8px; margin-bottom: 8px; border-radius: 8px; background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
+  #jam-batch-bar .je-field { flex: none; min-width: 70px; }
   /* ============ 10 no-midi hint ============ */
   #nomidi { position: fixed; inset: 0; z-index: 30; display: none; background: var(--bg); padding: max(30px, env(safe-area-inset-top)) 24px 24px; overflow-y: auto; touch-action: pan-y; }
   #nomidi.open { display: block; }
@@ -617,9 +636,16 @@
         <div id="jam-head">
           <span class="label">JAM</span>
           <span class="spacer"></span>
+          <button id="jam-select-btn" class="pad">SELECT</button>
           <button id="jam-clear-btn" class="pad">CLEAR</button>
           <button id="jam-preset-btn" class="pad">PRESETS</button>
           <button id="jam-edit-btn" class="pad">EDIT</button>
+        </div>
+        <div id="jam-batch-bar" class="hide">
+          <span id="jam-batch-count" class="label">0 selected</span>
+          <label class="je-field">Channel<input id="jam-batch-ch" type="number" min="1" max="16" value="1"></label>
+          <button id="jam-batch-apply-ch" class="setup-btn primary">Apply</button>
+          <button id="jam-batch-delete" class="setup-btn">Delete</button>
         </div>
         <div id="jam-grid"></div>
       </section>
@@ -3489,6 +3515,10 @@ function registerJamUpdate(cfg, fn) {
   jamByBusSlot.get(k).add(fn);
 }
 let jamEditing = false;
+/* select mode: mutually exclusive with edit mode so a tap on a tile is
+   never ambiguous between "toggle selection" and "start a reorder drag" */
+let jamSelectMode = false;
+const jamSelected = new Set(); /* cfg.id values */
 let jamDropIndex = null;
 function updateJamDropTarget(dragTile, x, y) {
   const kids = [...$("jam-grid").querySelectorAll(".jam-slot")];
@@ -3510,28 +3540,36 @@ function consumeJamDropTarget() {
   return v;
 }
 function attachJamEditGestures(tile, index) {
-  let startX = 0, startY = 0, moved = 0, lifting = false, pid = null;
+  let startX = 0, startY = 0, moved = 0, lifting = false, pid = null, curDx = 0, curDy = 0, deleteArmed = false;
   tile.addEventListener("pointerdown", (e) => {
     e.preventDefault();
     tile.setPointerCapture(e.pointerId);
-    pid = e.pointerId; startX = e.clientX; startY = e.clientY; moved = 0; lifting = false;
+    pid = e.pointerId; startX = e.clientX; startY = e.clientY; moved = 0; lifting = false; deleteArmed = false;
   });
   tile.addEventListener("pointermove", (e) => {
     if (e.pointerId !== pid) return;
-    const dx = e.clientX - startX, dy = e.clientY - startY;
-    moved = Math.max(moved, Math.abs(dx), Math.abs(dy));
+    curDx = e.clientX - startX; curDy = e.clientY - startY;
+    moved = Math.max(moved, Math.abs(curDx), Math.abs(curDy));
     if (!lifting && moved > 10) { lifting = true; tile.classList.add("jam-lift"); }
     if (lifting) {
-      tile.style.transform = "translate(" + dx + "px," + dy + "px)";
-      updateJamDropTarget(tile, e.clientX, e.clientY);
+      tile.style.transform = "translate(" + curDx + "px," + curDy + "px)";
+      const r = tile.getBoundingClientRect();
+      /* armed once the swipe has gone leftward past half the tile's own
+         width while staying mostly horizontal - far enough that it can't
+         be mistaken for "drag onto the tile to my left" (reorder) */
+      deleteArmed = curDx < -r.width * 0.55 && Math.abs(curDy) < r.height * 0.45;
+      tile.classList.toggle("jam-delete-hint", deleteArmed);
+      if (deleteArmed) consumeJamDropTarget();
+      else updateJamDropTarget(tile, e.clientX, e.clientY);
     }
   });
   function end(e) {
     if (e.pointerId !== pid) return;
     pid = null;
     if (lifting) {
-      tile.classList.remove("jam-lift");
+      tile.classList.remove("jam-lift", "jam-delete-hint");
       tile.style.transform = "";
+      if (deleteArmed) { deleteJamSlotAt(index); return; }
       const dropIdx = consumeJamDropTarget();
       if (dropIdx != null && dropIdx !== index) {
         /* insert at the target's ORIGINAL index (not -1'd) - removing the
@@ -3549,14 +3587,28 @@ function attachJamEditGestures(tile, index) {
   tile.addEventListener("pointerup", end);
   tile.addEventListener("pointercancel", end);
 }
+/* single-tile delete via swipe, reusing the same undo mechanism as
+   clearJam() (the CLEAR button becomes UNDO regardless of which of the two
+   emptied the grid, or partially emptied it) */
+function deleteJamSlotAt(index) {
+  const cfg = state.jam.slots[index];
+  if (!cfg) return;
+  if (cfg.source === "scene") jamSceneActive.delete(cfg);
+  jamClearUndo = { slots: state.jam.slots.slice(), t: performance.now() };
+  state.jam.slots.splice(index, 1);
+  saveState();
+  buildJam();
+  showBanner("Removed \"" + jamLabel(cfg) + "\" – tap CLEAR to undo", "info", 3000);
+  setTimeout(updateJamClearBtn, 6100);
+}
 function buildJamTile(cfg, index) {
-  const tile = el("div", "jam-slot jam-" + cfg.kind);
+  const tile = el("div", "jam-slot jam-" + cfg.kind + (jamSelected.has(cfg.id) ? " jam-selected" : ""));
   tile.dataset.jamIndex = index;
   if (cfg.kind === "pad") {
     /* the pad button carries its own label - no separate slot-label needed */
     const btn = el("button", "jam-pad-btn pad", jamLabel(cfg));
     tile.appendChild(btn);
-    if (!jamEditing) {
+    if (!jamEditing && !jamSelectMode) {
       const api = attachJamPad(btn, cfg);
       registerJamUpdate(cfg, api.update);
     }
@@ -3564,10 +3616,37 @@ function buildJamTile(cfg, index) {
     const dom = buildJamFaderDom(cfg);
     tile.appendChild(dom.fader);
     tile.appendChild(el("div", "slot-label", jamLabel(cfg)));
-    if (!jamEditing) registerJamUpdate(cfg, dom.update);
+    if (!jamEditing && !jamSelectMode) registerJamUpdate(cfg, dom.update);
   }
   if (jamEditing) attachJamEditGestures(tile, index);
+  if (jamSelectMode) attachJamSelectGesture(tile, cfg);
   return tile;
+}
+/* select mode: a plain tap toggles selection - no drag/swipe to disambiguate
+   here, so it wins over the tile's own pad/fader listeners via the same
+   bubble-then-capture-override behavior attachJamEditGestures relies on */
+function attachJamSelectGesture(tile, cfg) {
+  let sx = 0, sy = 0, moved = 0, pid = null;
+  tile.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    tile.setPointerCapture(e.pointerId);
+    pid = e.pointerId; sx = e.clientX; sy = e.clientY; moved = 0;
+  });
+  tile.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== pid) return;
+    moved = Math.max(moved, Math.abs(e.clientX - sx), Math.abs(e.clientY - sy));
+  });
+  function end(e) {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    if (moved < 8) {
+      if (jamSelected.has(cfg.id)) jamSelected.delete(cfg.id);
+      else jamSelected.add(cfg.id);
+      buildJam();
+    }
+  }
+  tile.addEventListener("pointerup", end);
+  tile.addEventListener("pointercancel", end);
 }
 function buildJamAddTile() {
   const btn = el("button", "jam-add", "+");
@@ -3578,13 +3657,21 @@ function buildJam() {
   const host = $("jam-grid");
   finishDragsIn(host);
   releaseAllJamScenes(); /* a rebuild mid-hold must not leave a bus stuck on the captured scene */
+  /* prune selections for tiles that no longer exist (deleted elsewhere) */
+  const liveIds = new Set(state.jam.slots.map((c) => c.id));
+  [...jamSelected].forEach((id) => { if (!liveIds.has(id)) jamSelected.delete(id); });
   host.textContent = "";
   jamByBusSlot.clear();
   document.body.classList.toggle("jam-editing", jamEditing);
+  document.body.classList.toggle("jam-selecting", jamSelectMode);
   $("jam-edit-btn").classList.toggle("on", jamEditing);
   $("jam-edit-btn").textContent = jamEditing ? "DONE" : "EDIT";
+  $("jam-select-btn").classList.toggle("on", jamSelectMode);
+  $("jam-select-btn").textContent = jamSelectMode ? "DONE" : "SELECT";
+  $("jam-batch-bar").classList.toggle("hide", !jamSelectMode);
+  $("jam-batch-count").textContent = jamSelected.size + " selected";
   state.jam.slots.forEach((cfg, i) => host.appendChild(buildJamTile(cfg, i)));
-  if (!jamEditing && state.jam.slots.length < JAM_MAX) host.appendChild(buildJamAddTile());
+  if (!jamEditing && !jamSelectMode && state.jam.slots.length < JAM_MAX) host.appendChild(buildJamAddTile());
   renderFocusScenes(); /* keep the Focus-view sidebar in sync with any add/edit/delete/reorder here */
   updateJamClearBtn();
 }
@@ -3909,7 +3996,43 @@ function boot() {
     buildPads();
   });
   /* jam tab */
-  $("jam-edit-btn").addEventListener("click", () => { jamEditing = !jamEditing; buildJam(); });
+  $("jam-edit-btn").addEventListener("click", () => {
+    jamEditing = !jamEditing;
+    if (jamEditing) { jamSelectMode = false; jamSelected.clear(); }
+    buildJam();
+  });
+  $("jam-select-btn").addEventListener("click", () => {
+    jamSelectMode = !jamSelectMode;
+    jamSelected.clear();
+    if (jamSelectMode) jamEditing = false;
+    buildJam();
+  });
+  $("jam-batch-apply-ch").addEventListener("click", () => {
+    if (!jamSelected.size) { showBanner("Select some controls first", "info", 2000); return; }
+    const ch = clamp((+$("jam-batch-ch").value || 1) - 1, 0, 15);
+    let n = 0;
+    state.jam.slots.forEach((cfg) => {
+      if (jamSelected.has(cfg.id) && cfg.source === "raw") { cfg.ch = ch; n++; }
+    });
+    saveState();
+    buildJam();
+    showBanner(n
+      ? "Channel " + (ch + 1) + " applied to " + n + " control(s)"
+      : "None of the selected controls use a MIDI channel (bus/scene sources don't)", "info", 3000);
+  });
+  $("jam-batch-delete").addEventListener("click", () => {
+    if (!jamSelected.size) { showBanner("Select some controls first", "info", 2000); return; }
+    jamClearUndo = { slots: state.jam.slots.slice(), t: performance.now() };
+    const removed = state.jam.slots.filter((c) => jamSelected.has(c.id));
+    removed.forEach((cfg) => { if (cfg.source === "scene") jamSceneActive.delete(cfg); });
+    state.jam.slots = state.jam.slots.filter((c) => !jamSelected.has(c.id));
+    jamSelected.clear();
+    jamSelectMode = false;
+    saveState();
+    buildJam();
+    showBanner(removed.length + " control(s) removed – tap CLEAR to undo", "info", 3000);
+    setTimeout(updateJamClearBtn, 6100);
+  });
   $("jamedit-close").addEventListener("click", () => $("jamedit").classList.remove("open"));
   $("jamedit").addEventListener("pointerdown", (e) => { if (e.target === $("jamedit")) $("jamedit").classList.remove("open"); });
   $("je-save").addEventListener("click", saveJamEditor);

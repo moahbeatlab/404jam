@@ -23,9 +23,10 @@ HTML file, no installation, no dependencies, no account.
   put regardless of the loaded effect, raw MIDI (any channel/CC/Note/PC) to
   any connected device (e.g. a second synth), or a captured **bus scene**
   (a whole bus's state momentarily recalled on hold, reverting to whatever
-  was playing on release). Drag to reorder in edit mode, CLEAR to start
-  over. **Presets** add a whole set of controls in one tap, built from real
-  MIDI implementation charts (ships with an MC-101 4-track ×
+  was playing on release). Drag to reorder or swipe-to-delete in edit mode,
+  multi-select to batch-set a MIDI channel or delete several at once, CLEAR
+  to start over. **Presets** add a whole set of controls in one tap, built
+  from real MIDI implementation charts (ships with an MC-101 4-track ×
   Filter/Mod/FX/Sound template).
 - **Light/dark theme** and an optional horizontal fader layout for wide
   tablets, both in Setup.

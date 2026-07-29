@@ -171,9 +171,21 @@ becomes **UNDO** for 6 seconds instead.
 
 **EDIT** (top right) turns the grid into an editor: tiles show a pencil
 badge, tap one to change its settings or delete it, or drag it to a new
-position to reorder. Tap **+** (outside edit mode) to add a new control.
-Fader values and pad on/off state are remembered per slot, same as
-everywhere else in the app (`localStorage`, nothing is ever sent on load).
+position to reorder. **Swipe a tile left** past about half its width to
+arm delete (turns red with a 🗑 icon) — release to remove it, same
+instant+UNDO behavior as CLEAR below. Tap **+** (outside edit mode) to add
+a new control. Fader values and pad on/off state are remembered per slot,
+same as everywhere else in the app (`localStorage`, nothing is ever sent
+on load).
+
+**SELECT** (top right) turns the grid into a multi-select picker: tap
+tiles to check them (a bar appears above the grid showing how many are
+selected), then either type a **channel** number and tap **Apply** to
+set that channel on every selected raw-MIDI control in one go (bus params
+and bus scenes don't carry a channel, so they're skipped), or tap
+**Delete** to remove all selected tiles at once — again instant with a
+6-second **UNDO** via CLEAR. Handy for retuning a whole preset (e.g. an
+MC-101 template) to different track channels without opening each tile.
 
 **PRESETS:** factory templates that add a set of controls in one tap, built
 from the target device's actual MIDI implementation chart rather than
