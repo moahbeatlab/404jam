@@ -2026,7 +2026,11 @@ function paintFader(fill, thumb, pct) {
    convention as .fader's "bal" display. The arc fills from the 12 o'clock
    reference out toward whichever side the pointer has tilted, so a
    centered value shows an empty ring. */
-const KNOB_MAX_TILT = 60; /* degrees off vertical at either extreme */
+/* 135deg off vertical = the classic 270deg-total hardware-pot sweep (7:30
+   to 4:30), just re-centered so 12 o'clock is the value's midpoint instead
+   of the sweep's start - at +-60deg the fill barely showed at either
+   extreme, this reads as "maxed out" the way a real knob does. */
+const KNOB_MAX_TILT = 135;
 function paintKnob(dial, pointer, pct) {
   const angle = (pct - 50) / 50 * KNOB_MAX_TILT;
   pointer.style.transform = "rotate(" + angle + "deg)";
