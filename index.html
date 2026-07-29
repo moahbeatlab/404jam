@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="referrer" content="no-referrer">
-  <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#121214">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#121214" id="theme-color-meta">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>404 Busdriver</title>
@@ -20,9 +20,25 @@
     --text: #e8e6e1; --muted: #8a8880;
     --accent: #ff7a1a; --accent-dim: rgba(255,122,26,.25); --glow: rgba(255,122,26,.35);
     --ok: #4cd07d; --warn: #ff4545;
+    /* the numeric LCD readouts (fader value, bpm, ...) are a physical dark
+       screen with light digits - fixed regardless of theme, like a real
+       device's display never flips to "light mode" */
+    --lcd-bg: #000; --lcd-text: #e8e6e1;
+    /* fader track backdrop: a separate pair from --panel/--raised because it
+       needs to read as "recessed" (darker than its surroundings) in dark
+       mode but "recessed" (also darker, just a lighter absolute value) in
+       light mode - inverting is wrong, it must stay relatively darker */
+    --track-bg: #0d0d0f; --track-line: #2c2c31;
     --statusbar-h: 46px; --tabs-h: 60px;
     --font-label: system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f2ee; --panel: #ffffff; --raised: #ebe9e4; --line: #d9d6cf;
+    --text: #201e1a; --muted: #726e64;
+    --accent: #ff7a1a; --accent-dim: rgba(255,122,26,.16); --glow: rgba(255,122,26,.32);
+    --ok: #1c9a54; --warn: #d8352f;
+    --track-bg: #e4e1d9; --track-line: #cac6bb;
   }
   /* ============ 02 reset + shell ============ */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,8 +65,8 @@
   .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
   .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
   .display {
-    background: #000; border-radius: 4px; box-shadow: inset 0 0 0 1px #2a2a2e;
-    font-family: var(--font-mono); color: var(--text);
+    background: var(--lcd-bg); border-radius: 4px; box-shadow: inset 0 0 0 1px #2a2a2e;
+    font-family: var(--font-mono); color: var(--lcd-text);
     text-shadow: 0 0 6px rgba(232,230,225,.4);
     background-image: repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,.02) 2px 3px);
   }
@@ -76,7 +92,7 @@
     height: 34px; padding: 0 12px; border-radius: 7px; flex: none;
     font-size: 11px; letter-spacing: .07em; font-weight: 600;
   }
-  #alloff { color: #ff9a9a; box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.4), 0 0 0 1px #5a3535; }
+  #alloff { color: var(--warn); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.4), 0 0 0 1px var(--warn); }
   #alloff.armed { background: var(--warn); color: #fff; box-shadow: 0 0 12px rgba(255,69,69,.5); }
   /* ============ 04 bus tabs ============ */
   #bustabs {
@@ -110,24 +126,57 @@
   }
   #fx-name .fx-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   #fx-name .fx-sub { font-size: 9px; letter-spacing: .12em; color: var(--muted); text-shadow: none; }
-  #faders { flex: 1; display: flex; gap: 8px; min-height: 0; }
+  #focus-body { flex: 1; display: flex; gap: 10px; min-height: 0; min-width: 0; }
+  #faders { flex: 1; display: flex; gap: 10px; min-height: 0; min-width: 0; }
+  /* saved bus-scene pads for the active bus, recalled without leaving Focus.
+     Sits to the left of the fader area in both orientations (horiz-faders
+     only flips #faders' own internal direction, not #focus-body's) - width
+     collapses to 0 when the active bus has no captured scenes. */
+  #focus-scenes { flex: none; display: flex; flex-direction: column; gap: 6px; width: 0; overflow: hidden; min-height: 0; transition: width .15s; }
+  #focus-scenes.has-scenes { width: 80px; overflow-y: auto; touch-action: pan-y; }
+  #focus-scenes .focus-scene-item { flex: none; position: relative; }
+  #focus-scenes .focus-scene-btn { width: 100%; min-height: 48px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .01em; padding: 5px 4px; line-height: 1.3; overflow-wrap: break-word; hyphens: auto; }
+  #focus-scenes .focus-scene-edit {
+    position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 5px;
+    background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 10px;
+    display: flex; align-items: center; justify-content: center; color: var(--muted); z-index: 2;
+  }
   /* ============ 06 fader component ============ */
   .slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
   .slot.empty { opacity: .22; pointer-events: none; }
   .fader { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; width: 100%; min-height: 0; position: relative; touch-action: none; }
   .fader-val { font-size: 12px; padding: 3px 4px; min-width: 52px; max-width: 100%; text-align: center; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .fader-track-wrap { flex: 1; width: 100%; display: flex; justify-content: center; min-height: 0; position: relative; }
-  .fader-track { width: 10px; height: 100%; border-radius: 5px; background: #0d0d0f; box-shadow: inset 0 0 0 1px #2c2c31; position: relative; }
-  .fader-fill { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 5px; background: var(--accent-dim); }
-  .fader-thumb {
-    --thumb-h: 26px;
-    position: absolute; left: 50%; width: 44px; height: var(--thumb-h); border-radius: 6px;
-    transform: translateX(-50%);
-    background: var(--raised);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.09), inset 0 -1px 0 rgba(0,0,0,.5), 0 2px 5px rgba(0,0,0,.5), 0 0 0 1px var(--line);
+  .fader-track-wrap { flex: 1; width: 100%; min-height: 0; position: relative; }
+  /* fat filled-bar fader (TouchOSC-style): the whole slot width is both the
+     visual bar and the drag surface - no thin track behind a small floating
+     pill, bigger to read and more forgiving to grab on phone/tablet.
+     JS only ever sets --pct; body.horiz-faders remaps which axis it drives,
+     so the same update() code drives both orientations. */
+  .fader-track { position: absolute; inset: 0; border-radius: 10px; background: var(--track-bg); box-shadow: inset 0 0 0 1px var(--track-line); overflow: hidden; }
+  .fader-fill { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pct, 0%); background: var(--accent); }
+  /* the cap line needs a dark ring, not just the glow, so it stays visible
+     against a light-theme unfilled track and not just the dark-fill side */
+  .fader-thumb { position: absolute; left: 0; right: 0; bottom: var(--pct, 0%); height: 3px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 0 6px var(--glow); transform: translateY(50%); border-radius: 2px; }
+  .fader.drag .fader-fill { filter: brightness(1.3); }
+  .fader.drag .fader-thumb { height: 4px; box-shadow: 0 0 10px var(--glow); }
+  /* horizontal orientation: full-width strips stacked instead of narrow
+     columns, so a sideways drag actually has travel to work with. Scoped to
+     #faders (Focus view) only - the JAM grid's tiles are narrow columns by
+     design and a sideways fader has no room to work with there regardless
+     of this toggle, so JAM always stays vertical. */
+  body.horiz-faders #faders { flex-direction: column; }
+  body.horiz-faders #faders .slot { flex-direction: row; align-items: stretch; gap: 10px; }
+  body.horiz-faders #faders .slot-label { order: -1; align-self: center; width: 68px; flex: none; text-align: left; }
+  body.horiz-faders #faders .fader { flex-direction: row; align-items: stretch; }
+  /* value chip overlaid on the bar itself instead of its own flex column -
+     otherwise label + value together eat a third of the width before the
+     bar (the part that actually needs the room) even gets a look-in */
+  body.horiz-faders #faders .fader-val {
+    position: absolute; left: 6px; top: 50%; transform: translateY(-50%); z-index: 3;
+    min-width: 0; padding: 2px 7px; font-size: 10.5px;
   }
-  .fader-thumb::after { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 2px; transform: translateY(-50%); background: var(--accent); border-radius: 1px; }
-  .fader.drag .fader-thumb { background: #3a3126; box-shadow: 0 0 12px var(--glow), inset 0 1px 0 rgba(255,255,255,.15), 0 0 0 1px var(--accent); }
+  body.horiz-faders #faders .fader-fill { left: 0; right: auto; top: 0; bottom: 0; height: 100%; width: var(--pct, 0%); }
+  body.horiz-faders #faders .fader-thumb { left: var(--pct, 0%); right: auto; top: 0; bottom: 0; height: 100%; width: 3px; transform: translateX(-50%); }
   .slot-label { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; flex: none; }
   .bigval {
     position: absolute; top: -6px; left: 50%; transform: translate(-50%, -100%);
@@ -140,6 +189,11 @@
   .seg { flex: 1; width: 100%; max-width: 74px; display: flex; flex-direction: column-reverse; gap: 4px; min-height: 0; }
   .seg button { flex: 1; border-radius: 6px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 10px; font-weight: 600; color: var(--muted); min-height: 0; overflow: hidden; }
   .seg button.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 10px var(--glow); }
+  /* horizontal orientation: these two control kinds aren't faders, but they
+     sit in the same row-of-slots and must not stay capped to a narrow
+     vertical-mode column width (Focus view only, see above) */
+  body.horiz-faders #faders .slot-toggle { max-width: none; }
+  body.horiz-faders #faders .seg { max-width: none; flex-direction: row; }
   /* stepper popover */
   #stepper { position: fixed; z-index: 40; display: none; gap: 8px; padding: 8px; border-radius: 10px; background: var(--panel); box-shadow: 0 6px 24px rgba(0,0,0,.6), 0 0 0 1px var(--line); }
   #stepper.open { display: flex; }
@@ -157,7 +211,6 @@
   .strip-faders { flex: 1; display: flex; gap: 5px; min-height: 0; }
   .strip-faders .fader-val { display: none; }
   .strip-faders .slot-label { font-size: 8.5px; }
-  .strip-faders .fader-thumb { --thumb-h: 16px; width: 26px; }
   /* ============ 08 picker ============ */
   .overlay { position: fixed; inset: 0; z-index: 20; display: none; background: rgba(8,8,10,.72); }
   .overlay.open { display: flex; }
@@ -193,15 +246,20 @@
   #jumpbar { position: absolute; right: calc(6px + env(safe-area-inset-right)); top: calc(70px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; z-index: 3; }
   #jumpbar button { width: 36px; height: 40px; font-size: 9px; font-weight: 700; color: var(--muted); border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); }
   /* ============ 09 setup ============ */
-  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel {
+  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel, #jamedit-panel, #jampreset-panel {
     margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px);
     background: var(--panel); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px var(--line);
     display: flex; flex-direction: column; overflow: hidden;
   }
-  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
-  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
-  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
-  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head, #jamedit-head, #jampreset-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
+  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2, #jamedit-head h2, #jampreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
+  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body, #jamedit-body, #jampreset-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4, #jamedit-body h4, #jampreset-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  #jamedit-body > div > h4:not(:first-child) { margin-top: 4px; }
+  .je-field { display: flex; flex-direction: column; gap: 4px; font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; font-weight: 700; flex: 1; min-width: 90px; }
+  .je-field input, .je-field-wide { font: inherit; color: var(--text); background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-height: 44px; }
+  .je-field-wide { width: 100%; text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 14px; }
+  .hide { display: none !important; }
   #help-panel { width: min(560px, calc(100% - 24px)); }
   #help-body { gap: 6px; }
   #help-body h3 { font-size: 11px; letter-spacing: .1em; color: var(--accent); font-weight: 700; margin-top: 10px; text-transform: uppercase; }
@@ -310,6 +368,10 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line);
     font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--muted); }
   #rnd-btn.undo { color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  #jam-clear-btn.undo { color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  #bus-save-btn { width: 46px; flex: none; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line);
+    font-size: 9px; font-weight: 700; letter-spacing: .03em; color: var(--muted); }
   .setup-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .setup-btn { min-height: 44px; padding: 8px 14px; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 12.5px; }
   .setup-btn.primary { background: var(--accent); color: #1a1105; font-weight: 700; }
@@ -323,6 +385,54 @@
   #clock-diag { font-size: 12px; color: var(--muted); }
   .infobox { border-left: 3px solid var(--accent); background: rgba(255,122,26,.06); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 12.5px; line-height: 1.55; color: var(--text); }
   .infobox .label { display: block; margin-bottom: 4px; color: var(--accent); }
+  /* ============ 09b jam view (programmable pinned MIDI controls) ============ */
+  #view-jam { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.jam #view-jam { display: flex; }
+  body.jam #view-focus, body.jam #view-overview, body.jam #view-xy, body.jam #view-pattern, body.jam #view-play { display: none; }
+  #jam-head { display: flex; align-items: center; gap: 10px; flex: none; height: 40px; }
+  #jam-head .spacer { flex: 1; }
+  #jam-edit-btn { height: 100%; padding: 0 16px; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line); font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+  #jam-edit-btn.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 12px var(--glow); }
+  #jam-grid {
+    flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain;
+    /* min-width tuned to land on exactly 4 columns across common phone
+       viewports (360-412px CSS width, e.g. iPhone 16 at 393, Moto G31 at
+       412) rather than 2 (too few) or 5 (cramped) */
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); grid-auto-rows: 128px; gap: 8px;
+    align-content: start;
+  }
+  @media (min-width: 700px) { #jam-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+  .jam-slot {
+    border-radius: 10px; background: var(--panel); box-shadow: 0 0 0 1px var(--line);
+    display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px;
+    position: relative; min-width: 0; min-height: 0; touch-action: none;
+  }
+  .jam-slot .slot-label { max-width: 100%; }
+  .jam-add {
+    border-radius: 10px; background: transparent; box-shadow: 0 0 0 1px dashed var(--line);
+    border: 1px dashed var(--line); display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--muted); touch-action: manipulation;
+  }
+  .jam-pad-btn { flex: 1; width: 100%; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    text-align: center; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; padding: 4px; }
+  .jam-slot.jam-pad .fader-val { display: none; } /* pads don't show a numeric readout */
+  /* value chip overlaid on the bar itself rather than its own row above it -
+     JAM tiles are small, that row was a meaningful chunk of a tile that's
+     already fighting for height */
+  .jam-slot .fader-val {
+    position: absolute; top: 5px; left: 50%; transform: translateX(-50%); z-index: 3;
+    min-width: 0; padding: 2px 8px; font-size: 11px;
+  }
+  /* edit mode: tiles lift slightly, gain a delete badge, and become drag handles */
+  body.jam-editing .jam-slot { box-shadow: 0 0 0 1px var(--line), inset 0 0 0 1px rgba(255,122,26,.35); }
+  body.jam-editing .jam-slot::before {
+    content: "✎"; position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 5px;
+    background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 11px; display: flex;
+    align-items: center; justify-content: center; color: var(--muted); pointer-events: none; z-index: 2;
+  }
+  body.jam-editing .jam-slot.jam-lift { transform: scale(1.05); box-shadow: 0 10px 26px rgba(0,0,0,.55), 0 0 0 2px var(--accent); z-index: 6; opacity: .95; }
+  body.jam-editing .jam-slot.jam-drop-before { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 1px var(--line); }
+  body.jam-editing .jam-add { opacity: .5; pointer-events: none; }
   /* ============ 10 no-midi hint ============ */
   #nomidi { position: fixed; inset: 0; z-index: 30; display: none; background: var(--bg); padding: max(30px, env(safe-area-inset-top)) 24px 24px; overflow-y: auto; touch-action: pan-y; }
   #nomidi.open { display: block; }
@@ -347,6 +457,12 @@
     .strip-faders { pointer-events: none; }
     .strip-faders .fader-thumb { display: none; }
     #efx-pad { width: 96px; }
+    /* fx-select now carries 4 fixed-width buttons (prev/next/RND/SAVE) - at
+       46px each + gaps they'd starve the fx-name display of room to show
+       the effect name on a phone, so shrink them and the gap here rather
+       than let fx-name wrap/garble */
+    #fx-select { gap: 4px; }
+    #fx-prev, #fx-next, #rnd-btn, #bus-save-btn { width: 34px; }
     #statusbar { gap: 6px; }
     #statusbar .sbtn { padding: 0 6px; font-size: 10px; letter-spacing: .03em; }
     .strip-efx { width: 100%; height: 44px; }
@@ -375,7 +491,7 @@
     #focus-head { flex-direction: column; height: auto; width: 120px; flex: none; }
     #efx-pad { width: 100%; height: 58px; flex: none; }
     #fx-select { flex-direction: column; }
-    #fx-prev, #fx-next, #rnd-btn { width: 100%; height: 40px; flex: none; }
+    #fx-prev, #fx-next, #rnd-btn, #bus-save-btn { width: 100%; height: 40px; flex: none; }
     #fx-name { flex: 1; }
     #view-overview { overflow-x: auto; }
     #view-pattern { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
@@ -416,9 +532,13 @@
             </button>
             <button id="fx-next">&#8250;</button>
             <button id="rnd-btn" title="Randomize / Undo">RND</button>
+            <button id="bus-save-btn" title="Save this bus's state as a JAM scene pad">SAVE</button>
           </div>
         </div>
-        <div id="faders"></div>
+        <div id="focus-body">
+          <div id="focus-scenes"></div>
+          <div id="faders"></div>
+        </div>
       </section>
       <section id="view-overview"></section>
       <section id="view-xy">
@@ -493,6 +613,16 @@
         </div>
         <p class="pick-note" id="play-note">Chromatic: plays the current sample (CH 16, C2&ndash;C4).</p>
       </section>
+      <section id="view-jam">
+        <div id="jam-head">
+          <span class="label">JAM</span>
+          <span class="spacer"></span>
+          <button id="jam-clear-btn" class="pad">CLEAR</button>
+          <button id="jam-preset-btn" class="pad">PRESETS</button>
+          <button id="jam-edit-btn" class="pad">EDIT</button>
+        </div>
+        <div id="jam-grid"></div>
+      </section>
     </main>
   </div>
 
@@ -525,6 +655,8 @@
           <button id="midi-rescan" class="setup-btn">Reconnect</button>
           <button id="push-state" class="setup-btn">Send state to device</button>
           <button id="wake-toggle" class="setup-btn">Keep screen awake: off</button>
+          <button id="horiz-toggle" class="setup-btn">Horizontal faders: off</button>
+          <button id="theme-toggle" class="setup-btn">Theme: dark</button>
           <button id="help-btn" class="setup-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M8 3.4C6.6 2.3 4.6 2 2.5 2v10.2c2.1 0 4.1.3 5.5 1.4 1.4-1.1 3.4-1.4 5.5-1.4V2C11.4 2 9.4 2.3 8 3.4z"/><path d="M8 3.4v10.2"/></svg>Manual</button>
         </div>
         <div>
@@ -592,6 +724,9 @@
             <button id="exp-btn" class="setup-btn">Export</button>
             <button id="imp-btn" class="setup-btn">Import</button>
           </div>
+          <p class="pick-note">Covers both snapshots and JAM &ndash; paste the same
+          JSON on another device to bring your whole setup over. Import replaces
+          JAM entirely and overwrites matching snapshot slot numbers.</p>
         </div>
       </div>
     </div>
@@ -609,6 +744,76 @@
         <h4>Pad</h4>
         <div class="setup-row" id="padpick-pad"></div>
         <div class="setup-row"><button id="padpick-none" class="setup-btn">Clear</button></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="jampreset" class="overlay">
+    <div id="jampreset-panel">
+      <div id="jampreset-head">
+        <h2 id="jampreset-title">JAM PRESETS</h2>
+        <button id="jampreset-close" class="setup-btn">Close</button>
+      </div>
+      <div id="jampreset-body">
+        <div class="setup-row" id="jampreset-list"></div>
+        <p class="pick-note" id="jampreset-note">Adds the preset's controls to your JAM grid &ndash;
+        existing controls are kept. Every added control keeps its own editable
+        channel/CC/label afterward, same as anything else in JAM.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="jamedit" class="overlay">
+    <div id="jamedit-panel">
+      <div id="jamedit-head">
+        <h2 id="jamedit-title">EDIT CONTROL</h2>
+        <button id="jamedit-close" class="setup-btn">Close</button>
+      </div>
+      <div id="jamedit-body">
+        <h4>Kind</h4>
+        <div class="setup-row" id="je-kind"></div>
+        <h4>Source</h4>
+        <div class="setup-row" id="je-source"></div>
+        <div id="je-bus-fields">
+          <h4>Bus</h4>
+          <div class="setup-row" id="je-bus"></div>
+          <h4>Control slot</h4>
+          <div class="setup-row" id="je-ctrl"></div>
+        </div>
+        <div id="je-raw-fields">
+          <h4>Output</h4>
+          <div class="setup-row" id="je-port"></div>
+          <h4>Message</h4>
+          <div class="setup-row" id="je-type"></div>
+          <div class="setup-row">
+            <label class="je-field">Channel<input id="je-ch" type="number" min="1" max="16"></label>
+            <label class="je-field" id="je-num-field"><span id="je-num-label">Number</span><input id="je-num" type="number" min="0" max="127"></label>
+          </div>
+        </div>
+        <div id="je-scene-fields">
+          <h4>Bus</h4>
+          <div class="setup-row" id="je-scene-bus"></div>
+          <div class="setup-row">
+            <button id="je-capture" class="setup-btn primary">Capture current state of this bus</button>
+          </div>
+          <p class="pick-note" id="je-scene-status">Not captured yet &ndash; dial in the sound
+          you want live, then tap Capture.</p>
+        </div>
+        <div id="je-pad-fields">
+          <h4>Pad mode</h4>
+          <div class="setup-row" id="je-mode"></div>
+          <div class="setup-row">
+            <label class="je-field" id="je-onval-field">On value<input id="je-onval" type="number" min="0" max="127"></label>
+            <label class="je-field" id="je-offval-field">Off value<input id="je-offval" type="number" min="0" max="127"></label>
+            <label class="je-field" id="je-vel-field">Velocity<input id="je-vel" type="number" min="1" max="127"></label>
+          </div>
+        </div>
+        <h4>Label</h4>
+        <div class="setup-row"><input id="je-label" class="je-field-wide" type="text" maxlength="16" placeholder="e.g. HPF"></div>
+        <div class="setup-row">
+          <button id="je-save" class="setup-btn primary">Save</button>
+          <button id="je-delete" class="setup-btn">Delete</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1178,6 +1383,9 @@ let state = {
   auto: { bars: 4, scope: "bank" },
   midi: { outName: null, inName: null },
   wake: false,
+  horizFaders: false, /* Setup toggle: sideways-drag full-width fader strips */
+  theme: "dark", /* Setup toggle: "dark" | "light" */
+  jam: { slots: [] }, /* JAM tab: user-programmable pinned bus params + raw MIDI */
 };
 function directName(num) { /* num = CC#83 value 1..5 in the bus12 table */
   const r = state.directFx[num - 1];
@@ -1209,6 +1417,51 @@ function favList(table) {
 }
 let allOffSaved = null; /* [bool x5] while ALL OFF armed */
 
+const JAM_MAX = 24;
+/* validates + clamps a JAM slot loaded from storage/import; returns null to
+   drop anything malformed rather than let a corrupt slot crash rendering */
+function sanitizeJamSlot(c) {
+  if (!c || typeof c !== "object") return null;
+  if (c.kind !== "pad" && c.kind !== "fader") return null;
+  if (c.source !== "bus" && c.source !== "raw" && c.source !== "scene") return null;
+  const o = {
+    id: (typeof c.id === "string" && c.id) ? c.id : "j" + Date.now() + Math.random().toString(36).slice(2, 7),
+    kind: c.kind, source: c.source,
+    label: (typeof c.label === "string" ? c.label : "").slice(0, 16),
+  };
+  if (o.source === "scene") {
+    /* momentary/toggle recall of one bus's full state (fx + 6 cc + on/off) -
+       always a pad, a captured effect can't be smoothly dragged like a
+       single CC can */
+    if (!(c.bus >= 0 && c.bus < 5)) return null;
+    o.kind = "pad";
+    o.bus = c.bus | 0;
+    o.fx = clamp(c.fx | 0, 0, 127);
+    o.cc = Array.isArray(c.cc) && c.cc.length === 6 ? c.cc.map((v) => clamp(v | 0, 0, 127)) : [64, 64, 64, 64, 64, 64];
+    o.on = !!c.on;
+    o.mode = c.mode === "toggle" ? "toggle" : "momentary";
+    return o;
+  }
+  if (o.source === "bus") {
+    if (!(c.bus >= 0 && c.bus < 5)) return null;
+    if (!(c.ctrl >= 0 && c.ctrl < 6)) return null;
+    o.bus = c.bus | 0; o.ctrl = c.ctrl | 0;
+  } else {
+    o.port = (typeof c.port === "string" && c.port) ? c.port : null;
+    o.ch = clamp(c.ch | 0, 0, 15);
+    o.type = ["cc", "note", "pc"].indexOf(c.type) >= 0 ? c.type : "cc";
+    if (o.kind === "fader") o.type = "cc"; /* only CC is continuous */
+    o.num = clamp(c.num | 0, 0, 127);
+    o.val = clamp((c.val != null ? c.val : 64) | 0, 0, 127);
+  }
+  if (o.kind === "pad") {
+    o.mode = (c.mode === "momentary" || o.type === "pc") ? "momentary" : "toggle";
+    o.onVal = clamp((c.onVal != null ? c.onVal : 127) | 0, 0, 127);
+    o.offVal = clamp((c.offVal != null ? c.offVal : 0) | 0, 0, 127);
+    o.vel = clamp((c.vel != null ? c.vel : 110) | 0, 1, 127);
+  }
+  return o;
+}
 function loadState() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -1286,12 +1539,17 @@ function loadState() {
     if (s.recents) state.recents = Object.assign(state.recents, s.recents);
     if (s.midi) state.midi = Object.assign(state.midi, s.midi);
     state.wake = !!s.wake;
+    state.horizFaders = !!s.horizFaders;
+    if (s.theme === "light" || s.theme === "dark") state.theme = s.theme;
+    if (s.jam && Array.isArray(s.jam.slots)) {
+      state.jam.slots = s.jam.slots.map(sanitizeJamSlot).filter(Boolean).slice(0, JAM_MAX);
+    }
   } catch (e) { /* corrupt storage: start fresh */ }
 }
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jam: state.jam, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {
@@ -1322,12 +1580,22 @@ const Midi = {
     this.access.inputs.forEach((p) => { if (!found && p.name === state.midi.inName && this.live(p)) found = p; });
     return found;
   },
-  sendBytes(bytes) {
+  /* any currently-connected output by name - lets custom controls (JAM tab)
+     target a second device (e.g. an MC-101) simultaneously with the SP-404,
+     which stays bound to state.midi.outName via out() as before */
+  outByName(name) {
+    if (!this.access) return null;
+    let found = null;
+    this.access.outputs.forEach((p) => { if (!found && p.name === name && this.live(p)) found = p; });
+    return found;
+  },
+  sendBytesTo(portName, bytes) {
     if (this.demo) return true;
-    const o = this.out();
+    const o = portName ? this.outByName(portName) : this.out();
     if (!o) return false;
     try { o.send(bytes); return true; } catch (e) { return false; }
   },
+  sendBytes(bytes) { return this.sendBytesTo(null, bytes); },
   sendPc(ch, pc) {
     if (this.sendBytes([0xC0 | ch, pc & 0x7F])) blinkTx();
   },
@@ -1345,6 +1613,18 @@ const Midi = {
     this.lastSent.set(key, val);
     this.echoLog.set(key, { val, t: performance.now() });
     if (this.sendBytes([0xB0 | ch, ccNum, val])) blinkTx();
+  },
+  /* -To variants: same messages, but routed to an explicit port name
+     (null = primary SP-404 output) instead of always the primary port */
+  sendToPort(portName, ch, ccNum, val) {
+    val = clamp(val | 0, 0, 127);
+    if (this.sendBytesTo(portName, [0xB0 | ch, ccNum, val])) blinkTx();
+  },
+  sendNoteTo(portName, ch, note, on, vel) {
+    if (this.sendBytesTo(portName, on ? [0x90 | ch, note & 0x7F, vel || 110] : [0x80 | ch, note & 0x7F, 0])) blinkTx();
+  },
+  sendPcTo(portName, ch, pc) {
+    if (this.sendBytesTo(portName, [0xC0 | ch, pc & 0x7F])) blinkTx();
   },
   async connect(interactive) {
     if (!navigator.requestMIDIAccess) return;
@@ -1519,6 +1799,10 @@ const stripControls = BUSES.map(() => [null, null, null, null, null, null]);
 /* drags must survive DOM rebuilds (device fx change, bus switch mid-drag):
    otherwise activeCCs leaks and the CC goes deaf for device input */
 const liveDrags = new Map(); /* key ch<<8|cc -> { node, finish } */
+/* JAM tiles pinned to a bus/ctrl slot need repainting on the same events as
+   the focus/overview faders for that slot (hardware encoder input, effect
+   switch, snapshot load) - keyed the same as renderQueue (bus*8+slot) */
+const jamByBusSlot = new Map(); /* key -> Set<() => void> */
 function finishDragsIn(host) {
   for (const [k, d] of [...liveDrags]) {
     if (host.contains(d.node)) d.finish();
@@ -1541,6 +1825,8 @@ function scheduleFlush() {
       try {
         if (controls[bus][slot]) controls[bus][slot].update();
         if (stripControls[bus][slot]) stripControls[bus][slot].update();
+        const jc = jamByBusSlot.get(k);
+        if (jc) jc.forEach((fn) => fn());
       } catch (e) { /* one broken control must never freeze the whole render loop */ }
     }
   });
@@ -1568,6 +1854,99 @@ function openStepper(x, y, bus, slot) {
   s.style.top = clamp(y - h - 16, 8, window.innerHeight - h - 8) + "px";
 }
 function closeStepper() { $("stepper").classList.remove("open"); }
+
+/* paints a fader's fill/thumb from a single 0-100 percent - orientation
+   (vertical vs. body.horiz-faders) is resolved entirely in CSS via --pct */
+function paintFader(fill, thumb, pct) {
+  fill.style.setProperty("--pct", pct + "%");
+  thumb.style.setProperty("--pct", pct + "%");
+}
+
+/* generic relative-drag fader engine, shared by bus focus faders and
+   custom MIDI faders (index.html custom tab). Orientation-aware: reads
+   body.horiz-faders so the same code drives vertical and sideways drag,
+   swapping which axis is "value" vs. "fine-tune pull". */
+function attachFaderDrag(fader, dom, opts) {
+  let drag = null, hideT = 0, lastTap = 0;
+  /* horiz-faders is scoped off for callers that pass allowHoriz:false (the
+     JAM grid: its tiles are narrow columns, a sideways fader has no travel
+     to work with there regardless of the Focus-view toggle) */
+  const horiz = () => opts.allowHoriz !== false && document.body.classList.contains("horiz-faders");
+  function finishDrag() {
+    if (!drag) return;
+    drag = null;
+    if (opts.key != null) liveDrags.delete(opts.key);
+    if (opts.echoKey != null) Midi.activeCCs.delete(opts.echoKey);
+    fader.classList.remove("drag");
+    hideT = setTimeout(() => { dom.big.classList.remove("show"); dom.big.style.marginLeft = ""; }, 800);
+    if (opts.trailingSend) opts.trailingSend();
+  }
+  fader.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    fader.setPointerCapture(e.pointerId);
+    const h = horiz();
+    drag = {
+      id: e.pointerId, startX: e.clientX, startY: e.clientY,
+      lastPos: h ? e.clientX : e.clientY, horiz: h,
+      acc: opts.get(), moved: 0,
+      /* sensitivity (finger travel for full 0-127 sweep) is normally derived
+         from the visible track size, floored at 60px - but a small tile
+         (JAM grid) would make that floor the operative value, giving a
+         twitchy few-cm sweep. opts.sensitivity overrides it with a fixed,
+         comfortable travel distance decoupled from how small the control
+         is drawn - the same principle as pointer capture already letting a
+         drag continue past the tile's edges. */
+      h: opts.sensitivity || Math.max(h ? dom.track.clientWidth : dom.track.clientHeight, 60),
+    };
+    if (opts.key != null) liveDrags.set(opts.key, { node: fader, finish: finishDrag });
+    if (opts.echoKey != null) Midi.activeCCs.add(opts.echoKey);
+    fader.classList.add("drag");
+    clearTimeout(hideT);
+    dom.big.classList.add("show");
+    /* clamp the big readout to the viewport (edge slots) */
+    const r = dom.big.getBoundingClientRect();
+    dom.big.style.marginLeft = (Math.max(0, 8 - r.left) - Math.max(0, r.right - window.innerWidth + 8)) + "px";
+  });
+  fader.addEventListener("pointermove", (e) => {
+    if (!drag || e.pointerId !== drag.id) return;
+    const pos = drag.horiz ? e.clientX : e.clientY;
+    const perp = drag.horiz ? Math.abs(e.clientY - drag.startY) : Math.abs(e.clientX - drag.startX);
+    const fine = perp > 120 ? 0.1 : perp > 60 ? 0.25 : 1;
+    const dv = drag.horiz ? (pos - drag.lastPos) : (drag.lastPos - pos);
+    drag.lastPos = pos;
+    drag.moved = Math.max(drag.moved, Math.abs(e.clientY - drag.startY), Math.abs(e.clientX - drag.startX));
+    drag.acc = clamp(drag.acc + dv * fine * 127 / drag.h, 0, 127);
+    const target = opts.snapN ? ccFromEnum(enumFromCc(Math.round(drag.acc), opts.snapN), opts.snapN) : Math.round(drag.acc);
+    if (target !== opts.get()) opts.set(target, {});
+  });
+  function endDrag(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const moved = drag.moved;
+    finishDrag();
+    if (moved < 6) {
+      const now = performance.now();
+      if (now - lastTap < 300) { /* double tap -> default */
+        if (opts.onDefault) opts.set(opts.onDefault(), { force: true });
+        lastTap = 0;
+      } else lastTap = now;
+    }
+  }
+  fader.addEventListener("pointerup", endDrag);
+  fader.addEventListener("pointercancel", endDrag);
+  fader.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const step = (e.shiftKey ? 10 : 1) * (e.deltaY < 0 ? 1 : -1);
+    opts.set(opts.get() + step, { force: true });
+  }, { passive: false });
+  if (dom.val && opts.onStepperOpen) {
+    dom.val.addEventListener("pointerdown", (e) => {
+      e.stopPropagation(); e.preventDefault();
+      const r = dom.val.getBoundingClientRect();
+      opts.onStepperOpen(r.left + r.width / 2, r.top);
+    });
+  }
+  return { finishDrag };
+}
 
 /* one control in a slot; kind: "fader" | "snap" | "seg" | "toggle" */
 function buildControl(slotEl, bus, slot, mini) {
@@ -1646,10 +2025,8 @@ function buildControl(slotEl, bus, slot, mini) {
   function curCc() { return state.buses[bus].cc[slot]; }
   function disp(cc) { return dispFromCc(p, cc, syncOnFor(bus, def)); }
   function update() {
-    const cc = curCc(), pct = cc / 127 * 100;
-    fill.style.height = pct + "%";
-    /* travel limited to track minus thumb height so the thumb never leaves the track */
-    thumb.style.bottom = "calc(" + (cc / 127) + " * (100% - var(--thumb-h)))";
+    const cc = curCc();
+    paintFader(fill, thumb, cc / 127 * 100);
     const d = disp(cc);
     val.textContent = d;
     big.textContent = d;
@@ -1658,69 +2035,14 @@ function buildControl(slotEl, bus, slot, mini) {
   update();
 
   const key = B.ch << 8 | CC_CTRL[slot];
-  let drag = null, hideT = 0, lastTap = 0;
-  function finishDrag() {
-    /* idempotent cleanup; also runs when a rebuild removes this fader mid-drag */
-    if (!drag) return;
-    drag = null;
-    liveDrags.delete(key);
-    Midi.activeCCs.delete(key);
-    fader.classList.remove("drag");
-    hideT = setTimeout(() => { big.classList.remove("show"); big.style.marginLeft = ""; }, 800);
-    /* trailing send: guarantee final value reaches the device */
-    Midi.send(B.ch, CC_CTRL[slot], curCc(), true);
-  }
-  fader.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    fader.setPointerCapture(e.pointerId);
-    drag = { id: e.pointerId, lastY: e.clientY, startX: e.clientX, startY: e.clientY,
-             acc: curCc(), moved: 0, h: Math.max(track.clientHeight, 60) };
-    Midi.activeCCs.add(key);
-    liveDrags.set(key, { node: fader, finish: finishDrag });
-    fader.classList.add("drag");
-    clearTimeout(hideT);
-    big.classList.add("show");
-    /* clamp the big readout to the viewport (edge slots) */
-    const r = big.getBoundingClientRect();
-    big.style.marginLeft = (Math.max(0, 8 - r.left) - Math.max(0, r.right - window.innerWidth + 8)) + "px";
+  attachFaderDrag(fader, { val: mini ? null : val, big, track }, {
+    key, echoKey: key, snapN,
+    get: curCc,
+    set: (v, o) => setBusCc(bus, slot, v, o),
+    onDefault: () => ccFromDefault(p),
+    trailingSend: () => Midi.send(B.ch, CC_CTRL[slot], curCc(), true),
+    onStepperOpen: mini ? null : (x, y) => openStepper(x, y, bus, slot),
   });
-  fader.addEventListener("pointermove", (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const dx = Math.abs(e.clientX - drag.startX);
-    const fine = dx > 120 ? 0.1 : dx > 60 ? 0.25 : 1;
-    const dy = drag.lastY - e.clientY;
-    drag.lastY = e.clientY;
-    drag.moved = Math.max(drag.moved, Math.abs(e.clientY - drag.startY), dx);
-    drag.acc = clamp(drag.acc + dy * fine * 127 / drag.h, 0, 127);
-    const target = snapN ? ccFromEnum(enumFromCc(Math.round(drag.acc), snapN), snapN) : Math.round(drag.acc);
-    if (target !== curCc()) setBusCc(bus, slot, target, {});
-  });
-  function endDrag(e) {
-    if (!drag || e.pointerId !== drag.id) return;
-    const moved = drag.moved;
-    finishDrag();
-    if (moved < 6) {
-      const now = performance.now();
-      if (now - lastTap < 300) { /* double tap -> default */
-        setBusCc(bus, slot, ccFromDefault(p), { force: true });
-        lastTap = 0;
-      } else lastTap = now;
-    }
-  }
-  fader.addEventListener("pointerup", endDrag);
-  fader.addEventListener("pointercancel", endDrag);
-  fader.addEventListener("wheel", (e) => {
-    e.preventDefault();
-    const step = (e.shiftKey ? 10 : 1) * (e.deltaY < 0 ? 1 : -1);
-    setBusCc(bus, slot, curCc() + step, { force: true });
-  }, { passive: false });
-  if (!mini) {
-    val.addEventListener("pointerdown", (e) => {
-      e.stopPropagation(); e.preventDefault();
-      const r = val.getBoundingClientRect();
-      openStepper(r.left + r.width / 2, r.top, bus, slot);
-    });
-  }
   return api;
 }
 
@@ -1737,6 +2059,43 @@ function renderFocusSlots() {
   }
   /* other buses' focus controls are stale references now */
   BUSES.forEach((_, b) => { if (b !== bus) controls[b] = [null, null, null, null, null, null]; });
+  renderFocusScenes();
+}
+/* saved bus-scene JAM pads for the active bus, recalled right here instead
+   of needing a trip to the JAM tab - same cfg objects, same attachJamPad
+   interaction (hold/toggle), just a second place they're rendered.
+   Pressing one of these applies a full bus state -> renderBus() -> (since
+   it's the active bus) renderFocusSlots() -> this function again, all while
+   the finger is still down. A naive rebuild here would tear down the very
+   button mid-press, breaking its pointer capture before release ever fires
+   (release lands on a fresh button whose "down" never went true). The
+   signature check makes this a no-op unless the actual scene *set* (which
+   bus, which scenes, their labels) changed, so applying a scene - which
+   only changes bus values, not the JAM list - never touches the DOM. */
+let lastFocusScenesSig = null;
+function renderFocusScenes() {
+  const host = $("focus-scenes");
+  if (!host) return;
+  const scenes = state.jam.slots.filter((cfg) => cfg.source === "scene" && cfg.bus === state.activeBus);
+  const sig = state.activeBus + ":" + scenes.map((c) => c.id + "=" + c.label).join(",");
+  if (sig === lastFocusScenesSig) return;
+  lastFocusScenesSig = sig;
+  host.textContent = "";
+  host.classList.toggle("has-scenes", scenes.length > 0);
+  scenes.forEach((cfg) => {
+    const item = el("div", "focus-scene-item");
+    const btn = el("button", "pad focus-scene-btn", jamLabel(cfg));
+    item.appendChild(btn);
+    const editBtn = el("button", "focus-scene-edit", "✎");
+    editBtn.addEventListener("pointerdown", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const idx = state.jam.slots.indexOf(cfg);
+      if (idx >= 0) openJamEditor(idx);
+    });
+    item.appendChild(editBtn);
+    host.appendChild(item);
+    attachJamPad(btn, cfg);
+  });
 }
 function updateFocusHead() {
   const bus = state.activeBus, b = state.buses[bus], B = BUSES[bus];
@@ -1768,19 +2127,21 @@ function setActiveBus(bus) {
 }
 function currentView() {
   const b = document.body.classList;
-  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("overview") ? "overview" : "focus";
+  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("overview") ? "overview" : "focus";
 }
 function setView(v) {
   const b = document.body.classList;
-  b.remove("overview", "xy", "pattern", "play");
+  b.remove("overview", "xy", "pattern", "play", "jam");
   if (v !== "focus") b.add(v);
   $("xy-btn").classList.toggle("on", v === "xy");
   if (patternTab) patternTab.classList.toggle("active", v === "pattern");
   if (playTab) playTab.classList.toggle("active", v === "play");
+  if (jamTab) jamTab.classList.toggle("active", v === "jam");
   $("view-toggle").textContent = v === "overview" ? "Focus" : "Overview";
   if (v === "xy") renderXy();
   if (v === "pattern") renderPattern();
   if (v === "play") renderPlay();
+  if (v === "jam") buildJam();
 }
 function gotoFocus(bus) {
   setActiveBus(bus);
@@ -1792,7 +2153,7 @@ function toggleView() {
 
 /* bus tabs */
 const tabs = [], tabLeds = [];
-let patternTab = null, playTab = null;
+let patternTab = null, playTab = null, jamTab = null;
 function buildTabs() {
   const host = $("bustabs");
   BUSES.forEach((B, i) => {
@@ -1826,6 +2187,14 @@ function buildTabs() {
   });
   host.appendChild(pt);
   patternTab = pt;
+  const jm = el("button", "bustab");
+  jm.appendChild(el("span", "", "JAM"));
+  jm.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    setView(currentView() === "jam" ? "focus" : "jam");
+  });
+  host.appendChild(jm);
+  jamTab = jm;
 }
 
 /* overview strips */
@@ -1953,6 +2322,25 @@ function applyFullState(buses) {
   });
   saveState();
 }
+/* per-bus instant apply (fx + 6 cc + on/off) - same staggered-send shape as
+   applyFullState but scoped to one bus and its own timing (kept separate
+   from applyFullState rather than refactored into it, so the already-relied
+   -on multi-bus snapshot load path stays untouched). Used by JAM scene pads
+   to jump into a captured bus state on press and back out on release. */
+function applyBusState(bus, src) {
+  const B = BUSES[bus], cur = state.buses[bus];
+  fxTimers[bus].forEach(clearTimeout); fxTimers[bus] = [];
+  if (cur.fx > 0) state.mem[memKey(B.table, cur.fx)] = cur.cc.slice();
+  cur.fx = src.fx | 0;
+  cur.cc = src.cc.map((v) => clamp(v | 0, 0, 127));
+  cur.on = !!src.on;
+  let d = 0;
+  fxTimers[bus].push(setTimeout(() => Midi.send(B.ch, CC_FX, cur.fx, true), d)); d += 6;
+  cur.cc.forEach((v, j) => { fxTimers[bus].push(setTimeout(() => Midi.send(B.ch, CC_CTRL[j], v, true), d)); d += 6; });
+  fxTimers[bus].push(setTimeout(() => Midi.send(B.ch, CC_SW, cur.on ? 127 : 0, true), d)); d += 6;
+  renderBus(bus);
+  saveState();
+}
 function busesSummary(buses, compact) {
   /* compact: "1● Tape Echo · 3○ Lo-fi" (● an, ○ gesetzt aber aus) */
   const parts = [];
@@ -2016,6 +2404,7 @@ function snapDelete(i) {
 }
 let snapEls = [];
 function renderSnaps() {
+  updateImportBtn();
   $("snap-current").textContent = busesSummary(state.buses, false);
   const grid = $("snap-grid");
   grid.textContent = "";
@@ -2064,7 +2453,7 @@ function openSnaps() {
 }
 function doExport() {
   const ta = $("exchange");
-  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots }, null, 1);
+  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots, jam: state.jam.slots }, null, 1);
   ta.focus(); ta.select();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(ta.value)
@@ -2072,26 +2461,53 @@ function doExport() {
       .catch(() => {});
   }
 }
+/* same window.confirm() unreliability as clearJam() (see its comment) -
+   act immediately and allow undo instead of gating on a dialog that some
+   Web MIDI wrapper browsers silently stub to false */
+let importUndo = null; /* { snapshots, jam, t } */
 function doImport() {
+  if (importUndo && performance.now() - importUndo.t < 8000) {
+    state.snapshots = importUndo.snapshots;
+    state.jam.slots = importUndo.jam;
+    importUndo = null;
+    saveState(); scheduleSync(); renderSnaps(); buildJam();
+    updateImportBtn();
+    showBanner("Import undone", "info", 2000);
+    return;
+  }
   let d = null;
   try { d = JSON.parse($("exchange").value); } catch (e) {}
-  if (!d || d.busdriver !== 1 || !Array.isArray(d.snapshots)) {
+  if (!d || d.busdriver !== 1 || (!Array.isArray(d.snapshots) && !Array.isArray(d.jam))) {
     showBanner("No valid Busdriver JSON in the text field", "warn", 3000);
     return;
   }
-  let ok = true;
-  try { ok = window.confirm("Import overwrites matching slot numbers from the JSON. Continue?"); } catch (e) {}
-  if (!ok) return;
+  importUndo = { snapshots: state.snapshots.slice(), jam: state.jam.slots.slice(), t: performance.now() };
   let n = 0;
-  for (let i = 0; i < 8; i++) {
-    const r = d.snapshots[i];
-    if (r && !r.del && Array.isArray(r.buses)) {
-      state.snapshots[i] = { t: Date.now(), name: String(r.name || "Import " + (i + 1)).slice(0, 24), buses: r.buses };
-      n++;
+  if (Array.isArray(d.snapshots)) {
+    for (let i = 0; i < 8; i++) {
+      const r = d.snapshots[i];
+      if (r && !r.del && Array.isArray(r.buses)) {
+        state.snapshots[i] = { t: Date.now(), name: String(r.name || "Import " + (i + 1)).slice(0, 24), buses: r.buses };
+        n++;
+      }
     }
   }
+  let jn = 0;
+  if (Array.isArray(d.jam)) {
+    state.jam.slots = d.jam.map(sanitizeJamSlot).filter(Boolean).slice(0, JAM_MAX);
+    jn = state.jam.slots.length;
+    buildJam();
+  }
   saveState(); scheduleSync(); renderSnaps();
-  showBanner(n + " snapshot(s) imported", "info", 2500);
+  showBanner(n + " snapshot(s), " + jn + " JAM control(s) imported – tap Import again within 8s to undo", "info", 3500);
+  updateImportBtn();
+  setTimeout(updateImportBtn, 8100);
+}
+function updateImportBtn() {
+  const btn = $("imp-btn");
+  if (!btn) return;
+  const active = importUndo && performance.now() - importUndo.t < 8000;
+  btn.textContent = active ? "Undo Import" : "Import";
 }
 
 /* ===== randomizer (one-step undo via second tap within 6 s) ===== */
@@ -2306,6 +2722,8 @@ function renderSetup() {
   mkPortBtns($("out-list"), outs, state.midi.outName, (n) => { state.midi.outName = n; });
   mkPortBtns($("in-list"), ins, state.midi.inName, (n) => { state.midi.inName = n; });
   $("wake-toggle").textContent = "Keep screen awake: " + (state.wake ? "on" : "off");
+  $("horiz-toggle").textContent = "Horizontal faders: " + (state.horizFaders ? "on" : "off");
+  $("theme-toggle").textContent = "Theme: " + state.theme;
   const dl = $("dfx-list");
   dl.textContent = "";
   for (let i = 0; i < 5; i++) {
@@ -2341,6 +2759,12 @@ async function applyWake() {
       await wakeLock.release(); wakeLock = null;
     }
   } catch (e) { /* not granted (battery, platform): ignore */ }
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+  const meta = $("theme-color-meta");
+  if (meta) meta.content = state.theme === "light" ? "#f3f2ee" : "#121214";
 }
 
 /* ===== MIDI clock -> BPM (Link route: any connected port may carry clock) ===== */
@@ -2946,9 +3370,471 @@ function fxStep(dir) {
   fxChange(bus, next, "user");
 }
 
+/* ===== 11b JAM: user-programmable pinned controls =====
+   Two independent value sources per slot:
+   - "bus": pins a real SP-404 bus/ctrl slot (same CC the currently loaded
+     effect on that bus uses) - reuses setBusCc, so it stays in sync with the
+     Focus view and hardware encoder input for that slot automatically.
+   - "raw": arbitrary channel/CC/Note/PC to any connected MIDI output,
+     independent of the SP-404 (e.g. an MC-101 on a second port). */
+function jamGet(cfg) { return cfg.source === "bus" ? state.buses[cfg.bus].cc[cfg.ctrl] : cfg.val; }
+function jamSet(cfg, v, opts) {
+  v = clamp(v | 0, 0, 127);
+  if (cfg.source === "bus") { setBusCc(cfg.bus, cfg.ctrl, v, opts); return; }
+  cfg.val = v;
+  Midi.sendToPort(cfg.port, cfg.ch, cfg.num, v);
+  saveState();
+}
+/* JAM scene pads (bus-scene recall): kept live so a backgrounded tab or a
+   rebuild mid-hold can force-release them rather than leaving a bus stuck */
+const jamSceneActive = new Set();
+function jamPadFire(cfg, on) {
+  if (cfg.source === "scene") {
+    if (on) {
+      cfg._revert = { fx: state.buses[cfg.bus].fx, cc: state.buses[cfg.bus].cc.slice(), on: state.buses[cfg.bus].on };
+      /* force EFX on regardless of what was captured - the whole point of
+         pressing this is to hear the effect; a bus that happened to be off
+         at capture time shouldn't silently stay inaudible while held */
+      applyBusState(cfg.bus, { fx: cfg.fx, cc: cfg.cc, on: true });
+      cfg._active = true;
+      jamSceneActive.add(cfg);
+    } else if (cfg._revert) {
+      /* always restores exactly what was captured on press - including the
+         effect itself, not just its values - regardless of anything tweaked
+         while held. Predictable momentary behavior: release never silently
+         rewrites the saved scene, a stray touch mid-hold can't cost you
+         a carefully-set-up scene. */
+      applyBusState(cfg.bus, cfg._revert);
+      cfg._revert = null;
+      cfg._active = false;
+      jamSceneActive.delete(cfg);
+    }
+    return;
+  }
+  if (cfg.source === "bus") { setBusCc(cfg.bus, cfg.ctrl, on ? cfg.onVal : cfg.offVal, { force: true }); return; }
+  if (cfg.type === "pc") { if (on) Midi.sendPcTo(cfg.port, cfg.ch, cfg.num); return; }
+  if (cfg.type === "note") { Midi.sendNoteTo(cfg.port, cfg.ch, cfg.num, on, cfg.vel); return; }
+  cfg.val = on ? cfg.onVal : cfg.offVal;
+  Midi.sendToPort(cfg.port, cfg.ch, cfg.num, cfg.val);
+  saveState();
+}
+function releaseAllJamScenes() {
+  [...jamSceneActive].forEach((cfg) => jamPadFire(cfg, false));
+}
+function jamLabel(cfg) {
+  if (cfg.label) return cfg.label;
+  if (cfg.source === "scene") return BUSES[cfg.bus].short + " SCENE";
+  return cfg.source === "bus" ? BUSES[cfg.bus].short + " · CTRL" + (cfg.ctrl + 1) : (cfg.type === "note" ? "N" : cfg.type === "pc" ? "PC" : "CC") + cfg.num;
+}
+function attachJamPad(btn, cfg) {
+  let down = false;
+  const isOn = () => cfg.source === "scene" ? !!cfg._active : (cfg.type !== "note" && jamGet(cfg) >= 64);
+  function paint() { if (cfg.mode === "toggle") btn.classList.toggle("on", isOn()); }
+  btn.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    btn.setPointerCapture(e.pointerId);
+    down = true;
+    if (cfg.mode === "toggle") { jamPadFire(cfg, !isOn()); paint(); }
+    else { jamPadFire(cfg, true); btn.classList.add("on"); }
+  });
+  function release(e) {
+    if (!down) return;
+    down = false;
+    if (cfg.mode !== "toggle") { jamPadFire(cfg, false); btn.classList.remove("on"); }
+  }
+  btn.addEventListener("pointerup", release);
+  btn.addEventListener("pointercancel", release);
+  paint();
+  return { update: paint };
+}
+function buildJamFaderDom(cfg) {
+  const fader = el("div", "fader");
+  const val = el("button", "fader-val display mono");
+  const trackWrap = el("div", "fader-track-wrap");
+  const track = el("div", "fader-track");
+  const fill = el("div", "fader-fill");
+  const thumb = el("div", "fader-thumb");
+  const big = el("div", "bigval display mono");
+  track.appendChild(fill); track.appendChild(thumb);
+  trackWrap.appendChild(track);
+  fader.appendChild(val); fader.appendChild(trackWrap); fader.appendChild(big);
+  function update() {
+    const v = jamGet(cfg);
+    paintFader(fill, thumb, v / 127 * 100);
+    val.textContent = String(v);
+    big.textContent = String(v);
+  }
+  update();
+  const echoKey = cfg.source === "bus" ? (BUSES[cfg.bus].ch << 8 | CC_CTRL[cfg.ctrl]) : null;
+  attachFaderDrag(fader, { val, big, track }, {
+    key: "jam:" + cfg.id, echoKey, allowHoriz: false, sensitivity: 180,
+    get: () => jamGet(cfg),
+    /* bus-source repaints async via queueSlotRender -> jamByBusSlot; raw
+       source has no such hook, so paint synchronously here for both -
+       harmless extra paint for bus (RAF would've done it a moment later),
+       required for raw (nothing else ever repaints it) */
+    set: (v, o) => { jamSet(cfg, v, o); update(); },
+    onDefault: () => 64,
+    trailingSend: () => {
+      if (cfg.source === "bus") Midi.send(BUSES[cfg.bus].ch, CC_CTRL[cfg.ctrl], jamGet(cfg), true);
+      else Midi.sendToPort(cfg.port, cfg.ch, cfg.num, jamGet(cfg));
+    },
+  });
+  return { fader, update };
+}
+function registerJamUpdate(cfg, fn) {
+  if (cfg.source !== "bus") return;
+  const k = cfg.bus * 8 + cfg.ctrl;
+  if (!jamByBusSlot.has(k)) jamByBusSlot.set(k, new Set());
+  jamByBusSlot.get(k).add(fn);
+}
+let jamEditing = false;
+let jamDropIndex = null;
+function updateJamDropTarget(dragTile, x, y) {
+  const kids = [...$("jam-grid").querySelectorAll(".jam-slot")];
+  let best = null, bestDist = Infinity;
+  kids.forEach((k) => {
+    if (k === dragTile) return;
+    const r = k.getBoundingClientRect();
+    const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+    if (d < bestDist) { bestDist = d; best = k; }
+  });
+  kids.forEach((k) => k.classList.remove("jam-drop-before"));
+  if (best) { best.classList.add("jam-drop-before"); jamDropIndex = +best.dataset.jamIndex; }
+  else jamDropIndex = null;
+}
+function consumeJamDropTarget() {
+  const v = jamDropIndex;
+  jamDropIndex = null;
+  [...$("jam-grid").querySelectorAll(".jam-slot")].forEach((k) => k.classList.remove("jam-drop-before"));
+  return v;
+}
+function attachJamEditGestures(tile, index) {
+  let startX = 0, startY = 0, moved = 0, lifting = false, pid = null;
+  tile.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    tile.setPointerCapture(e.pointerId);
+    pid = e.pointerId; startX = e.clientX; startY = e.clientY; moved = 0; lifting = false;
+  });
+  tile.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== pid) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    moved = Math.max(moved, Math.abs(dx), Math.abs(dy));
+    if (!lifting && moved > 10) { lifting = true; tile.classList.add("jam-lift"); }
+    if (lifting) {
+      tile.style.transform = "translate(" + dx + "px," + dy + "px)";
+      updateJamDropTarget(tile, e.clientX, e.clientY);
+    }
+  });
+  function end(e) {
+    if (e.pointerId !== pid) return;
+    pid = null;
+    if (lifting) {
+      tile.classList.remove("jam-lift");
+      tile.style.transform = "";
+      const dropIdx = consumeJamDropTarget();
+      if (dropIdx != null && dropIdx !== index) {
+        /* insert at the target's ORIGINAL index (not -1'd) - removing the
+           dragged item shifts everything after it down by one, which is
+           exactly what lands it in the target's old slot either direction */
+        const [item] = state.jam.slots.splice(index, 1);
+        state.jam.slots.splice(dropIdx, 0, item);
+        saveState();
+      }
+      buildJam();
+    } else if (moved < 8) {
+      openJamEditor(index);
+    }
+  }
+  tile.addEventListener("pointerup", end);
+  tile.addEventListener("pointercancel", end);
+}
+function buildJamTile(cfg, index) {
+  const tile = el("div", "jam-slot jam-" + cfg.kind);
+  tile.dataset.jamIndex = index;
+  if (cfg.kind === "pad") {
+    /* the pad button carries its own label - no separate slot-label needed */
+    const btn = el("button", "jam-pad-btn pad", jamLabel(cfg));
+    tile.appendChild(btn);
+    if (!jamEditing) {
+      const api = attachJamPad(btn, cfg);
+      registerJamUpdate(cfg, api.update);
+    }
+  } else {
+    const dom = buildJamFaderDom(cfg);
+    tile.appendChild(dom.fader);
+    tile.appendChild(el("div", "slot-label", jamLabel(cfg)));
+    if (!jamEditing) registerJamUpdate(cfg, dom.update);
+  }
+  if (jamEditing) attachJamEditGestures(tile, index);
+  return tile;
+}
+function buildJamAddTile() {
+  const btn = el("button", "jam-add", "+");
+  btn.addEventListener("pointerdown", (e) => { e.preventDefault(); openJamEditor(null); });
+  return btn;
+}
+function buildJam() {
+  const host = $("jam-grid");
+  finishDragsIn(host);
+  releaseAllJamScenes(); /* a rebuild mid-hold must not leave a bus stuck on the captured scene */
+  host.textContent = "";
+  jamByBusSlot.clear();
+  document.body.classList.toggle("jam-editing", jamEditing);
+  $("jam-edit-btn").classList.toggle("on", jamEditing);
+  $("jam-edit-btn").textContent = jamEditing ? "DONE" : "EDIT";
+  state.jam.slots.forEach((cfg, i) => host.appendChild(buildJamTile(cfg, i)));
+  if (!jamEditing && state.jam.slots.length < JAM_MAX) host.appendChild(buildJamAddTile());
+  renderFocusScenes(); /* keep the Focus-view sidebar in sync with any add/edit/delete/reorder here */
+  updateJamClearBtn();
+}
+/* window.confirm() is unreliable on this app's actual target platform (iOS
+   Web MIDI wrapper browsers like MIDIWeb Browser often stub it to return
+   false without ever prompting - see snapSave()'s comment re: prompt() for
+   the same class of bug) so this mirrors the RND button's proven pattern
+   instead: act immediately, become UNDO for a few seconds rather than ask
+   first. Safer in practice too - a stray tap is recoverable either way. */
+let jamClearUndo = null; /* { slots, t } */
+function clearJam() {
+  if (jamClearUndo && performance.now() - jamClearUndo.t < 6000) {
+    state.jam.slots = jamClearUndo.slots;
+    jamClearUndo = null;
+    saveState();
+    buildJam();
+    showBanner("JAM restored", "info", 2000);
+    return;
+  }
+  if (!state.jam.slots.length) { showBanner("JAM is already empty", "info", 2000); return; }
+  releaseAllJamScenes();
+  jamClearUndo = { slots: state.jam.slots, t: performance.now() };
+  state.jam.slots = [];
+  saveState();
+  buildJam();
+  showBanner("JAM cleared - tap CLEAR again within 6s to undo", "info", 3000);
+  setTimeout(updateJamClearBtn, 6100);
+}
+function updateJamClearBtn() {
+  const btn = $("jam-clear-btn");
+  if (!btn) return;
+  const active = jamClearUndo && performance.now() - jamClearUndo.t < 6000;
+  btn.textContent = active ? "UNDO" : "CLEAR";
+  btn.classList.toggle("undo", !!active);
+}
+
+/* ===== JAM control editor overlay ===== */
+let jamDraft = null, jamDraftIndex = null;
+function defaultJamSlot() {
+  return {
+    id: "j" + Date.now() + Math.random().toString(36).slice(2, 7),
+    kind: "pad", source: "bus", label: "",
+    bus: state.activeBus || 0, ctrl: 0,
+    port: null, ch: 0, type: "cc", num: 1, val: 64,
+    mode: "toggle", onVal: 127, offVal: 0, vel: 110,
+    fx: 0, cc: [64, 64, 64, 64, 64, 64], on: false, /* scene source */
+  };
+}
+function openJamEditor(index) {
+  jamDraftIndex = index;
+  jamDraft = index == null ? defaultJamSlot() : Object.assign({}, state.jam.slots[index]);
+  /* an existing scene slot already has valid captured data (fx/cc/on were
+     sanitized in) - _captured is a draft-only flag, never persisted, so it
+     must be re-derived here or re-editing one would look "not captured yet" */
+  if (jamDraft.source === "scene") jamDraft._captured = true;
+  renderJamEditor();
+  $("jamedit").classList.add("open");
+}
+/* Focus view SAVE button: one tap from wherever you're dialing a sound in,
+   rather than the multi-step "go to JAM > + > pick Bus scene > pick bus >
+   Capture" - pre-fills a scene draft already captured from the active bus
+   and opens the same editor so a label/mode still has to be confirmed. */
+function quickSaveBusScene() {
+  const bus = state.activeBus, b = state.buses[bus];
+  jamDraftIndex = null;
+  jamDraft = defaultJamSlot();
+  jamDraft.source = "scene";
+  jamDraft.bus = bus;
+  jamDraft.fx = b.fx;
+  jamDraft.cc = b.cc.slice();
+  jamDraft.on = b.on;
+  jamDraft._captured = true;
+  jamDraft.mode = "momentary";
+  jamDraft.label = BUSES[bus].short + " " + (b.fx > 0 ? fxDisplayName(BUSES[bus].table, b.fx) : "SCENE");
+  renderJamEditor();
+  $("jamedit").classList.add("open");
+}
+function jamOptRow(hostId, options, isSel, onPick) {
+  const host = $(hostId);
+  host.textContent = "";
+  options.forEach((opt) => {
+    const b = el("button", "setup-btn" + (isSel(opt.v) ? " sel" : ""), opt.t);
+    b.addEventListener("click", () => onPick(opt.v));
+    host.appendChild(b);
+  });
+}
+function renderJamEditor() {
+  const d = jamDraft;
+  $("jamedit-title").textContent = jamDraftIndex == null ? "NEW CONTROL" : "EDIT CONTROL";
+  jamOptRow("je-kind", [{ v: "pad", t: "Pad" }, { v: "fader", t: "Fader" }], (v) => v === d.kind, (v) => {
+    if (d.source === "scene" && v === "fader") return; /* scenes can't be a fader */
+    d.kind = v;
+    if (v === "fader") d.type = "cc";
+    renderJamEditor();
+  });
+  jamOptRow("je-source", [{ v: "bus", t: "SP-404 bus param" }, { v: "raw", t: "Raw MIDI" }, { v: "scene", t: "Bus scene" }], (v) => v === d.source, (v) => {
+    d.source = v;
+    if (v === "scene") d.kind = "pad"; /* a captured scene can't be dragged like a single CC */
+    renderJamEditor();
+  });
+  $("je-bus-fields").classList.toggle("hide", d.source !== "bus");
+  $("je-raw-fields").classList.toggle("hide", d.source !== "raw");
+  $("je-scene-fields").classList.toggle("hide", d.source !== "scene");
+  $("je-pad-fields").classList.toggle("hide", d.kind !== "pad");
+  if (d.source === "bus") {
+    jamOptRow("je-bus", BUSES.map((B, i) => ({ v: i, t: B.label })), (v) => v === d.bus, (v) => { d.bus = v; renderJamEditor(); });
+    jamOptRow("je-ctrl", [0, 1, 2, 3, 4, 5].map((i) => ({ v: i, t: "CTRL " + (i + 1) })), (v) => v === d.ctrl, (v) => { d.ctrl = v; renderJamEditor(); });
+  } else if (d.source === "scene") {
+    jamOptRow("je-scene-bus", BUSES.map((B, i) => ({ v: i, t: B.label })), (v) => v === d.bus, (v) => { d.bus = v; renderJamEditor(); });
+    const B = BUSES[d.bus];
+    $("je-scene-status").textContent = d._captured
+      ? "Captured: " + fxDisplayName(B.table, d.fx) + " on " + B.label + (d.on ? " (on)" : " (off)")
+      : "Not captured yet – dial in the sound you want live, then tap Capture.";
+  } else {
+    const outs = [];
+    if (Midi.access) Midi.access.outputs.forEach((p) => { if (Midi.live(p)) outs.push(p.name); });
+    const portOpts = [{ v: null, t: "Default (SP-404 output)" }].concat(outs.map((n) => ({ v: n, t: n })));
+    jamOptRow("je-port", portOpts, (v) => v === d.port, (v) => { d.port = v; renderJamEditor(); });
+    const typeOpts = d.kind === "fader" ? [{ v: "cc", t: "CC" }] : [{ v: "cc", t: "CC" }, { v: "note", t: "Note" }, { v: "pc", t: "Program Change" }];
+    jamOptRow("je-type", typeOpts, (v) => v === d.type, (v) => { d.type = v; if (v !== "cc") d.mode = "momentary"; renderJamEditor(); });
+    $("je-ch").value = d.ch + 1;
+    $("je-num-label").textContent = d.type === "note" ? "Note #" : d.type === "pc" ? "Pattern/PC #" : "CC #";
+    $("je-num").value = d.num;
+  }
+  if (d.kind === "pad") {
+    const modeOpts = (d.source === "bus" || d.source === "scene" || d.type === "cc") ? [{ v: "toggle", t: "Toggle" }, { v: "momentary", t: "Momentary" }] : [{ v: "momentary", t: "Momentary (fixed)" }];
+    jamOptRow("je-mode", modeOpts, (v) => v === d.mode, (v) => { d.mode = v; renderJamEditor(); });
+    const ccLike = d.source === "bus" || d.type === "cc";
+    $("je-onval-field").classList.toggle("hide", !ccLike);
+    $("je-offval-field").classList.toggle("hide", !ccLike);
+    $("je-vel-field").classList.toggle("hide", !(d.source === "raw" && d.type === "note"));
+    $("je-onval").value = d.onVal;
+    $("je-offval").value = d.offVal;
+    $("je-vel").value = d.vel;
+  }
+  $("je-label").value = d.label || "";
+  $("je-delete").style.display = jamDraftIndex == null ? "none" : "";
+}
+function readJamEditorInputs() {
+  const d = jamDraft;
+  if (d.source === "raw") {
+    d.ch = clamp((+$("je-ch").value || 1) - 1, 0, 15);
+    d.num = clamp(+$("je-num").value || 0, 0, 127);
+  }
+  if (d.kind === "pad") {
+    d.onVal = clamp(+$("je-onval").value, 0, 127);
+    d.offVal = clamp(+$("je-offval").value, 0, 127);
+    d.vel = clamp(+$("je-vel").value || 110, 1, 127);
+  }
+  d.label = $("je-label").value.trim().slice(0, 16);
+}
+function saveJamEditor() {
+  readJamEditorInputs();
+  if (jamDraft.source === "scene" && !jamDraft._captured) {
+    showBanner("Capture a bus state first", "warn", 2500);
+    return;
+  }
+  const clean = sanitizeJamSlot(jamDraft);
+  if (!clean) return;
+  if (jamDraftIndex == null) state.jam.slots.push(clean);
+  else state.jam.slots[jamDraftIndex] = clean;
+  saveState();
+  $("jamedit").classList.remove("open");
+  buildJam();
+}
+function deleteJamEditor() {
+  if (jamDraftIndex != null) {
+    state.jam.slots.splice(jamDraftIndex, 1);
+    saveState();
+  }
+  $("jamedit").classList.remove("open");
+  buildJam();
+}
+
+/* ===== JAM presets: factory templates for common gear, from verified
+   MIDI implementation charts (not guessed) - each control still gets its
+   own editable channel/CC/label after adding, so a wrong assumption here
+   (e.g. this device's default per-track channel, which is user-configurable
+   on the MC-101 itself) is a one-tap fix, not a dead end. ===== */
+const JAM_PRESETS = [
+  {
+    id: "mc101-knobs",
+    name: "MC-101 — 4 tracks × Filter/Mod/FX/Sound",
+    note: "CC 80–83 (FILTER/MOD/FX/SOUND knobs) per track, from Roland's MC-101 " +
+      "MIDI implementation chart — both transmit and receive, so these mirror the " +
+      "hardware knobs live. Track channels default to 1–4; check yours against " +
+      "SHIFT + TRACK SEL on the device if it differs.",
+    build() {
+      const knobs = [["FILTER", 80], ["MOD", 81], ["FX", 82], ["SOUND", 83]];
+      const slots = [];
+      for (let t = 0; t < 4; t++) {
+        knobs.forEach(([label, num]) => {
+          slots.push({ kind: "fader", source: "raw", ch: t, type: "cc", num, label: "T" + (t + 1) + " " + label, val: 64 });
+        });
+      }
+      return slots;
+    },
+  },
+];
+let jamPresetPending = null;
+function openJamPresets() {
+  jamPresetPending = null;
+  $("jampreset-title").textContent = "JAM PRESETS";
+  $("jampreset-note").textContent = "Adds the preset's controls to your JAM grid – " +
+    "existing controls are kept. Every added control keeps its own editable " +
+    "channel/CC/label afterward, same as anything else in JAM.";
+  const host = $("jampreset-list");
+  host.textContent = "";
+  JAM_PRESETS.forEach((preset) => {
+    const b = el("button", "setup-btn", preset.name);
+    b.addEventListener("click", () => openJamPresetPortPick(preset));
+    host.appendChild(b);
+  });
+  $("jampreset").classList.add("open");
+}
+function openJamPresetPortPick(preset) {
+  jamPresetPending = preset;
+  $("jampreset-title").textContent = preset.name;
+  $("jampreset-note").textContent = preset.note + " Pick which connected output this preset's controls should target.";
+  const host = $("jampreset-list");
+  host.textContent = "";
+  const back = el("button", "setup-btn", "‹ Back");
+  back.addEventListener("click", openJamPresets);
+  host.appendChild(back);
+  const mkPort = (name, label) => {
+    const b = el("button", "setup-btn", label);
+    b.addEventListener("click", () => applyJamPreset(preset, name));
+    host.appendChild(b);
+  };
+  mkPort(null, "Default (SP-404 output)");
+  if (Midi.access) Midi.access.outputs.forEach((p) => { if (Midi.live(p)) mkPort(p.name, p.name); });
+}
+function applyJamPreset(preset, port) {
+  const room = JAM_MAX - state.jam.slots.length;
+  if (room <= 0) { showBanner("JAM grid is full – delete some controls first", "warn", 3000); return; }
+  const built = preset.build().map((c) => Object.assign({ port }, c));
+  const clean = built.slice(0, room).map(sanitizeJamSlot).filter(Boolean);
+  state.jam.slots.push(...clean);
+  saveState();
+  $("jampreset").classList.remove("open");
+  buildJam();
+  const dropped = built.length - clean.length;
+  showBanner("Added " + clean.length + " controls from \"" + preset.name + "\"" + (dropped ? " (" + dropped + " skipped, grid full)" : ""), "info", 3000);
+}
+
 /* ===== 12 BOOT ===== */
 function boot() {
   loadState();
+  document.body.classList.toggle("horiz-faders", state.horizFaders);
+  applyTheme();
   buildTabs();
   buildOverview();
   BUSES.forEach((_, i) => renderBus(i));
@@ -3022,6 +3908,22 @@ function boot() {
     $("padpick").classList.remove("open");
     buildPads();
   });
+  /* jam tab */
+  $("jam-edit-btn").addEventListener("click", () => { jamEditing = !jamEditing; buildJam(); });
+  $("jamedit-close").addEventListener("click", () => $("jamedit").classList.remove("open"));
+  $("jamedit").addEventListener("pointerdown", (e) => { if (e.target === $("jamedit")) $("jamedit").classList.remove("open"); });
+  $("je-save").addEventListener("click", saveJamEditor);
+  $("je-delete").addEventListener("click", deleteJamEditor);
+  $("je-capture").addEventListener("click", () => {
+    const d = jamDraft, b = state.buses[d.bus];
+    d.fx = b.fx; d.cc = b.cc.slice(); d.on = b.on; d._captured = true;
+    renderJamEditor();
+    showBanner("Captured", "info", 1500);
+  });
+  $("jam-preset-btn").addEventListener("click", openJamPresets);
+  $("jampreset-close").addEventListener("click", () => $("jampreset").classList.remove("open"));
+  $("jampreset").addEventListener("pointerdown", (e) => { if (e.target === $("jampreset")) $("jampreset").classList.remove("open"); });
+  $("jam-clear-btn").addEventListener("click", clearJam);
   /* looper (device in looper mode, CH 1) */
   let lpRec = false;
   $("lp-rec").addEventListener("click", () => { lpRec = !lpRec; Midi.send(0, 88, lpRec ? 127 : 0, true); $("lp-rec").classList.toggle("on", lpRec); });
@@ -3043,6 +3945,7 @@ function boot() {
   $("exp-btn").addEventListener("click", doExport);
   $("imp-btn").addEventListener("click", doImport);
   $("rnd-btn").addEventListener("click", () => randomize(state.activeBus));
+  $("bus-save-btn").addEventListener("click", quickSaveBusScene);
   $("setup-btn").addEventListener("click", openSetup);
   $("conn").addEventListener("click", openSetup);
   $("banner").addEventListener("click", () => {
@@ -3058,6 +3961,16 @@ function boot() {
   $("midi-rescan").addEventListener("click", () => Midi.connect(true));
   $("push-state").addEventListener("click", pushStateToDevice);
   $("wake-toggle").addEventListener("click", () => { state.wake = !state.wake; saveState(); applyWake(); renderSetup(); });
+  $("horiz-toggle").addEventListener("click", () => {
+    state.horizFaders = !state.horizFaders;
+    document.body.classList.toggle("horiz-faders", state.horizFaders);
+    saveState(); renderSetup();
+  });
+  $("theme-toggle").addEventListener("click", () => {
+    state.theme = state.theme === "light" ? "dark" : "light";
+    applyTheme();
+    saveState(); renderSetup();
+  });
   $("help-btn").addEventListener("click", () => $("help").classList.add("open"));
   $("help-close").addEventListener("click", () => $("help").classList.remove("open"));
   $("help").addEventListener("pointerdown", (e) => { if (e.target === $("help")) $("help").classList.remove("open"); });
@@ -3068,7 +3981,7 @@ function boot() {
   }, true);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
+    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
     if (e.target.tagName === "INPUT") return;
     if (e.key >= "1" && e.key <= "5") gotoFocus(+e.key - 1);
     else if (e.key === " ") { e.preventDefault(); const b = state.activeBus; sendSw(b, !state.buses[b].on); }
@@ -3088,6 +4001,7 @@ function boot() {
       flushState(); clearTimeout(syncTimer); pushSync();
       flushNotesIn(null); /* no stuck notes */
       flushBend();
+      releaseAllJamScenes(); /* a backgrounded tab must not leave a bus stuck mid-hold */
     }
   });
   window.addEventListener("pagehide", () => { flushState(); clearTimeout(syncTimer); pushSync(); });
