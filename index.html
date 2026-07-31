@@ -260,15 +260,15 @@
   #jumpbar { position: absolute; right: calc(6px + env(safe-area-inset-right)); top: calc(70px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; z-index: 3; }
   #jumpbar button { width: 36px; height: 40px; font-size: 9px; font-weight: 700; color: var(--muted); border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); }
   /* ============ 09 setup ============ */
-  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel, #jamedit-panel, #jampreset-panel, #xypreset-panel {
+  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel, #jamedit-panel, #jampreset-panel, #xypreset-panel, #recipes-panel, #recipe-edit-panel {
     margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px);
     background: var(--panel); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px var(--line);
     display: flex; flex-direction: column; overflow: hidden;
   }
-  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head, #jamedit-head, #jampreset-head, #xypreset-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
-  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2, #jamedit-head h2, #jampreset-head h2, #xypreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
-  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body, #jamedit-body, #jampreset-body, #xypreset-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
-  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4, #jamedit-body h4, #jampreset-body h4, #xypreset-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head, #jamedit-head, #jampreset-head, #xypreset-head, #recipes-head, #recipe-edit-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
+  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2, #jamedit-head h2, #jampreset-head h2, #xypreset-head h2, #recipes-head h2, #recipe-edit-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
+  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body, #jamedit-body, #jampreset-body, #xypreset-body, #recipes-body, #recipe-edit-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4, #jamedit-body h4, #jampreset-body h4, #xypreset-body h4, #recipes-body h4, #recipe-edit-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
   #jamedit-body > div > h4:not(:first-child) { margin-top: 4px; }
   .je-field { display: flex; flex-direction: column; gap: 4px; font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; font-weight: 700; flex: 1; min-width: 90px; }
   .je-field input, .je-field-wide { font: inherit; color: var(--text); background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-height: 44px; }
@@ -383,6 +383,15 @@
   .xy-custom-edit { flex: 1; min-width: 0; background: #000; border: 1px solid var(--accent); color: var(--text);
     border-radius: 8px; font: inherit; font-size: 12.5px; padding: 0 10px; text-align: left;
     user-select: text; -webkit-user-select: text; }
+  /* Recipe editor: one block per bus, each with an effect select, an
+     EFX on/off toggle, and however many labeled value fields that
+     effect actually has (reuses .je-field from the JAM control editor) */
+  .re-bus-block { padding: 10px; border-radius: 10px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .re-bus-block h4 { margin: 0; }
+  .re-fx-select { width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 8px; background: #000; color: var(--text); border: 1px solid var(--line); font: inherit; font-size: 13px; }
+  .re-onoff { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .05em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .re-onoff input { width: 20px; height: 20px; }
+  .re-fields { display: flex; flex-wrap: wrap; gap: 8px; }
   #exchange { width: 100%; min-height: 90px; background: #000; color: var(--text);
     font-family: var(--font-mono); font-size: 11px; border-radius: 6px;
     border: 1px solid var(--line); padding: 8px; resize: vertical; margin-bottom: 8px; }
@@ -797,6 +806,13 @@
         <p class="pick-note">Tap loads the slot onto all 5 buses (empty slot: saves).
         Hold saves into the slot. After saving, type the name right in the slot.</p>
         <div>
+          <h4>Recipes</h4>
+          <div class="setup-row"><button id="recipes-btn" class="setup-btn">Open Recipes</button></div>
+          <p class="pick-note">A full 5-bus preset (effect + all 6 values + on/off per bus) you
+          type in directly, not capped at 8 like the snapshot slots above - handy for
+          transcribing chains from recipe cards/packs without touching a single fader.</p>
+        </div>
+        <div>
           <h4>Export / Import (JSON)</h4>
           <textarea id="exchange" spellcheck="false" placeholder="Export writes JSON here for copying &ndash; import reads pasted JSON."></textarea>
           <div class="setup-row">
@@ -861,6 +877,35 @@
         <p class="pick-note" id="xypreset-note">Templates switch the bus to that effect if it isn't
         already loaded, then assign both axes from its real parameter names. Your own combos just
         re-point X/Y to wherever they were pointed when you saved them.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="recipes" class="overlay">
+    <div id="recipes-panel">
+      <div id="recipes-head">
+        <h2>RECIPES</h2>
+        <button id="recipes-close" class="setup-btn">Close</button>
+      </div>
+      <div id="recipes-body">
+        <div id="recipes-list"></div>
+        <div class="setup-row"><button id="recipe-new-btn" class="setup-btn primary">+ New Recipe</button></div>
+        <p class="pick-note">Tap a recipe to load it onto all 5 buses, same as a Snapshot. ✎
+        edits, ✕ deletes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="recipe-edit" class="overlay">
+    <div id="recipe-edit-panel">
+      <div id="recipe-edit-head">
+        <h2 id="recipe-edit-title">NEW RECIPE</h2>
+        <button id="recipe-edit-close" class="setup-btn">Close</button>
+      </div>
+      <div id="recipe-edit-body">
+        <div class="setup-row"><input id="re-name" class="je-field-wide" type="text" maxlength="30" placeholder="e.g. House Chord Synth"></div>
+        <div id="re-buses"></div>
+        <div class="setup-row"><button id="re-save" class="setup-btn primary">Save Recipe</button></div>
       </div>
     </div>
   </div>
@@ -1453,11 +1498,65 @@ function defaultCcs(def) {
   if (def) def.p.forEach((p, i) => { if (i < 6) out[i] = ccFromDefault(p); });
   return out;
 }
+/* inverse of dispFromCc - lets the Recipe editor accept the same units a
+   recipe card prints (dB, ms, %, note names, ...) instead of raw 0-127,
+   which is the entire point of typing a card in directly. Mirrors
+   dispFromCc's branches; returns null for anything unparseable so the
+   caller can leave the field alone rather than write garbage. */
+function ccFromDisp(p, v, syncOn) {
+  switch (p.t) {
+    case "b": return /^(on|1|true|yes)$/i.test(String(v).trim()) ? 127 : 0;
+    case "e": {
+      const s = String(v).trim().toLowerCase();
+      const i = p.v.findIndex((o) => o.toLowerCase() === s);
+      if (i >= 0) return ccFromEnum(i, p.v.length);
+      const n = Number(v);
+      return Number.isFinite(n) ? ccFromEnum(clamp(Math.round(n), 0, p.v.length - 1), p.v.length) : null;
+    }
+    case "bal": {
+      /* accepts the app's own "50:50" display format (right side is what
+         matters) as well as a recipe card's likely "80/20" and a bare
+         number, so whatever's printed on a card round-trips */
+      const s = String(v).trim();
+      const m = s.match(/^(\d+(?:\.\d+)?)\s*[:/]\s*(\d+(?:\.\d+)?)$/);
+      const n = m ? Number(m[2]) : Number(s);
+      return Number.isFinite(n) ? clamp(Math.round(n * 127 / 100), 0, 127) : null;
+    }
+    case "pan": {
+      /* accepts the app's own "L12"/"R12"/"CTR" display format as well as
+         a bare signed number */
+      const s = String(v).trim().toUpperCase();
+      let n;
+      if (s === "CTR" || s === "C" || s === "0") n = 0;
+      else if (s.startsWith("L")) n = -Number(s.slice(1));
+      else if (s.startsWith("R")) n = Number(s.slice(1));
+      else n = Number(s);
+      return Number.isFinite(n) ? clamp(Math.round((n + 50) * 127 / 100), 0, 127) : null;
+    }
+    case "nt": { const n = Number(v); return Number.isFinite(n) ? clamp(Math.round(n), 0, 127) : null; }
+    case "c": default: {
+      if (p.sv && syncOn && Array.isArray(p.sv)) {
+        const s = String(v).trim().toLowerCase();
+        const i = p.sv.findIndex((o) => o.toLowerCase() === s);
+        if (i >= 0) return ccFromEnum(i, p.sv.length);
+      }
+      const n = Number(v);
+      return Number.isFinite(n) ? clamp(Math.round((n - p.a) / (p.b - p.a) * 127), 0, 127) : null;
+    }
+  }
+}
 function syncOnFor(bus, def) {
   /* is the SYNC bool of this effect currently ON? */
   if (!def) return false;
   const i = def.p.findIndex((p) => p.n === "SYNC" && p.t === "b");
   return i >= 0 && state.buses[bus].cc[i] >= 64;
+}
+/* same question, but for an offline cc array (the Recipe editor's draft
+   isn't in state.buses yet) */
+function syncOnForCc(def, cc) {
+  if (!def) return false;
+  const i = def.p.findIndex((p) => p.n === "SYNC" && p.t === "b");
+  return i >= 0 && cc[i] >= 64;
 }
 
 /* ===== 04 STORE ===== */
@@ -1490,6 +1589,7 @@ let state = {
   theme: "dark", /* Setup toggle: "dark" | "light" */
   jam: { slots: [] }, /* JAM tab: user-programmable pinned bus params + raw MIDI */
   xyPresets: [], /* XY tab: user-saved axis combos, { id, name, x:{bus,slot}, y:{bus,slot}, mom } */
+  recipes: [], /* full 5-bus presets typed in from recipe cards, { id, name, buses:[{fx,cc[6],on} x5] } */
 };
 function directName(num) { /* num = CC#83 value 1..5 in the bus12 table */
   const r = state.directFx[num - 1];
@@ -1652,12 +1752,15 @@ function loadState() {
     if (Array.isArray(s.xyPresets)) {
       state.xyPresets = s.xyPresets.map(sanitizeXyPreset).filter(Boolean).slice(0, XY_PRESETS_MAX);
     }
+    if (Array.isArray(s.recipes)) {
+      state.recipes = s.recipes.map(sanitizeRecipe).filter(Boolean).slice(0, RECIPE_MAX);
+    }
   } catch (e) { /* corrupt storage: start fresh */ }
 }
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, theme: state.theme }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {
@@ -2657,7 +2760,7 @@ function openSnaps() {
 }
 function doExport() {
   const ta = $("exchange");
-  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots, jam: state.jam.slots, xyPresets: state.xyPresets }, null, 1);
+  ta.value = JSON.stringify({ busdriver: 1, snapshots: state.snapshots, jam: state.jam.slots, xyPresets: state.xyPresets, recipes: state.recipes }, null, 1);
   ta.focus(); ta.select();
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(ta.value)
@@ -2668,12 +2771,13 @@ function doExport() {
 /* same window.confirm() unreliability as clearJam() (see its comment) -
    act immediately and allow undo instead of gating on a dialog that some
    Web MIDI wrapper browsers silently stub to false */
-let importUndo = null; /* { snapshots, jam, xyPresets, t } */
+let importUndo = null; /* { snapshots, jam, xyPresets, recipes, t } */
 function doImport() {
   if (importUndo && performance.now() - importUndo.t < 8000) {
     state.snapshots = importUndo.snapshots;
     state.jam.slots = importUndo.jam;
     state.xyPresets = importUndo.xyPresets;
+    state.recipes = importUndo.recipes;
     importUndo = null;
     saveState(); scheduleSync(); renderSnaps(); buildJam();
     updateImportBtn();
@@ -2682,11 +2786,11 @@ function doImport() {
   }
   let d = null;
   try { d = JSON.parse($("exchange").value); } catch (e) {}
-  if (!d || d.busdriver !== 1 || (!Array.isArray(d.snapshots) && !Array.isArray(d.jam) && !Array.isArray(d.xyPresets))) {
+  if (!d || d.busdriver !== 1 || (!Array.isArray(d.snapshots) && !Array.isArray(d.jam) && !Array.isArray(d.xyPresets) && !Array.isArray(d.recipes))) {
     showBanner("No valid Busdriver JSON in the text field", "warn", 3000);
     return;
   }
-  importUndo = { snapshots: state.snapshots.slice(), jam: state.jam.slots.slice(), xyPresets: state.xyPresets.slice(), t: performance.now() };
+  importUndo = { snapshots: state.snapshots.slice(), jam: state.jam.slots.slice(), xyPresets: state.xyPresets.slice(), recipes: state.recipes.slice(), t: performance.now() };
   let n = 0;
   if (Array.isArray(d.snapshots)) {
     for (let i = 0; i < 8; i++) {
@@ -2709,8 +2813,14 @@ function doImport() {
     xn = state.xyPresets.length;
     renderXyCustomList();
   }
+  let rn = 0;
+  if (Array.isArray(d.recipes)) {
+    state.recipes = d.recipes.map(sanitizeRecipe).filter(Boolean).slice(0, RECIPE_MAX);
+    rn = state.recipes.length;
+    renderRecipesList();
+  }
   saveState(); scheduleSync(); renderSnaps();
-  showBanner(n + " snapshot(s), " + jn + " JAM control(s), " + xn + " XY combo(s) imported – tap Import again within 8s to undo", "info", 3500);
+  showBanner(n + " snapshot(s), " + jn + " JAM control(s), " + xn + " XY combo(s), " + rn + " recipe(s) imported – tap Import again within 8s to undo", "info", 3500);
   updateImportBtn();
   setTimeout(updateImportBtn, 8100);
 }
@@ -2719,6 +2829,176 @@ function updateImportBtn() {
   if (!btn) return;
   const active = importUndo && performance.now() - importUndo.t < 8000;
   btn.textContent = active ? "Undo Import" : "Import";
+}
+
+/* ===== Recipes: full 5-bus presets typed in directly (e.g. from an
+   SP-404 "recipe card" pack) rather than captured from live state like
+   Snapshots. Same {fx, cc[6], on} per-bus shape as a Snapshot's buses
+   array and loaded the same way (applyFullState), just entered by hand -
+   the whole point is letting a card's own printed values (dB, ms, %, note
+   names) go straight into the app via ccFromDisp instead of eyeballing
+   knob positions. Not capped at 8 like the Snapshot slots. ===== */
+const RECIPE_MAX = 60;
+function sanitizeRecipe(r) {
+  if (!r || typeof r !== "object" || !Array.isArray(r.buses) || r.buses.length !== 5) return null;
+  const buses = r.buses.map((b) => ({
+    fx: clamp((b && b.fx | 0) || 0, 0, 127),
+    cc: (b && Array.isArray(b.cc) && b.cc.length === 6) ? b.cc.map((v) => clamp(v | 0, 0, 127)) : [64, 64, 64, 64, 64, 64],
+    on: !!(b && b.on),
+  }));
+  return {
+    id: (typeof r.id === "string" && r.id) ? r.id : "rc" + Date.now() + Math.random().toString(36).slice(2, 7),
+    name: (typeof r.name === "string" && r.name.trim()) ? r.name.slice(0, 30) : "Recipe",
+    buses,
+  };
+}
+function blankRecipeBuses() {
+  return BUSES.map(() => ({ fx: 0, cc: [64, 64, 64, 64, 64, 64], on: false }));
+}
+function openRecipes() {
+  renderRecipesList();
+  $("recipes").classList.add("open");
+}
+function renderRecipesList() {
+  const host = $("recipes-list");
+  if (!host) return;
+  host.textContent = "";
+  if (!state.recipes.length) {
+    host.appendChild(el("p", "pick-note", "No recipes yet — tap “+ New Recipe” below and type one in from a card."));
+    return;
+  }
+  state.recipes.forEach((r, i) => {
+    const row = el("div", "xy-custom-row");
+    const nameBtn = el("button", "setup-btn xy-custom-name", r.name);
+    nameBtn.addEventListener("click", () => loadRecipe(r));
+    const ren = el("button", "xy-custom-icon", "✎");
+    ren.addEventListener("click", (e) => { e.stopPropagation(); openRecipeEditor(i); });
+    const del = el("button", "xy-custom-icon", "✕");
+    del.addEventListener("click", (e) => { e.stopPropagation(); deleteRecipe(r.id); });
+    row.appendChild(nameBtn); row.appendChild(ren); row.appendChild(del);
+    host.appendChild(row);
+  });
+}
+function loadRecipe(r) {
+  applyFullState(r.buses);
+  $("recipes").classList.remove("open");
+  showBanner("\"" + r.name + "\" loaded", "info", 2000);
+}
+function deleteRecipe(id) {
+  state.recipes = state.recipes.filter((r) => r.id !== id);
+  saveState();
+  renderRecipesList();
+}
+let recipeDraft = null; /* { id, name, buses[5] } while the editor is open */
+let recipeEditIndex = null;
+function openRecipeEditor(index) {
+  recipeEditIndex = index;
+  const r = (index != null) ? state.recipes[index] : null;
+  recipeDraft = r
+    ? { id: r.id, name: r.name, buses: r.buses.map((b) => ({ fx: b.fx, cc: b.cc.slice(), on: b.on })) }
+    : { id: null, name: "Recipe " + (state.recipes.length + 1), buses: blankRecipeBuses() };
+  $("recipe-edit-title").textContent = (index != null) ? "EDIT RECIPE" : "NEW RECIPE";
+  $("re-name").value = recipeDraft.name;
+  renderRecipeBuses();
+  $("recipes").classList.remove("open");
+  $("recipe-edit").classList.add("open");
+}
+function renderRecipeBuses() {
+  const host = $("re-buses");
+  host.textContent = "";
+  BUSES.forEach((B, bus) => {
+    const draft = recipeDraft.buses[bus];
+    const table = BUS_TABLES[B.table];
+    const def = fxDefFor(B.table, draft.fx);
+    const block = el("div", "re-bus-block");
+    block.appendChild(el("h4", "", B.label));
+    const sel = el("select", "re-fx-select");
+    table.forEach((name, num) => {
+      const o = document.createElement("option");
+      o.value = String(num); o.textContent = name;
+      if (num === draft.fx) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("change", () => {
+      draft.fx = +sel.value;
+      /* start from that effect's own defaults - a leftover cc set from
+         whatever the previous effect was here means nothing on the new one */
+      draft.cc = defaultCcs(fxDefFor(B.table, draft.fx));
+      renderRecipeBuses();
+    });
+    block.appendChild(sel);
+    const onRow = el("label", "re-onoff");
+    const onCb = document.createElement("input");
+    onCb.type = "checkbox"; onCb.checked = draft.on;
+    onCb.addEventListener("change", () => { draft.on = onCb.checked; });
+    onRow.appendChild(onCb);
+    onRow.appendChild(document.createTextNode("EFX on"));
+    block.appendChild(onRow);
+    if (def) {
+      const fields = el("div", "re-fields");
+      def.p.forEach((p, i) => {
+        if (i >= 6) return;
+        const syncOn = syncOnForCc(def, draft.cc);
+        const field = el("label", "je-field", p.n + (p.u ? " (" + p.u + ")" : ""));
+        if (p.t === "e") {
+          const s = document.createElement("select");
+          s.className = "re-fx-select";
+          p.v.forEach((opt, oi) => {
+            const o = document.createElement("option");
+            o.value = String(oi); o.textContent = opt;
+            if (oi === enumFromCc(draft.cc[i], p.v.length)) o.selected = true;
+            s.appendChild(o);
+          });
+          s.addEventListener("change", () => { draft.cc[i] = ccFromEnum(+s.value, p.v.length); });
+          field.appendChild(s);
+        } else if (p.t === "b") {
+          const cb = document.createElement("input");
+          cb.type = "checkbox"; cb.checked = draft.cc[i] >= 64;
+          cb.addEventListener("change", () => {
+            draft.cc[i] = cb.checked ? 127 : 0;
+            if (p.n === "SYNC") renderRecipeBuses(); /* flips sibling fields between ms/note display */
+          });
+          field.appendChild(cb);
+        } else if (p.t === "c" && p.sv && syncOn && Array.isArray(p.sv)) {
+          const s = document.createElement("select");
+          s.className = "re-fx-select";
+          p.sv.forEach((opt, oi) => {
+            const o = document.createElement("option");
+            o.value = String(oi); o.textContent = opt;
+            if (oi === enumFromCc(draft.cc[i], p.sv.length)) o.selected = true;
+            s.appendChild(o);
+          });
+          s.addEventListener("change", () => { draft.cc[i] = ccFromEnum(+s.value, p.sv.length); });
+          field.appendChild(s);
+        } else {
+          const inp = document.createElement("input");
+          inp.type = "text"; inp.inputMode = "decimal";
+          inp.value = dispFromCc(p, draft.cc[i], syncOn);
+          inp.addEventListener("change", () => {
+            const v = ccFromDisp(p, inp.value, syncOn);
+            if (v != null) draft.cc[i] = v;
+          });
+          field.appendChild(inp);
+        }
+        fields.appendChild(field);
+      });
+      block.appendChild(fields);
+    }
+    host.appendChild(block);
+  });
+}
+function saveRecipeDraft() {
+  const name = $("re-name").value.trim().slice(0, 30) || recipeDraft.name;
+  const saved = { id: recipeDraft.id || ("rc" + Date.now() + Math.random().toString(36).slice(2, 7)), name, buses: recipeDraft.buses };
+  if (recipeEditIndex != null) state.recipes[recipeEditIndex] = saved;
+  else {
+    if (state.recipes.length >= RECIPE_MAX) { showBanner("Recipe list is full (" + RECIPE_MAX + ") — delete one first", "warn", 3000); return; }
+    state.recipes.push(saved);
+  }
+  saveState();
+  $("recipe-edit").classList.remove("open");
+  openRecipes();
+  showBanner("\"" + name + "\" saved", "info", 2000);
 }
 
 /* ===== randomizer (one-step undo via second tap within 6 s) ===== */
@@ -4313,6 +4593,13 @@ function boot() {
   $("xypreset-close").addEventListener("click", () => $("xypreset").classList.remove("open"));
   $("xypreset").addEventListener("pointerdown", (e) => { if (e.target === $("xypreset")) $("xypreset").classList.remove("open"); });
   $("xypreset-save").addEventListener("click", saveCurrentXyPreset);
+  $("recipes-btn").addEventListener("click", openRecipes);
+  $("recipes-close").addEventListener("click", () => $("recipes").classList.remove("open"));
+  $("recipes").addEventListener("pointerdown", (e) => { if (e.target === $("recipes")) $("recipes").classList.remove("open"); });
+  $("recipe-new-btn").addEventListener("click", () => openRecipeEditor(null));
+  $("recipe-edit-close").addEventListener("click", () => $("recipe-edit").classList.remove("open"));
+  $("recipe-edit").addEventListener("pointerdown", (e) => { if (e.target === $("recipe-edit")) $("recipe-edit").classList.remove("open"); });
+  $("re-save").addEventListener("click", saveRecipeDraft);
   $("xypick-close").addEventListener("click", () => $("xypick").classList.remove("open"));
   $("xypick").addEventListener("pointerdown", (e) => { if (e.target === $("xypick")) $("xypick").classList.remove("open"); });
   $("xypick-none").addEventListener("click", () => {
@@ -4484,7 +4771,7 @@ function boot() {
   }, true);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
+    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("recipes").classList.remove("open"); $("recipe-edit").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
     if (e.target.tagName === "INPUT") return;
     if (e.key >= "1" && e.key <= "5") gotoFocus(+e.key - 1);
     else if (e.key === " ") { e.preventDefault(); const b = state.activeBus; sendSw(b, !state.buses[b].on); }

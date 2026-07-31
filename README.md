@@ -16,7 +16,10 @@ scenes), **XY presets**, and a few other additions — see below.
   with real parameter names from the reference manual, six touch faders with
   relative drag and fine-tune pull-out, bidirectional sync with the hardware
   encoders.
-- **Snapshots** (8 slots) with JSON export/import.
+- **Snapshots** (8 slots) plus an unlimited **Recipes** library — type in a
+  full 5-bus chain directly (e.g. from an SP-404 recipe card), with each
+  field labeled in the effect's own real units so a card's printed values
+  go straight in. JSON export/import for both.
 - **XY pad** (Kaoss-style, freely mappable, momentary spring-back) with
   **presets** — curated axis pairs for specific effects (built from real
   parameter names, auto-switches the bus's effect if needed) plus your own
