@@ -109,10 +109,14 @@ printed on the card (dB, ms, %, a note value, "L12"/"R12"/"CTR" for pan,
 "80:20" or "80/20" for a balance split) and it converts to the right
 underlying value automatically, the same math the app uses to display it.
 Tap a saved recipe to load it onto all 5 buses, same as a snapshot. Ships
-with one factory recipe, "House Chord Synth" (a serial-mode chain —
-Overdrive → Chorus → Chromatic PS → SX Reverb — where Chromatic PS's
-+12/+7 semitone pitch shift is what turns a single held note into a
-chord), transcribed from an electronoir.gumroad.com recipe card.
+with six factory recipes transcribed from
+[electronoir](https://electronoir.gumroad.com) (@noirtdc) FX Recipe
+cards — House Chord Synth, "Quack" Bass, Risers, Bass Destroyer, Techno
+Kick Fattener, and Top Loops Sauce. A few of the source cards give a
+*range* for a field ("10 to 20") rather than one fixed number, meant as a
+live-tweak/automation target rather than a strict setting; those load
+with the range's midpoint as a starting value, same as everything else
+in a recipe — fully editable afterward.
 
 **Export/Import:** JSON for backups and for moving your whole setup —
 snapshots, JAM, XY combos, *and* recipes — between devices, e.g. editing
