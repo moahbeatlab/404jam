@@ -1536,10 +1536,18 @@ function ccFromDisp(p, v, syncOn) {
     }
     case "nt": { const n = Number(v); return Number.isFinite(n) ? clamp(Math.round(n), 0, 127) : null; }
     case "c": default: {
-      if (p.sv && syncOn && Array.isArray(p.sv)) {
-        const s = String(v).trim().toLowerCase();
-        const i = p.sv.findIndex((o) => o.toLowerCase() === s);
-        if (i >= 0) return ccFromEnum(i, p.sv.length);
+      if (p.sv && syncOn) {
+        if (Array.isArray(p.sv)) {
+          const s = String(v).trim().toLowerCase();
+          const i = p.sv.findIndex((o) => o.toLowerCase() === s);
+          if (i >= 0) return ccFromEnum(i, p.sv.length);
+        } else {
+          /* continuous {hi,lo,u} bar-multiplier range (Phaser/Flanger/Wah/
+             Tremolo RATE when synced) - inverse of dispFromCc's own v =
+             hi + (lo-hi)*cc/127 */
+          const n = Number(v);
+          if (Number.isFinite(n)) return clamp(Math.round((n - p.sv.hi) / (p.sv.lo - p.sv.hi) * 127), 0, 127);
+        }
       }
       const n = Number(v);
       return Number.isFinite(n) ? clamp(Math.round((n - p.a) / (p.b - p.a) * 127), 0, 127) : null;
@@ -1560,37 +1568,106 @@ function syncOnForCc(def, cc) {
   return i >= 0 && cc[i] >= 64;
 }
 
-/* factory-shipped recipe: "House Chord Synth" card, electronoir.gumroad.com -
-   serial-mode 4-bus chain (Overdrive -> Chorus -> Chromatic PS -> SX Reverb).
-   Chromatic PS does the actual "chord": +12/+7 semitones (octave + fifth)
-   panned apart, turning one held note into a chord-like stack. Values are
-   the card's own printed numbers, run through ccFromDisp so they land on
-   exactly what the card intends instead of being hand-rounded here. */
-function houseChordSynthRecipe() {
-  const bus = (table, fxName, vals) => {
-    const num = BUS_TABLES[table].indexOf(fxName);
-    const def = fxDefFor(table, num);
-    const cc = defaultCcs(def);
-    Object.keys(vals).forEach((n) => {
-      const i = def.p.findIndex((p) => p.n === n);
-      if (i < 0) return;
-      const v = ccFromDisp(def.p[i], vals[n], syncOnForCc(def, cc));
-      if (v != null) cc[i] = v;
-    });
-    return { fx: num, cc, on: true };
-  };
-  return {
+/* factory-shipped recipes: SP-404 "FX Recipe" cards from
+   electronoir.gumroad.com (@noirtdc), transcribed straight from their own
+   printed values. Each bus spec lists only the fields the card actually
+   gives; everything else keeps that effect's own real default (via
+   defaultCcs), never a generic 64. Values go through ccFromDisp so they
+   land on exactly what the card intends (dB, Hz, note values, "L10"/"R10",
+   ratio splits, ...) instead of being hand-rounded here. A few cards give
+   a *range* for a field ("10 to 20") rather than one number - those are
+   meant as a live-tweak/automation range, not a fixed setting, so the
+   midpoint is used as a starting value; still fully editable afterward
+   like any recipe. The blank INPUT bus at the end of every chain is left
+   alone since none of these use it. */
+function buildFactoryBus(table, fxName, vals) {
+  const num = BUS_TABLES[table].indexOf(fxName);
+  const def = fxDefFor(table, num);
+  const cc = defaultCcs(def);
+  Object.keys(vals).forEach((n) => {
+    const i = def.p.findIndex((p) => p.n === n);
+    if (i < 0) return;
+    const v = ccFromDisp(def.p[i], vals[n], syncOnForCc(def, cc));
+    if (v != null) cc[i] = v;
+  });
+  return { fx: num, cc, on: true };
+}
+const BLANK_BUS = { fx: 0, cc: [64, 64, 64, 64, 64, 64], on: false };
+const FACTORY_RECIPES = [
+  {
     id: "rc-house-chord-synth",
     name: "House Chord Synth (noir)",
-    buses: [
-      bus("bus12", "Overdrive", { DRIVE: 32, TONE: 67, BALANCE: "80/20", LEVEL: 80 }),
-      bus("bus12", "Chorus", { DEPTH: 35, RATE: 1.20, "EQ LOW": -15, "EQ HIGH": 3, BALANCE: "80/20", LEVEL: 100 }),
-      bus("bus34", "Chromatic PS", { PITCH1: 12, PITCH2: 7, PAN1: "L10", PAN2: "R10", BALANCE: "70/30" }),
-      bus("bus34", "SX Reverb", { TIME: 100, TONE: 100, BALANCE: "60/30" }),
-      { fx: 0, cc: [64, 64, 64, 64, 64, 64], on: false }, /* INPUT: not part of this chain */
+    buses: () => [
+      /* Overdrive -> Chorus -> Chromatic PS -> SX Reverb. Chromatic PS
+         does the actual "chord": +12/+7 semitones (octave + fifth) panned
+         apart, turning one held note into a chord-like stack. */
+      buildFactoryBus("bus12", "Overdrive", { DRIVE: 32, TONE: 67, BALANCE: "80/20", LEVEL: 80 }),
+      buildFactoryBus("bus12", "Chorus", { DEPTH: 35, RATE: 1.20, "EQ LOW": -15, "EQ HIGH": 3, BALANCE: "80/20", LEVEL: 100 }),
+      buildFactoryBus("bus34", "Chromatic PS", { PITCH1: 12, PITCH2: 7, PAN1: "L10", PAN2: "R10", BALANCE: "70/30" }),
+      buildFactoryBus("bus34", "SX Reverb", { TIME: 100, TONE: 100, BALANCE: "70/30" }),
+      BLANK_BUS,
     ],
-  };
-}
+  },
+  {
+    id: "rc-quack-bass",
+    name: "\"Quack\" Bass (noir)",
+    buses: () => [
+      buildFactoryBus("bus12", "Super Filter", { CUTOFF: 36, RESONANCE: 32, "FLT TYPE": "LPF", DEPTH: 100, SYNC: "ON", RATE: "1/2" }),
+      buildFactoryBus("bus12", "Phaser", { DEPTH: 29, RESONANCE: 24, MANUAL: 59, SYNC: "ON", RATE: 0.016, BALANCE: "50/50" }),
+      buildFactoryBus("bus34", "Compressor", { SUSTAIN: 12, ATTACK: 61, RATIO: 15, LEVEL: 100 }), /* RATIO: card says "10 to 20" */
+      buildFactoryBus("bus34", "Reverb", { TYPE: "HALL2", TIME: 60, LEVEL: 47, "LOW CUT": "315", "HIGH CUT": "5000" }),
+      BLANK_BUS,
+    ],
+  },
+  {
+    id: "rc-risers",
+    name: "Risers (noir)",
+    buses: () => [
+      buildFactoryBus("bus12", "Super Filter", { CUTOFF: 59, RESONANCE: 0, "FLT TYPE": "HPF", DEPTH: 0, SYNC: "OFF", RATE: 0 }),
+      buildFactoryBus("bus12", "Tremolo/Pan", { DEPTH: 36, WAVE: "TRI", TYPE: "PAN", SYNC: "ON", RATE: 0.300 }),
+      buildFactoryBus("bus34", "Overdrive", { DRIVE: 70, TONE: 40, BALANCE: "90/10", LEVEL: 100 }),
+      buildFactoryBus("bus34", "Ha-Dou", { "MOD DEPTH": 18, TIME: 100, LEVEL: 90, "LOW CUT": "250", "HIGH CUT": "5000" }),
+      BLANK_BUS,
+    ],
+  },
+  {
+    id: "rc-bass-destroyer",
+    name: "Bass Destroyer (noir)",
+    buses: () => [
+      buildFactoryBus("bus12", "Super Filter", { CUTOFF: 5, RESONANCE: 30, "FLT TYPE": "HPF" }), /* CUTOFF: card says "1 to 10" */
+      buildFactoryBus("bus12", "Distortion", { DRIVE: 48, TONE: -100, BALANCE: "90/10", LEVEL: 100 }),
+      buildFactoryBus("bus34", "JUNO Chorus", { MODE: "JX-1 2", NOISE: 0, BALANCE: "90/10" }),
+      buildFactoryBus("bus34", "Compressor", { SUSTAIN: 10, ATTACK: 47, RATIO: 8, LEVEL: 100 }),
+      BLANK_BUS,
+    ],
+  },
+  {
+    id: "rc-techno-kick-fattener",
+    name: "Techno Kick Fattener (noir)",
+    buses: () => [
+      /* CUTOFF/RESONANCE: card says "5 to 10" / "15 to 25" */
+      buildFactoryBus("bus12", "Super Filter", { CUTOFF: 8, RESONANCE: 20, "FLT TYPE": "HPF" }),
+      buildFactoryBus("bus12", "Equalizer", { "LOW GAIN": 4, "LOW FREQ": "100", "MID GAIN": -3, "MID FREQ": "200", "HIGH GAIN": 2, "HIGH FREQ": "2000" }),
+      buildFactoryBus("bus34", "Lo-fi", { "PRE FILT": 1, "LOFI TYPE": 9, TONE: 50, CUTOFF: "8000", BALANCE: "45/55", LEVEL: 100 }),
+      /* SUSTAIN/ATTACK/RATIO: card says "5 to 10" / "50 to 70" / "2 to 4" */
+      buildFactoryBus("bus34", "Compressor", { SUSTAIN: 8, ATTACK: 60, RATIO: 3 }),
+      BLANK_BUS,
+    ],
+  },
+  {
+    id: "rc-top-loops-sauce",
+    name: "Top Loops Sauce (noir)",
+    buses: () => [
+      buildFactoryBus("bus12", "Super Filter", { CUTOFF: 50, RESONANCE: 0, "FLT TYPE": "HPF", DEPTH: 0 }),
+      buildFactoryBus("bus12", "Tremolo/Pan", { DEPTH: 76, WAVE: "TRI", TYPE: "PAN", SYNC: "ON", RATE: 0.175 }), /* RATE: card says "0.150 to 0.200" */
+      buildFactoryBus("bus34", "Crusher", { FILTER: 9000, RATE: 0, BALANCE: "70/30" }), /* FILTER: card says "6000 to 12000" */
+      /* L/H DAMP F: card gives a range too wide for exact enum entries -
+         nearest available option within it */
+      buildFactoryBus("bus34", "Sync Delay", { TIME: "1/8D", FEEDBACK: 30, LEVEL: 30, "L DAMP F": "630", "H DAMP F": "6300" }),
+      BLANK_BUS,
+    ],
+  },
+];
 
 /* ===== 04 STORE ===== */
 const LS_KEY = "busdriver.v1";
@@ -1622,7 +1699,7 @@ let state = {
   theme: "dark", /* Setup toggle: "dark" | "light" */
   jam: { slots: [] }, /* JAM tab: user-programmable pinned bus params + raw MIDI */
   xyPresets: [], /* XY tab: user-saved axis combos, { id, name, x:{bus,slot}, y:{bus,slot}, mom } */
-  recipes: [houseChordSynthRecipe()], /* full 5-bus presets typed in from recipe cards, { id, name, buses:[{fx,cc[6],on} x5] } */
+  recipes: FACTORY_RECIPES.map((r) => ({ id: r.id, name: r.name, buses: r.buses() })), /* full 5-bus presets typed in from recipe cards, { id, name, buses:[{fx,cc[6],on} x5] } */
 };
 function directName(num) { /* num = CC#83 value 1..5 in the bus12 table */
   const r = state.directFx[num - 1];
@@ -1788,12 +1865,15 @@ function loadState() {
     if (Array.isArray(s.recipes)) {
       state.recipes = s.recipes.map(sanitizeRecipe).filter(Boolean).slice(0, RECIPE_MAX);
     }
-    /* one-time backfill: storage saved before the factory recipe existed
-       (even just an empty recipes:[] from opening the panel once) would
-       otherwise silently override the in-code default above and the card
-       would never actually show up */
-    if (!state.recipes.some((r) => r.id === "rc-house-chord-synth")) {
-      state.recipes = [houseChordSynthRecipe(), ...state.recipes].slice(0, RECIPE_MAX);
+    /* one-time backfill: storage saved before a given factory recipe
+       existed (even just an empty recipes:[] from opening the panel once)
+       would otherwise silently override the in-code default above and
+       that card would never actually show up. Runs per-recipe so cards
+       added in a later update still get backfilled without duplicating
+       ones the user already has. */
+    const missing = FACTORY_RECIPES.filter((r) => !state.recipes.some((sr) => sr.id === r.id));
+    if (missing.length) {
+      state.recipes = [...missing.map((r) => ({ id: r.id, name: r.name, buses: r.buses() })), ...state.recipes].slice(0, RECIPE_MAX);
       saveState(); /* don't depend on some later, unrelated action to persist this */
     }
   } catch (e) { /* corrupt storage: start fresh */ }
