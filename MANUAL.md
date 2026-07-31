@@ -100,14 +100,19 @@ each slot lists its content ("1● Tape Echo · 3○ Lo-fi": ● on, ○ off).
 instead of captured from live state — and not capped at 8. Meant for
 transcribing chains from recipe cards/packs (the kind that list an effect
 and six control values per bus) straight into the app, no fader-dragging
-required. Open via **"Open Recipes"** below the snapshot grid. **+ New
-Recipe** (or ✎ on an existing one) opens the editor: pick an effect per
-bus from a dropdown, and the value fields that appear are labeled with
-that effect's real parameter names and units — type what's printed on the
-card (dB, ms, %, a note value, "L12"/"R12"/"CTR" for pan, "80:20" or
-"80/20" for a balance split) and it converts to the right underlying
-value automatically, the same math the app uses to display it. Tap a
-saved recipe to load it onto all 5 buses, same as a snapshot.
+required. Open via **Library** in the top status bar (visible from any
+view) or **"Open Recipes"** below the snapshot grid — same panel either
+way. **+ New Recipe** (or ✎ on an existing one) opens the editor: pick an
+effect per bus from a dropdown, and the value fields that appear are
+labeled with that effect's real parameter names and units — type what's
+printed on the card (dB, ms, %, a note value, "L12"/"R12"/"CTR" for pan,
+"80:20" or "80/20" for a balance split) and it converts to the right
+underlying value automatically, the same math the app uses to display it.
+Tap a saved recipe to load it onto all 5 buses, same as a snapshot. Ships
+with one factory recipe, "House Chord Synth" (a serial-mode chain —
+Overdrive → Chorus → Chromatic PS → SX Reverb — where Chromatic PS's
++12/+7 semitone pitch shift is what turns a single held note into a
+chord), transcribed from an electronoir.gumroad.com recipe card.
 
 **Export/Import:** JSON for backups and for moving your whole setup —
 snapshots, JAM, XY combos, *and* recipes — between devices, e.g. editing
