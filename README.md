@@ -3,7 +3,12 @@
 A free, browser-based MIDI controller for the **Roland SP-404 MkII** — a single
 HTML file, no installation, no dependencies, no account.
 
-**Live: https://littletools404.github.io/404busdriver/**
+**Live: https://moahbeatlab.github.io/404jam/**
+
+Forked from [littletools404/404busdriver](https://github.com/littletools404/404busdriver)
+and extended with tablet/phone-friendly faders, a **JAM** tab for pinned custom
+MIDI controls (SP-404 params, raw MIDI to a second device, or captured bus
+scenes), **XY presets**, and a few other additions — see below.
 
 ## What it does
 
