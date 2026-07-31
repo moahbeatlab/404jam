@@ -595,6 +595,7 @@
       <button id="xy-btn" class="sbtn pad">XY</button>
       <button id="alloff" class="sbtn">ALL OFF</button>
       <button id="snaps-btn" class="sbtn pad">Snap</button>
+      <button id="lib-btn" class="sbtn pad">Library</button>
       <button id="setup-btn" class="sbtn pad">Setup</button>
     </header>
     <nav id="bustabs"></nav>
@@ -1559,6 +1560,38 @@ function syncOnForCc(def, cc) {
   return i >= 0 && cc[i] >= 64;
 }
 
+/* factory-shipped recipe: "House Chord Synth" card, electronoir.gumroad.com -
+   serial-mode 4-bus chain (Overdrive -> Chorus -> Chromatic PS -> SX Reverb).
+   Chromatic PS does the actual "chord": +12/+7 semitones (octave + fifth)
+   panned apart, turning one held note into a chord-like stack. Values are
+   the card's own printed numbers, run through ccFromDisp so they land on
+   exactly what the card intends instead of being hand-rounded here. */
+function houseChordSynthRecipe() {
+  const bus = (table, fxName, vals) => {
+    const num = BUS_TABLES[table].indexOf(fxName);
+    const def = fxDefFor(table, num);
+    const cc = defaultCcs(def);
+    Object.keys(vals).forEach((n) => {
+      const i = def.p.findIndex((p) => p.n === n);
+      if (i < 0) return;
+      const v = ccFromDisp(def.p[i], vals[n], syncOnForCc(def, cc));
+      if (v != null) cc[i] = v;
+    });
+    return { fx: num, cc, on: true };
+  };
+  return {
+    id: "rc-house-chord-synth",
+    name: "House Chord Synth (noir)",
+    buses: [
+      bus("bus12", "Overdrive", { DRIVE: 32, TONE: 67, BALANCE: "80/20", LEVEL: 80 }),
+      bus("bus12", "Chorus", { DEPTH: 35, RATE: 1.20, "EQ LOW": -15, "EQ HIGH": 3, BALANCE: "80/20", LEVEL: 100 }),
+      bus("bus34", "Chromatic PS", { PITCH1: 12, PITCH2: 7, PAN1: "L10", PAN2: "R10", BALANCE: "70/30" }),
+      bus("bus34", "SX Reverb", { TIME: 100, TONE: 100, BALANCE: "60/30" }),
+      { fx: 0, cc: [64, 64, 64, 64, 64, 64], on: false }, /* INPUT: not part of this chain */
+    ],
+  };
+}
+
 /* ===== 04 STORE ===== */
 const LS_KEY = "busdriver.v1";
 let state = {
@@ -1589,7 +1622,7 @@ let state = {
   theme: "dark", /* Setup toggle: "dark" | "light" */
   jam: { slots: [] }, /* JAM tab: user-programmable pinned bus params + raw MIDI */
   xyPresets: [], /* XY tab: user-saved axis combos, { id, name, x:{bus,slot}, y:{bus,slot}, mom } */
-  recipes: [], /* full 5-bus presets typed in from recipe cards, { id, name, buses:[{fx,cc[6],on} x5] } */
+  recipes: [houseChordSynthRecipe()], /* full 5-bus presets typed in from recipe cards, { id, name, buses:[{fx,cc[6],on} x5] } */
 };
 function directName(num) { /* num = CC#83 value 1..5 in the bus12 table */
   const r = state.directFx[num - 1];
@@ -1754,6 +1787,14 @@ function loadState() {
     }
     if (Array.isArray(s.recipes)) {
       state.recipes = s.recipes.map(sanitizeRecipe).filter(Boolean).slice(0, RECIPE_MAX);
+    }
+    /* one-time backfill: storage saved before the factory recipe existed
+       (even just an empty recipes:[] from opening the panel once) would
+       otherwise silently override the in-code default above and the card
+       would never actually show up */
+    if (!state.recipes.some((r) => r.id === "rc-house-chord-synth")) {
+      state.recipes = [houseChordSynthRecipe(), ...state.recipes].slice(0, RECIPE_MAX);
+      saveState(); /* don't depend on some later, unrelated action to persist this */
     }
   } catch (e) { /* corrupt storage: start fresh */ }
 }
@@ -4594,6 +4635,7 @@ function boot() {
   $("xypreset").addEventListener("pointerdown", (e) => { if (e.target === $("xypreset")) $("xypreset").classList.remove("open"); });
   $("xypreset-save").addEventListener("click", saveCurrentXyPreset);
   $("recipes-btn").addEventListener("click", openRecipes);
+  $("lib-btn").addEventListener("click", openRecipes);
   $("recipes-close").addEventListener("click", () => $("recipes").classList.remove("open"));
   $("recipes").addEventListener("pointerdown", (e) => { if (e.target === $("recipes")) $("recipes").classList.remove("open"); });
   $("recipe-new-btn").addEventListener("click", () => openRecipeEditor(null));
