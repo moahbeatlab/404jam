@@ -95,12 +95,26 @@ Eight slots for the full state of all five buses (effect, values, on/off).
 **Tap loads** (an empty slot saves), **hold saves** and lets you type the
 name right in the slot, ✕ deletes. The panel shows what would be saved;
 each slot lists its content ("1● Tape Echo · 3○ Lo-fi": ● on, ○ off).
+
+**Recipes:** the same full 5-bus shape as a snapshot, but *typed in*
+instead of captured from live state — and not capped at 8. Meant for
+transcribing chains from recipe cards/packs (the kind that list an effect
+and six control values per bus) straight into the app, no fader-dragging
+required. Open via **"Open Recipes"** below the snapshot grid. **+ New
+Recipe** (or ✎ on an existing one) opens the editor: pick an effect per
+bus from a dropdown, and the value fields that appear are labeled with
+that effect's real parameter names and units — type what's printed on the
+card (dB, ms, %, a note value, "L12"/"R12"/"CTR" for pan, "80:20" or
+"80/20" for a balance split) and it converts to the right underlying
+value automatically, the same math the app uses to display it. Tap a
+saved recipe to load it onto all 5 buses, same as a snapshot.
+
 **Export/Import:** JSON for backups and for moving your whole setup —
-snapshots *and* JAM — between devices, e.g. editing on a laptop browser and
-bringing it to your phone: Export, copy/share the JSON, paste it into the
-same field on the other device, Import. Import overwrites matching snapshot
-slot numbers and replaces JAM entirely; tap Import again within 8 seconds to
-undo.
+snapshots, JAM, XY combos, *and* recipes — between devices, e.g. editing
+on a laptop browser and bringing it to your phone: Export, copy/share the
+JSON, paste it into the same field on the other device, Import. Import
+overwrites matching snapshot slot numbers and replaces JAM/XY
+combos/recipes entirely; tap Import again within 8 seconds to undo.
 
 ## XY pad and LFOs
 
