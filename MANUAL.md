@@ -39,7 +39,7 @@ no installation. This manual is also built into the app (Setup > Manual).
 Snap, Setup.
 
 **Tab bar:** BUS 1–4 and IN (focus view per bus), PLAY (playing surfaces),
-PTN (patterns, autopilot, looper), JAM (your own pinned controls). The LEDs
+PTN (patterns), JAM (your own pinned controls). The LEDs
 in the bus tabs always show which effects are on.
 
 ## Focus view: one bus, six faders
@@ -186,7 +186,7 @@ at the center. Slot 4 comes preconfigured as a slow drift.
   of the looper CC set (overdub, delete, undo/redo, tempo reset, BPM) isn't
   exposed here - use the device directly for those.
 
-## PTN: patterns, autopilot
+## PTN: patterns
 
 - **Grid:** pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
   same compact picker as PADS: tap a different pair to jump to it on your
@@ -194,8 +194,6 @@ at the center. Slot 4 comes preconfigured as a slow drift.
   pattern (1–16) — the app sends the program change. Needs mode B and
   "PC Rx" ON; the device does not confirm, the highlight marks the last
   one sent.
-- **Autopilot:** wanders markov-style through the patterns — quantized every
-  2/4/8 bars (tempo from clock or tap), within the chosen bank or across all.
 
 ## JAM: pinned controls
 
@@ -285,8 +283,8 @@ Setup has two display toggles:
 The BPM display reads MIDI clock from **any** connected port — AUM, Ableton
 or a Link-to-MIDI bridge. The Link route: the Link source sends clock to the
 SP-404 (which follows as a sync slave: UTILITY > SYSTEM > MIDI, "MIDI Sync")
-and to the computer — device, app and Link session then run in sync. LFOs and
-autopilot use the clock automatically; without clock, tap tempo applies.
+and to the computer — device, app and Link session then run in sync. LFOs
+use the clock automatically; without clock, tap tempo applies.
 
 ## Keyboard (desktop)
 
