@@ -1929,7 +1929,9 @@ const Midi = {
   },
   sendBytes(bytes) { return this.sendBytesTo(null, bytes); },
   sendPc(ch, pc) {
-    if (this.sendBytes([0xC0 | ch, pc & 0x7F])) blinkTx();
+    const ok = this.sendBytes([0xC0 | ch, pc & 0x7F]);
+    if (ok) blinkTx();
+    return ok;
   },
   sendNote(ch, note, on, vel) {
     if (this.sendBytes(on ? [0x90 | ch, note & 0x7F, vel || 110] : [0x80 | ch, note & 0x7F, 0])) blinkTx();
@@ -3861,7 +3863,13 @@ function renderPattern() {
     const sent = state.ptn.last && state.ptn.last.bank === state.ptn.bank && state.ptn.last.pc === pc;
     const b = el("button", "pad" + (sent ? " sent" : ""), String(pc + 1));
     b.addEventListener("click", () => {
-      Midi.sendPc(state.ptn.bank, pc);
+      /* don't claim success (highlighting the pad) when nothing actually
+         went out - a silently dropped MIDI connection looked identical to
+         a working pattern change otherwise */
+      if (!Midi.sendPc(state.ptn.bank, pc)) {
+        showBanner("SP-404 not connected - pattern not sent", "warn", 4000);
+        return;
+      }
       state.ptn.last = { bank: state.ptn.bank, pc };
       saveState();
       renderPattern();
@@ -3894,7 +3902,7 @@ setInterval(() => {
   pc = Math.random() < 0.6
     ? clamp(pc + Math.floor(Math.random() * 5) - 2, 0, 15)
     : Math.floor(Math.random() * 16);
-  Midi.sendPc(bank, pc);
+  if (!Midi.sendPc(bank, pc)) return; /* not connected - don't drift "last sent" state */
   state.ptn.last = { bank, pc };
   state.ptn.bank = bank;
   saveState();
