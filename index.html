@@ -653,17 +653,6 @@
           <button id="auto-bars" class="pad">every 4 bars</button>
           <button id="auto-scope" class="pad">bank only</button>
         </div>
-        <div id="loop-row">
-          <h4>Looper (device in looper mode, CH 1)</h4>
-          <button id="lp-rec" class="pad">REC</button>
-          <button id="lp-dub" class="pad">OVERDUB</button>
-          <button id="lp-del" class="pad">DEL</button>
-          <button id="lp-undo" class="pad">UNDO</button>
-          <button id="lp-redo" class="pad">REDO</button>
-          <button id="lp-stop" class="pad">STOP ALL</button>
-          <button id="lp-treset" class="pad">TEMPO RST</button>
-          <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / play rate (CC#90)">
-        </div>
         <p class="pick-note">Program change: bank = MIDI channel, pattern = PC 0&ndash;15.
         Requires <b>MIDI mode B</b> on the device and &quot;PC Rx&quot; = ON.
         The device does not confirm switches via MIDI &ndash; highlighted is the last one sent.</p>
@@ -688,6 +677,18 @@
         <div id="pads-area">
           <div id="pad-banks"></div>
           <div id="pad-grid"></div>
+          <div id="loop-row">
+            <h4>Looper (device in looper mode, CH 1)</h4>
+            <button id="lp-rec" class="pad">REC</button>
+            <button id="lp-recstop" class="pad">STOP LOOP</button>
+            <button id="lp-dub" class="pad">OVERDUB</button>
+            <button id="lp-del" class="pad">DEL</button>
+            <button id="lp-undo" class="pad">UNDO</button>
+            <button id="lp-redo" class="pad">REDO</button>
+            <button id="lp-stop" class="pad">STOP ALL</button>
+            <button id="lp-treset" class="pad">TEMPO RST</button>
+            <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / play rate (CC#90)">
+          </div>
         </div>
         <div id="scale-area">
           <div id="scale-grid"></div>
@@ -1032,13 +1033,17 @@
         vocoder (CH 11) with pitch-bend strip. <b>SCALE:</b> 4&times;4 grid with only
         in-scale notes; ISO = Move layout (rows a fourth apart), LIN = continuous;
         roots highlighted. <b>PADS:</b> pad board laid out like the device
-        (pad 1 top left), banks A&ndash;J, &#9733; = custom layout (hold to assign);
-        PAD-CH must match the device setting &quot;Pad MIDI Channels&quot;.</p>
-        <h3>PTN: patterns, autopilot, looper</h3>
+        (pad 1 top left); <b>A</b>/<b>F</b> jump to those two banks (the Mode-B
+        channel halves), &#9733; = custom layout (hold to assign); PAD-CH must
+        match the device setting &quot;Pad MIDI Channels&quot;. <b>Looper</b>
+        (below the pads) remote-controls the device's looper mode (REC,
+        OVERDUB, DEL, UNDO/REDO, STOP ALL, BPM) &ndash; <b>STOP LOOP</b> always
+        sends an explicit stop regardless of the app's own REC state; there's
+        no MIDI command for stopping only loop playback, so STOP ALL still
+        stops every sample, not just the loop.</p>
+        <h3>PTN: patterns, autopilot</h3>
         <p>Pick a bank, tap a pattern (mode B + PC Rx ON; highlighted = last sent).
-        The <b>autopilot</b> wanders quantized every 2/4/8 bars, optionally within the bank.
-        The <b>looper panel</b> remote-controls the device's looper mode (REC, OVERDUB, DEL,
-        UNDO/REDO, STOP ALL, BPM).</p>
+        The <b>autopilot</b> wanders quantized every 2/4/8 bars, optionally within the bank.</p>
         <h3>Tempo / Ableton Link</h3>
         <p>BPM reads MIDI clock from any port (AUM, Ableton, a bridge). Link route:
         the Link source sends clock to the SP-404 (UTILITY &gt; SYSTEM &gt; MIDI: &quot;MIDI Sync&quot;)
@@ -4013,7 +4018,10 @@ let padPickSlot = 0, padPickBank = 0;
 function buildPads() {
   const bh = $("pad-banks");
   bh.textContent = "";
-  BANK_NAMES.concat("★").forEach((n, i) => {
+  /* compact bank picker: jump straight to A or F (the two Mode-B channel
+     halves, A-E / F-J) instead of a button per bank - individual banks
+     within a half aren't reachable here anymore, by design (more room). */
+  [["A", 0], ["F", 5], ["★", 10]].forEach(([n, i]) => {
     const b = el("button", i === state.play.padBank ? "active" : "", n);
     b.addEventListener("pointerdown", (e) => { e.preventDefault(); state.play.padBank = i; saveState(); buildPads(); });
     bh.appendChild(b);
@@ -4859,6 +4867,17 @@ function boot() {
   /* looper (device in looper mode, CH 1) */
   let lpRec = false;
   $("lp-rec").addEventListener("click", () => { lpRec = !lpRec; Midi.send(0, 88, lpRec ? 127 : 0, true); $("lp-rec").classList.toggle("on", lpRec); });
+  $("lp-recstop").addEventListener("click", () => {
+    /* explicit, unconditional "stop sampling" (CC#88=0) - unlike the REC
+       toggle above, always sends stop regardless of the app's own lpRec
+       tracking, so it still works if that drifted from the device's real
+       state (MIDI has no confirmation, so REC can go stale). There's no
+       MIDI command that stops only loop playback - Roland's looper CC
+       table only exposes REC start/stop, not a separate play/pause. */
+    lpRec = false;
+    Midi.send(0, 88, 0, true);
+    $("lp-rec").classList.remove("on");
+  });
   $("lp-dub").addEventListener("click", () => Midi.send(0, 89, 127, true));
   $("lp-del").addEventListener("click", () => Midi.send(0, 87, 127, true));
   $("lp-undo").addEventListener("click", () => Midi.send(0, 91, 127, true));
