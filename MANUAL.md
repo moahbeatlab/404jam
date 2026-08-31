@@ -192,9 +192,12 @@ at the center. Slot 4 comes preconfigured as a slow drift.
 
 ## PTN: patterns, autopilot
 
-- **Grid:** pick a bank (A–J), tap a pattern (1–16) — the app sends the
-  program change. Needs mode B and "PC Rx" ON; the device does not confirm,
-  the highlight marks the last one sent.
+- **Grid:** pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
+  same compact picker as PADS: tap a different pair to jump to it on your
+  current half, tap the active pair again to flip its other letter), tap a
+  pattern (1–16) — the app sends the program change. Needs mode B and
+  "PC Rx" ON; the device does not confirm, the highlight marks the last
+  one sent.
 - **Autopilot:** wanders markov-style through the patterns — quantized every
   2/4/8 bars (tempo from clock or tap), within the chosen bank or across all.
 
