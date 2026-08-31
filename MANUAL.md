@@ -12,10 +12,20 @@ no installation. This manual is also built into the app (Setup > Manual).
 - **Browser:** Chrome or Edge on desktop. No iOS browser can do Web MIDI —
   install the **MIDIWeb Browser** app (App Store) and open the Busdriver URL
   there.
-- **Device MIDI mode** ([SHIFT]+[PAD 12] > SYSTEM > MIDI): FX control works in
-  mode **A and B**. Pattern switching (PTN) needs mode **B** with
-  "PC Rx" = ON. For the pad board, the device setting "Pad MIDI Channels"
-  must match the PAD-CH button in the app (default 1/2).
+- **Device MIDI setup** ([SHIFT]+[PAD 12] > SYSTEM > MIDI) — everything the
+  device needs, checklist form:
+  - **MIDI Mode → B.** Mode A also works, but only for FX control — the pad
+    note-mapping, chromatic play and pattern switching this app uses all
+    assume mode B.
+  - **"PC Rx" → ON.** Needed only for pattern switching (PTN tab). Without
+    it the app's Program Change messages send fine but the device silently
+    ignores them — no error, just nothing happening.
+  - **"Pad MIDI Channels" → match the app's PAD-CH button** (PLAY > PADS,
+    default 1/2). Whatever channel pair you set on the device is what you
+    pick there.
+  - Nothing else to configure: Chromatic/Sample Play always uses a fixed
+    channel 16, FX control always uses fixed channels 1–5, and the app
+    never uses SysEx.
 - **Connect:** Setup (top right) > "Connect to SP-404". The app remembers the
   ports; when an SP-404 appears it takes over input and output automatically.
 - **Looks outdated?** Setup shows a build number. If features seem missing,
