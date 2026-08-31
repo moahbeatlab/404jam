@@ -992,7 +992,12 @@
         <h3>Connection</h3>
         <p>Connect the SP-404 MkII via USB-C, then Setup &gt; &quot;Connect to SP-404&quot;.
         On desktop use Chrome or Edge; on iPhone/iPad use the <b>MIDIWeb Browser</b> app.
-        FX control works in MIDI mode A and B; patterns need mode B + &quot;PC Rx&quot; ON.
+        <b>Device MIDI setup</b> ([SHIFT]+[PAD 12] &gt; SYSTEM &gt; MIDI): mode <b>B</b>
+        (mode A only covers FX control), &quot;PC Rx&quot; <b>ON</b> (patterns only &ndash;
+        without it the device silently ignores Program Change), and
+        &quot;Pad MIDI Channels&quot; matching the app's <b>PAD-CH</b> button
+        (PLAY &gt; PADS, default 1/2). Nothing else to set: chromatic play is a
+        fixed CH 16, FX control is fixed CH 1&ndash;5, no SysEx involved.
         If the app seems outdated, load the URL with <b>?v=99</b> (cache); the build number is shown in Setup.</p>
         <h3>Status bar and tabs</h3>
         <p>Connection dot (tap = Setup), TX blinker, BPM on incoming clock,
