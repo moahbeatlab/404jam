@@ -311,6 +311,8 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
     font-size: 12px; font-weight: 700; color: var(--muted); }
   #ptn-banks button.active, #pad-banks button.active { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), 0 0 0 1px var(--line); }
+  #pad-banks button span { opacity: .4; }
+  #pad-banks button span.sel { opacity: 1; font-weight: 800; }
   #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
   #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
   #ptn-grid button.sent { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow), inset 0 1px 0 rgba(255,255,255,.25); }
@@ -1033,8 +1035,11 @@
         vocoder (CH 11) with pitch-bend strip. <b>SCALE:</b> 4&times;4 grid with only
         in-scale notes; ISO = Move layout (rows a fourth apart), LIN = continuous;
         roots highlighted. <b>PADS:</b> pad board laid out like the device
-        (pad 1 top left); <b>A</b>/<b>F</b> jump to those two banks (the Mode-B
-        channel halves), &#9733; = custom layout (hold to assign); PAD-CH must
+        (pad 1 top left); banks A&ndash;J as five pair buttons (A/F, B/G, C/H,
+        D/I, E/J, pairing each bank with its Mode-B channel-half counterpart)
+        &ndash; tap a different pair to jump to it on your current half, tap
+        the active pair again to flip to its other letter; all ten stay
+        reachable. &#9733; = custom layout (hold to assign); PAD-CH must
         match the device setting &quot;Pad MIDI Channels&quot;. <b>Looper</b>
         (below the pads) remote-controls the device's looper mode (REC,
         OVERDUB, DEL, UNDO/REDO, STOP ALL, BPM) &ndash; <b>STOP LOOP</b> always
@@ -4018,14 +4023,29 @@ let padPickSlot = 0, padPickBank = 0;
 function buildPads() {
   const bh = $("pad-banks");
   bh.textContent = "";
-  /* compact bank picker: jump straight to A or F (the two Mode-B channel
-     halves, A-E / F-J) instead of a button per bank - individual banks
-     within a half aren't reachable here anymore, by design (more room). */
-  [["A", 0], ["F", 5], ["★", 10]].forEach(([n, i]) => {
-    const b = el("button", i === state.play.padBank ? "active" : "", n);
-    b.addEventListener("pointerdown", (e) => { e.preventDefault(); state.play.padBank = i; saveState(); buildPads(); });
+  /* compact bank picker: one button per row-pair (A/F, B/G, C/H, D/I, E/J -
+     row i pairs bank i with bank i+5, the two Mode-B channel halves) instead
+     of a button per bank - still reaches all 10, just less space. Clicking
+     a different pair's button jumps to that pair's letter on the CURRENT
+     half; clicking the already-active pair toggles its other letter. */
+  for (let i = 0; i < 5; i++) {
+    const b = el("button", (state.play.padBank === i || state.play.padBank === i + 5) ? "active" : "");
+    b.appendChild(el("span", state.play.padBank === i ? "sel" : "", BANK_NAMES[i]));
+    b.appendChild(document.createTextNode("/"));
+    b.appendChild(el("span", state.play.padBank === i + 5 ? "sel" : "", BANK_NAMES[i + 5]));
+    b.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      if (state.play.padBank === i) state.play.padBank = i + 5;
+      else if (state.play.padBank === i + 5) state.play.padBank = i;
+      else state.play.padBank = state.play.padBank >= 5 && state.play.padBank < 10 ? i + 5 : i;
+      saveState();
+      buildPads();
+    });
     bh.appendChild(b);
-  });
+  }
+  const star = el("button", state.play.padBank === 10 ? "active" : "", "★");
+  star.addEventListener("pointerdown", (e) => { e.preventDefault(); state.play.padBank = 10; saveState(); buildPads(); });
+  bh.appendChild(star);
   const g = $("pad-grid");
   flushNotesIn(g);
   g.textContent = "";
