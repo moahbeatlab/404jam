@@ -1938,7 +1938,9 @@ const Midi = {
     return ok;
   },
   sendNote(ch, note, on, vel) {
-    if (this.sendBytes(on ? [0x90 | ch, note & 0x7F, vel || 110] : [0x80 | ch, note & 0x7F, 0])) blinkTx();
+    const ok = this.sendBytes(on ? [0x90 | ch, note & 0x7F, vel || 110] : [0x80 | ch, note & 0x7F, 0]);
+    if (ok) blinkTx();
+    return ok;
   },
   sendBend(ch, v14) { /* 0..16383, center 8192 */
     v14 = clamp(v14 | 0, 0, 16383);
@@ -3945,10 +3947,15 @@ function attachNoteSource(btn, getNote) {
     e.preventDefault();
     const nt = getNote();
     if (!nt) return;
+    /* don't show the pad/key as pressed when nothing actually went out -
+       matches the same fix on the pattern grid (renderPattern) */
+    if (!Midi.sendNote(nt.ch, nt.note, true)) {
+      showBanner("SP-404 not connected - nothing sent", "warn", 4000);
+      return;
+    }
     btn.setPointerCapture(e.pointerId);
     heldNotes.set(e.pointerId, { ch: nt.ch, note: nt.note, el: btn });
     btn.classList.add(btn.classList.contains("key") ? "on" : "hit");
-    Midi.sendNote(nt.ch, nt.note, true);
   });
   const up = (e) => {
     const h = heldNotes.get(e.pointerId);
