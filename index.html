@@ -311,8 +311,8 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
     font-size: 12px; font-weight: 700; color: var(--muted); }
   #ptn-banks button.active, #pad-banks button.active { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), 0 0 0 1px var(--line); }
-  #pad-banks button span { opacity: .4; }
-  #pad-banks button span.sel { opacity: 1; font-weight: 800; }
+  #ptn-banks button span, #pad-banks button span { opacity: .4; }
+  #ptn-banks button span.sel, #pad-banks button span.sel { opacity: 1; font-weight: 800; }
   #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
   #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
   #ptn-grid button.sent { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow), inset 0 1px 0 rgba(255,255,255,.25); }
@@ -321,10 +321,8 @@
   #scale-grid button.oor { opacity: .22; pointer-events: none; }
   #pad-grid button .pl { display: block; font-size: 9px; font-weight: 600; color: inherit; opacity: .65; }
   #view-pattern .pick-note, #view-play .pick-note { flex: none; }
-  #loop-row, #auto-row { display: flex; flex-wrap: wrap; gap: 6px; flex: none; align-items: center; }
-  #loop-row .pad, #auto-row .pad { height: 40px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 0 10px; }
-  #loop-row h4, #auto-row h4 { width: 100%; font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
-  #loop-bpm { flex: 1; min-width: 90px; accent-color: var(--accent); }
+  #loop-row { display: flex; flex-wrap: wrap; gap: 6px; flex: none; align-items: center; }
+  #loop-row .pad { height: 40px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 0 10px; }
   /* play view: chromatic keys + pad board */
   #view-play { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
   body.play #view-play { display: flex; }
@@ -576,7 +574,7 @@
     #view-overview { overflow-x: auto; }
     #view-pattern { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
     #ptn-grid { flex: none; min-height: 210px; }
-    #view-pattern button, #loop-bpm { touch-action: pan-y; }
+    #view-pattern button { touch-action: pan-y; }
   }
   /* wide: desktop hover niceties */
   @media (hover: hover) {
@@ -649,12 +647,6 @@
       <section id="view-pattern">
         <div id="ptn-banks"></div>
         <div id="ptn-grid"></div>
-        <div id="auto-row">
-          <h4>Autopilot</h4>
-          <button id="auto-on" class="pad">AUTO</button>
-          <button id="auto-bars" class="pad">every 4 bars</button>
-          <button id="auto-scope" class="pad">bank only</button>
-        </div>
         <p class="pick-note">Program change: bank = MIDI channel, pattern = PC 0&ndash;15.
         Requires <b>MIDI mode B</b> on the device and &quot;PC Rx&quot; = ON.
         The device does not confirm switches via MIDI &ndash; highlighted is the last one sent.</p>
@@ -680,16 +672,7 @@
           <div id="pad-banks"></div>
           <div id="pad-grid"></div>
           <div id="loop-row">
-            <h4>Looper (device in looper mode, CH 1)</h4>
-            <button id="lp-rec" class="pad">REC</button>
-            <button id="lp-recstop" class="pad">STOP LOOP</button>
-            <button id="lp-dub" class="pad">OVERDUB</button>
-            <button id="lp-del" class="pad">DEL</button>
-            <button id="lp-undo" class="pad">UNDO</button>
-            <button id="lp-redo" class="pad">REDO</button>
-            <button id="lp-stop" class="pad">STOP ALL</button>
-            <button id="lp-treset" class="pad">TEMPO RST</button>
-            <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / play rate (CC#90)">
+            <button id="lp-rec" class="pad" title="Looper REC/STOP (CC#88) - device must be in looper mode, CH 1">LOOPER REC</button>
           </div>
         </div>
         <div id="scale-area">
@@ -1041,18 +1024,16 @@
         the active pair again to flip to its other letter; all ten stay
         reachable. &#9733; = custom layout (hold to assign); PAD-CH must
         match the device setting &quot;Pad MIDI Channels&quot;. <b>Looper</b>
-        (below the pads) remote-controls the device's looper mode (REC,
-        OVERDUB, DEL, UNDO/REDO, STOP ALL, BPM) &ndash; <b>STOP LOOP</b> always
-        sends an explicit stop regardless of the app's own REC state; there's
-        no MIDI command for stopping only loop playback, so STOP ALL still
-        stops every sample, not just the loop.</p>
-        <h3>PTN: patterns, autopilot</h3>
-        <p>Pick a bank, tap a pattern (mode B + PC Rx ON; highlighted = last sent).
-        The <b>autopilot</b> wanders quantized every 2/4/8 bars, optionally within the bank.</p>
+        (below the pads): just <b>LOOPER REC</b>, toggling start/stop (CC#88).
+        Device must be in looper mode itself; the rest of the looper CC set
+        isn't exposed here - use the device directly for overdub/delete/undo/tempo.</p>
+        <h3>PTN: patterns</h3>
+        <p>Pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
+        same picker as PADS), tap a pattern (mode B + PC Rx ON; highlighted = last sent).</p>
         <h3>Tempo / Ableton Link</h3>
         <p>BPM reads MIDI clock from any port (AUM, Ableton, a bridge). Link route:
         the Link source sends clock to the SP-404 (UTILITY &gt; SYSTEM &gt; MIDI: &quot;MIDI Sync&quot;)
-        and to this computer &ndash; everything runs in sync. LFOs/autopilot use the clock, else tap tempo.</p>
+        and to this computer &ndash; everything runs in sync. LFOs use the clock, else tap tempo.</p>
         <h3>Keyboard (desktop)</h3>
         <p>1&ndash;5 = bus &middot; Space = EFX &middot; O = overview &middot; X = XY &middot; Esc = close.</p>
         <h3>Tips and limits</h3>
@@ -1710,7 +1691,6 @@ let state = {
   play: { mode: "keys", target: "sample", oct: 0, padBank: 0, padChPair: 0,
     scaleRoot: 0, scaleType: 0, iso: true,
     custom: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null] },
-  auto: { bars: 4, scope: "bank" },
   midi: { outName: null, inName: null },
   wake: false,
   horizFaders: false, /* Setup toggle: sideways-drag full-width fader strips */
@@ -1860,10 +1840,6 @@ function loadState() {
           state.play.custom[i] = { bank: c.bank | 0, pad: c.pad | 0 };
       }
     }
-    if (s.auto && typeof s.auto === "object") {
-      if ([2, 4, 8].indexOf(s.auto.bars) >= 0) state.auto.bars = s.auto.bars;
-      if (s.auto.scope === "all") state.auto.scope = "all";
-    }
     if (s.ptn && typeof s.ptn === "object") {
       if (s.ptn.bank >= 0 && s.ptn.bank < 10) state.ptn.bank = s.ptn.bank | 0;
       if (s.ptn.last && s.ptn.last.bank >= 0 && s.ptn.last.bank < 10 && s.ptn.last.pc >= 0 && s.ptn.last.pc < 16)
@@ -1900,7 +1876,7 @@ function loadState() {
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, auto: state.auto, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {
@@ -3873,12 +3849,25 @@ const BANK_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 function renderPattern() {
   const bh = $("ptn-banks");
   bh.textContent = "";
-  BANK_NAMES.forEach((n, i) => {
-    const b = el("button", i === state.ptn.bank ? "active" : "", n);
+  /* one button per row-pair (A/F, B/G, C/H, D/I, E/J - row i pairs bank i
+     with bank i+5) instead of a button per bank, same compaction as PADS.
+     Tapping a different pair jumps to it on the current half; tapping the
+     already-active pair flips to its other letter. */
+  for (let i = 0; i < 5; i++) {
+    const b = el("button", (state.ptn.bank === i || state.ptn.bank === i + 5) ? "active" : "");
+    b.appendChild(el("span", state.ptn.bank === i ? "sel" : "", BANK_NAMES[i]));
+    b.appendChild(document.createTextNode("/"));
+    b.appendChild(el("span", state.ptn.bank === i + 5 ? "sel" : "", BANK_NAMES[i + 5]));
     /* click, not pointerdown: the view scrolls in phone landscape */
-    b.addEventListener("click", () => { state.ptn.bank = i; saveState(); renderPattern(); });
+    b.addEventListener("click", () => {
+      if (state.ptn.bank === i) state.ptn.bank = i + 5;
+      else if (state.ptn.bank === i + 5) state.ptn.bank = i;
+      else state.ptn.bank = state.ptn.bank >= 5 && state.ptn.bank < 10 ? i + 5 : i;
+      saveState();
+      renderPattern();
+    });
     bh.appendChild(b);
-  });
+  }
   const g = $("ptn-grid");
   g.textContent = "";
   for (let pc = 0; pc < 16; pc++) {
@@ -3898,38 +3887,7 @@ function renderPattern() {
     });
     g.appendChild(b);
   }
-  renderAuto();
 }
-
-/* ===== pattern autopilot (markov-ish, quantized by bars from clock/tap) ===== */
-const AUTO_BARS = [2, 4, 8];
-let autoOn = false, autoLast = 0;
-function renderAuto() {
-  $("auto-on").classList.toggle("on", autoOn);
-  $("auto-bars").textContent = "every " + state.auto.bars + " bars";
-  $("auto-scope").textContent = state.auto.scope === "bank" ? "bank only" : "all banks";
-}
-setInterval(() => {
-  if (!autoOn) return;
-  const ms = state.auto.bars * 4 * 60000 / lfoBpm();
-  const now = performance.now();
-  if (now - autoLast < ms) return;
-  autoLast = now;
-  /* mostly wander near the last pattern, sometimes jump; rare bank hops.
-     scope "bank" follows the bank the user SELECTED in the grid */
-  let bank = state.auto.scope === "bank" ? state.ptn.bank
-    : (state.ptn.last ? state.ptn.last.bank : state.ptn.bank);
-  let pc = (state.ptn.last && state.ptn.last.bank === bank) ? state.ptn.last.pc : 0;
-  if (state.auto.scope === "all" && Math.random() < 0.15) bank = Math.floor(Math.random() * 10);
-  pc = Math.random() < 0.6
-    ? clamp(pc + Math.floor(Math.random() * 5) - 2, 0, 15)
-    : Math.floor(Math.random() * 16);
-  if (!Midi.sendPc(bank, pc)) return; /* not connected - don't drift "last sent" state */
-  state.ptn.last = { bank, pc };
-  state.ptn.bank = bank;
-  saveState();
-  if (currentView() === "pattern") renderPattern();
-}, 250);
 
 /* ===== play view: chromatic keys / vocoder keys / pad board =====
    note map (Mode B): pads on two adjacent channels (device setting "Pad
@@ -4884,31 +4842,9 @@ function boot() {
   $("jampreset-close").addEventListener("click", () => $("jampreset").classList.remove("open"));
   $("jampreset").addEventListener("pointerdown", (e) => { if (e.target === $("jampreset")) $("jampreset").classList.remove("open"); });
   $("jam-clear-btn").addEventListener("click", clearJam);
-  /* looper (device in looper mode, CH 1) */
+  /* looper (device in looper mode, CH 1) - just REC: toggles start/stop */
   let lpRec = false;
   $("lp-rec").addEventListener("click", () => { lpRec = !lpRec; Midi.send(0, 88, lpRec ? 127 : 0, true); $("lp-rec").classList.toggle("on", lpRec); });
-  $("lp-recstop").addEventListener("click", () => {
-    /* explicit, unconditional "stop sampling" (CC#88=0) - unlike the REC
-       toggle above, always sends stop regardless of the app's own lpRec
-       tracking, so it still works if that drifted from the device's real
-       state (MIDI has no confirmation, so REC can go stale). There's no
-       MIDI command that stops only loop playback - Roland's looper CC
-       table only exposes REC start/stop, not a separate play/pause. */
-    lpRec = false;
-    Midi.send(0, 88, 0, true);
-    $("lp-rec").classList.remove("on");
-  });
-  $("lp-dub").addEventListener("click", () => Midi.send(0, 89, 127, true));
-  $("lp-del").addEventListener("click", () => Midi.send(0, 87, 127, true));
-  $("lp-undo").addEventListener("click", () => Midi.send(0, 91, 127, true));
-  $("lp-redo").addEventListener("click", () => Midi.send(0, 91, 0, true));
-  $("lp-stop").addEventListener("click", () => Midi.send(0, 85, 127, true));
-  $("lp-treset").addEventListener("click", () => Midi.send(0, 86, 127, true));
-  $("loop-bpm").addEventListener("input", (e) => Midi.send(0, 90, +e.target.value, true));
-  /* pattern autopilot */
-  $("auto-on").addEventListener("click", () => { autoOn = !autoOn; autoLast = performance.now(); renderAuto(); });
-  $("auto-bars").addEventListener("click", () => { state.auto.bars = AUTO_BARS[(AUTO_BARS.indexOf(state.auto.bars) + 1) % AUTO_BARS.length]; saveState(); renderAuto(); });
-  $("auto-scope").addEventListener("click", () => { state.auto.scope = state.auto.scope === "bank" ? "all" : "bank"; saveState(); renderAuto(); });
   $("alloff").addEventListener("click", allOff);
   $("snaps-btn").addEventListener("click", openSnaps);
   $("snaps-close").addEventListener("click", () => $("snaps").classList.remove("open"));

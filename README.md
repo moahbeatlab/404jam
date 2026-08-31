@@ -30,7 +30,8 @@ scenes), **XY presets**, and a few other additions — see below.
 - **Play surfaces:** chromatic keyboard (CH 16), scale pads with isometric
   Move-style layout, vocoder keyboard with pitch bend (CH 11), and a pad
   board incl. a freely assignable custom layout.
-- **Pattern grid** with a quantized markov autopilot, plus a looper remote.
+- **Pattern grid** (Program Change, all ten banks), plus a one-button looper
+  remote (REC).
 - **JAM tab:** your own pinned pads/faders — SP-404 bus parameters that stay
   put regardless of the loaded effect, raw MIDI (any channel/CC/Note/PC,
   two-way for CC controls) to any connected device (e.g. a second synth),
