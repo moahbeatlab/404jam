@@ -173,21 +173,28 @@ at the center. Slot 4 comes preconfigured as a slow drift.
   **LIN** = continuous. Roots are highlighted. Note: the 404's chromatic mode
   has its own scale/key setting — leave it on chromatic when playing from the
   app.
-- **PADS:** the pad board, laid out like the device (pad 1 top left). Banks
-  A–J; the **★** tab is a free layout: hold any field to assign it any
-  bank+pad combination. "PAD-CH" must match the device setting
-  "Pad MIDI Channels" (default 1/2).
+- **PADS:** the pad board, laid out like the device (pad 1 top left). **A**
+  jumps to bank A, **F** jumps to bank F (the two Mode-B channel halves,
+  A–E / F–J) — individual banks within a half aren't reachable here, by
+  design, to keep the strip compact. The **★** tab is a free layout: hold
+  any field to assign it any bank+pad combination. "PAD-CH" must match the
+  device setting "Pad MIDI Channels" (default 1/2).
+- **Looper** (underneath the pad grid): remote control for the device's
+  looper mode (REC, OVERDUB, DEL, UNDO/REDO, STOP ALL, tempo reset, BPM
+  fader). The device must be in looper mode itself. **STOP LOOP** sends an
+  explicit "stop sampling" (unlike REC's toggle, it always sends stop even
+  if the app's REC state drifted from the device's) — Roland's looper CC
+  set has no separate command for "stop only loop playback"; **STOP ALL**
+  is the device's own global stop and affects every sample, not just the
+  loop.
 
-## PTN: patterns, autopilot, looper
+## PTN: patterns, autopilot
 
 - **Grid:** pick a bank (A–J), tap a pattern (1–16) — the app sends the
   program change. Needs mode B and "PC Rx" ON; the device does not confirm,
   the highlight marks the last one sent.
 - **Autopilot:** wanders markov-style through the patterns — quantized every
   2/4/8 bars (tempo from clock or tap), within the chosen bank or across all.
-- **Looper:** remote control for the device's looper mode (REC, OVERDUB,
-  DEL, UNDO/REDO, STOP ALL, tempo reset, BPM fader). The device must be in
-  looper mode itself.
 
 ## JAM: pinned controls
 
