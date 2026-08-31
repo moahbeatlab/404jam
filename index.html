@@ -692,7 +692,7 @@
         <div id="scale-area">
           <div id="scale-grid"></div>
         </div>
-        <p class="pick-note" id="play-note">Chromatic: plays the current sample (CH 16, C2&ndash;C4).</p>
+        <p class="pick-note" id="play-note">Chromatic: pitches whichever sample you last tapped in PADS (CH 16, fixed - independent of the Pad MIDI Channels setting; C2&ndash;C4).</p>
       </section>
       <section id="view-jam">
         <div id="jam-head">
@@ -4132,7 +4132,7 @@ function renderPlay() {
     : mode === "scale"
       ? "Scale pads " + NOTE_NAMES[state.play.scaleRoot] + " " + SCALES[state.play.scaleType][0] + ": bottom left = root, " + (state.play.iso ? "rows a fourth apart (Move layout)" : "rows continuous") + ". Roots highlighted."
       : state.play.target === "sample"
-        ? "Chromatic: plays the current sample (CH 16, C2–C4)."
+        ? "Chromatic: pitches whichever sample you last tapped in PADS (CH 16, fixed - independent of the Pad MIDI Channels setting; C2–C4)."
         : "Vocoder: pitches for the INPUT vocoder (CH 11); pitch bend on the right.";
   if (mode === "pads") buildPads(); else if (mode === "scale") buildScale(); else buildKeys();
 }

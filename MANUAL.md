@@ -151,10 +151,12 @@ at the center. Slot 4 comes preconfigured as a slow drift.
 
 ## PLAY: keys, scale, pads
 
-- **KEYS:** keyboard. Target "SAMPLE CH16" plays the current sample
-  chromatically (C2–C4, octave paging on phones). Target "VOCODER CH11"
-  plays pitches for the INPUT vocoder — a **pitch-bend strip** appears on the
-  right (springs back to center).
+- **KEYS:** keyboard. Target "SAMPLE CH16" plays whichever sample you last
+  tapped in PADS, chromatically (C2–C4, octave paging on phones) — tap the
+  pad you want first, *then* switch to KEYS. CH 16 is fixed by the device
+  and has nothing to do with the "Pad MIDI Channels" setting used by PADS.
+  Target "VOCODER CH11" plays pitches for the INPUT vocoder — a
+  **pitch-bend strip** appears on the right (springs back to center).
 - **SCALE:** a 4×4 grid with only in-scale notes. Cycle root (C…B) and scale
   (major, minor, both pentatonics, Dorian, Mixolydian, blues) at the top.
   **ISO** = rows a fourth apart (Move/Push layout, chords as grips),
