@@ -323,8 +323,7 @@
   #view-pattern .pick-note, #view-play .pick-note { flex: none; }
   #loop-row, #auto-row { display: flex; flex-wrap: wrap; gap: 6px; flex: none; align-items: center; }
   #loop-row .pad, #auto-row .pad { height: 40px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 0 10px; }
-  #loop-row h4, #auto-row h4 { width: 100%; font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
-  #loop-bpm { flex: 1; min-width: 90px; accent-color: var(--accent); }
+  #auto-row h4 { width: 100%; font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; }
   /* play view: chromatic keys + pad board */
   #view-play { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
   body.play #view-play { display: flex; }
@@ -576,7 +575,7 @@
     #view-overview { overflow-x: auto; }
     #view-pattern { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
     #ptn-grid { flex: none; min-height: 210px; }
-    #view-pattern button, #loop-bpm { touch-action: pan-y; }
+    #view-pattern button { touch-action: pan-y; }
   }
   /* wide: desktop hover niceties */
   @media (hover: hover) {
@@ -680,16 +679,7 @@
           <div id="pad-banks"></div>
           <div id="pad-grid"></div>
           <div id="loop-row">
-            <h4>Looper (device in looper mode, CH 1)</h4>
-            <button id="lp-rec" class="pad">REC</button>
-            <button id="lp-recstop" class="pad">STOP LOOP</button>
-            <button id="lp-dub" class="pad">OVERDUB</button>
-            <button id="lp-del" class="pad">DEL</button>
-            <button id="lp-undo" class="pad">UNDO</button>
-            <button id="lp-redo" class="pad">REDO</button>
-            <button id="lp-stop" class="pad">STOP ALL</button>
-            <button id="lp-treset" class="pad">TEMPO RST</button>
-            <input id="loop-bpm" type="range" min="0" max="127" value="64" title="BPM / play rate (CC#90)">
+            <button id="lp-rec" class="pad" title="Looper REC/STOP (CC#88) - device must be in looper mode, CH 1">LOOPER REC</button>
           </div>
         </div>
         <div id="scale-area">
@@ -1041,11 +1031,9 @@
         the active pair again to flip to its other letter; all ten stay
         reachable. &#9733; = custom layout (hold to assign); PAD-CH must
         match the device setting &quot;Pad MIDI Channels&quot;. <b>Looper</b>
-        (below the pads) remote-controls the device's looper mode (REC,
-        OVERDUB, DEL, UNDO/REDO, STOP ALL, BPM) &ndash; <b>STOP LOOP</b> always
-        sends an explicit stop regardless of the app's own REC state; there's
-        no MIDI command for stopping only loop playback, so STOP ALL still
-        stops every sample, not just the loop.</p>
+        (below the pads): just <b>LOOPER REC</b>, toggling start/stop (CC#88).
+        Device must be in looper mode itself; the rest of the looper CC set
+        isn't exposed here - use the device directly for overdub/delete/undo/tempo.</p>
         <h3>PTN: patterns, autopilot</h3>
         <p>Pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
         same picker as PADS), tap a pattern (mode B + PC Rx ON; highlighted = last sent).
@@ -4898,27 +4886,9 @@ function boot() {
   $("jampreset-close").addEventListener("click", () => $("jampreset").classList.remove("open"));
   $("jampreset").addEventListener("pointerdown", (e) => { if (e.target === $("jampreset")) $("jampreset").classList.remove("open"); });
   $("jam-clear-btn").addEventListener("click", clearJam);
-  /* looper (device in looper mode, CH 1) */
+  /* looper (device in looper mode, CH 1) - just REC: toggles start/stop */
   let lpRec = false;
   $("lp-rec").addEventListener("click", () => { lpRec = !lpRec; Midi.send(0, 88, lpRec ? 127 : 0, true); $("lp-rec").classList.toggle("on", lpRec); });
-  $("lp-recstop").addEventListener("click", () => {
-    /* explicit, unconditional "stop sampling" (CC#88=0) - unlike the REC
-       toggle above, always sends stop regardless of the app's own lpRec
-       tracking, so it still works if that drifted from the device's real
-       state (MIDI has no confirmation, so REC can go stale). There's no
-       MIDI command that stops only loop playback - Roland's looper CC
-       table only exposes REC start/stop, not a separate play/pause. */
-    lpRec = false;
-    Midi.send(0, 88, 0, true);
-    $("lp-rec").classList.remove("on");
-  });
-  $("lp-dub").addEventListener("click", () => Midi.send(0, 89, 127, true));
-  $("lp-del").addEventListener("click", () => Midi.send(0, 87, 127, true));
-  $("lp-undo").addEventListener("click", () => Midi.send(0, 91, 127, true));
-  $("lp-redo").addEventListener("click", () => Midi.send(0, 91, 0, true));
-  $("lp-stop").addEventListener("click", () => Midi.send(0, 85, 127, true));
-  $("lp-treset").addEventListener("click", () => Midi.send(0, 86, 127, true));
-  $("loop-bpm").addEventListener("input", (e) => Midi.send(0, 90, +e.target.value, true));
   /* pattern autopilot */
   $("auto-on").addEventListener("click", () => { autoOn = !autoOn; autoLast = performance.now(); renderAuto(); });
   $("auto-bars").addEventListener("click", () => { state.auto.bars = AUTO_BARS[(AUTO_BARS.indexOf(state.auto.bars) + 1) % AUTO_BARS.length]; saveState(); renderAuto(); });

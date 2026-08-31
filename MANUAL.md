@@ -181,14 +181,10 @@ at the center. Slot 4 comes preconfigured as a slow drift.
   of ten. The **★** tab is a free layout: hold
   any field to assign it any bank+pad combination. "PAD-CH" must match the
   device setting "Pad MIDI Channels" (default 1/2).
-- **Looper** (underneath the pad grid): remote control for the device's
-  looper mode (REC, OVERDUB, DEL, UNDO/REDO, STOP ALL, tempo reset, BPM
-  fader). The device must be in looper mode itself. **STOP LOOP** sends an
-  explicit "stop sampling" (unlike REC's toggle, it always sends stop even
-  if the app's REC state drifted from the device's) — Roland's looper CC
-  set has no separate command for "stop only loop playback"; **STOP ALL**
-  is the device's own global stop and affects every sample, not just the
-  loop.
+- **Looper** (underneath the pad grid): just **LOOPER REC**, toggling
+  start/stop (CC#88). The device must be in looper mode itself. The rest
+  of the looper CC set (overdub, delete, undo/redo, tempo reset, BPM) isn't
+  exposed here - use the device directly for those.
 
 ## PTN: patterns, autopilot
 
