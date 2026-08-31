@@ -173,10 +173,12 @@ at the center. Slot 4 comes preconfigured as a slow drift.
   **LIN** = continuous. Roots are highlighted. Note: the 404's chromatic mode
   has its own scale/key setting — leave it on chromatic when playing from the
   app.
-- **PADS:** the pad board, laid out like the device (pad 1 top left). **A**
-  jumps to bank A, **F** jumps to bank F (the two Mode-B channel halves,
-  A–E / F–J) — individual banks within a half aren't reachable here, by
-  design, to keep the strip compact. The **★** tab is a free layout: hold
+- **PADS:** the pad board, laid out like the device (pad 1 top left). Banks
+  A–J as five pair buttons (A/F, B/G, C/H, D/I, E/J — pairing each bank
+  with its Mode-B channel-half counterpart): tap a different pair to jump
+  to it on your current half, tap the active pair again to flip to its
+  other letter. All ten banks stay reachable, just in five buttons instead
+  of ten. The **★** tab is a free layout: hold
   any field to assign it any bank+pad combination. "PAD-CH" must match the
   device setting "Pad MIDI Channels" (default 1/2).
 - **Looper** (underneath the pad grid): remote control for the device's
