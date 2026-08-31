@@ -1020,16 +1020,17 @@
         roots highlighted. <b>PADS:</b> pad board laid out like the device
         (pad 1 top left); banks A&ndash;J as five pair buttons (A/F, B/G, C/H,
         D/I, E/J, pairing each bank with its Mode-B channel-half counterpart)
-        &ndash; tap a different pair to jump to it on your current half, tap
-        the active pair again to flip to its other letter; all ten stay
-        reachable. &#9733; = custom layout (hold to assign); PAD-CH must
+        &ndash; each button remembers its own letter independently, tap the
+        active pair again to flip its other letter; all ten stay reachable.
+        &#9733; = custom layout (hold to assign); PAD-CH must
         match the device setting &quot;Pad MIDI Channels&quot;. <b>Looper</b>
         (below the pads): just <b>LOOPER REC</b>, toggling start/stop (CC#88).
         Device must be in looper mode itself; the rest of the looper CC set
         isn't exposed here - use the device directly for overdub/delete/undo/tempo.</p>
         <h3>PTN: patterns</h3>
         <p>Pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
-        same picker as PADS), tap a pattern (mode B + PC Rx ON; highlighted = last sent).</p>
+        same picker as PADS, each remembering its own letter independently),
+        tap a pattern (mode B + PC Rx ON; highlighted = last sent).</p>
         <h3>Tempo / Ableton Link</h3>
         <p>BPM reads MIDI clock from any port (AUM, Ableton, a bridge). Link route:
         the Link source sends clock to the SP-404 (UTILITY &gt; SYSTEM &gt; MIDI: &quot;MIDI Sync&quot;)
@@ -3846,13 +3847,27 @@ function lfoTap() {
 
 /* ===== pattern grid (Program Change; bank = MIDI channel; needs Mode B) ===== */
 const BANK_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+/* compact A/F-style bank pickers (PTN, PADS): each of the 5 pair buttons
+   remembers its OWN last-used letter independently, rather than a shared
+   "current half" that follows whichever bank happens to be selected - the
+   shared version let clicking a pair jump somewhere other than what its
+   own label last showed, which was genuinely easy to get lost in. */
+function pairJump(current, i, halfMem) {
+  let next;
+  if (current === i) next = i + 5;
+  else if (current === i + 5) next = i;
+  else next = halfMem[i] ? i + 5 : i;
+  halfMem[i] = next >= 5;
+  return next;
+}
+const ptnPairHalf = [false, false, false, false, false];
+const padPairHalf = [false, false, false, false, false];
 function renderPattern() {
   const bh = $("ptn-banks");
   bh.textContent = "";
   /* one button per row-pair (A/F, B/G, C/H, D/I, E/J - row i pairs bank i
      with bank i+5) instead of a button per bank, same compaction as PADS.
-     Tapping a different pair jumps to it on the current half; tapping the
-     already-active pair flips to its other letter. */
+     Each pair remembers its own last letter independently (pairJump). */
   for (let i = 0; i < 5; i++) {
     const b = el("button", (state.ptn.bank === i || state.ptn.bank === i + 5) ? "active" : "");
     b.appendChild(el("span", state.ptn.bank === i ? "sel" : "", BANK_NAMES[i]));
@@ -3860,9 +3875,7 @@ function renderPattern() {
     b.appendChild(el("span", state.ptn.bank === i + 5 ? "sel" : "", BANK_NAMES[i + 5]));
     /* click, not pointerdown: the view scrolls in phone landscape */
     b.addEventListener("click", () => {
-      if (state.ptn.bank === i) state.ptn.bank = i + 5;
-      else if (state.ptn.bank === i + 5) state.ptn.bank = i;
-      else state.ptn.bank = state.ptn.bank >= 5 && state.ptn.bank < 10 ? i + 5 : i;
+      state.ptn.bank = pairJump(state.ptn.bank, i, ptnPairHalf);
       saveState();
       renderPattern();
     });
@@ -3983,9 +3996,8 @@ function buildPads() {
   bh.textContent = "";
   /* compact bank picker: one button per row-pair (A/F, B/G, C/H, D/I, E/J -
      row i pairs bank i with bank i+5, the two Mode-B channel halves) instead
-     of a button per bank - still reaches all 10, just less space. Clicking
-     a different pair's button jumps to that pair's letter on the CURRENT
-     half; clicking the already-active pair toggles its other letter. */
+     of a button per bank - still reaches all 10, just less space. Each pair
+     remembers its own last letter independently (pairJump). */
   for (let i = 0; i < 5; i++) {
     const b = el("button", (state.play.padBank === i || state.play.padBank === i + 5) ? "active" : "");
     b.appendChild(el("span", state.play.padBank === i ? "sel" : "", BANK_NAMES[i]));
@@ -3993,9 +4005,7 @@ function buildPads() {
     b.appendChild(el("span", state.play.padBank === i + 5 ? "sel" : "", BANK_NAMES[i + 5]));
     b.addEventListener("pointerdown", (e) => {
       e.preventDefault();
-      if (state.play.padBank === i) state.play.padBank = i + 5;
-      else if (state.play.padBank === i + 5) state.play.padBank = i;
-      else state.play.padBank = state.play.padBank >= 5 && state.play.padBank < 10 ? i + 5 : i;
+      state.play.padBank = pairJump(state.play.padBank, i, padPairHalf);
       saveState();
       buildPads();
     });

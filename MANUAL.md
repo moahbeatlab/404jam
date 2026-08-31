@@ -175,10 +175,11 @@ at the center. Slot 4 comes preconfigured as a slow drift.
   app.
 - **PADS:** the pad board, laid out like the device (pad 1 top left). Banks
   A–J as five pair buttons (A/F, B/G, C/H, D/I, E/J — pairing each bank
-  with its Mode-B channel-half counterpart): tap a different pair to jump
-  to it on your current half, tap the active pair again to flip to its
-  other letter. All ten banks stay reachable, just in five buttons instead
-  of ten. The **★** tab is a free layout: hold
+  with its Mode-B channel-half counterpart): each button remembers its own
+  letter independently, so tapping it always returns you to wherever you
+  last left it; tap the active pair again to flip its other letter. All
+  ten banks stay reachable, just in five buttons instead of ten. The
+  **★** tab is a free layout: hold
   any field to assign it any bank+pad combination. "PAD-CH" must match the
   device setting "Pad MIDI Channels" (default 1/2).
 - **Looper** (underneath the pad grid): just **LOOPER REC**, toggling
@@ -189,9 +190,8 @@ at the center. Slot 4 comes preconfigured as a slow drift.
 ## PTN: patterns
 
 - **Grid:** pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
-  same compact picker as PADS: tap a different pair to jump to it on your
-  current half, tap the active pair again to flip its other letter), tap a
-  pattern (1–16) — the app sends the program change. Needs mode B and
+  same picker as PADS, each remembering its own letter independently), tap
+  a pattern (1–16) — the app sends the program change. Needs mode B and
   "PC Rx" ON; the device does not confirm, the highlight marks the last
   one sent.
 
