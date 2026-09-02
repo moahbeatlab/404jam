@@ -68,6 +68,11 @@ This is an unofficial project, not affiliated with or endorsed by Roland
 Corporation. "SP-404" is a trademark of Roland Corporation. Effect data is
 derived from the publicly available SP-404MK2 reference manual.
 
+## Demo / References
+
+- [404 BUS DRIVER: CONTROL YOUR SP-404MK2 FROM YOUR SMARTPHONE](https://www.youtube.com/watch?v=nbw5h7pACqI) — #sp404mk2 #tutorial #tipsntricks
+- [Trying This FREE MIDI Controller App Built for the SP-404 MKII](https://www.youtube.com/watch?v=-xxGHelR7Tc)
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
