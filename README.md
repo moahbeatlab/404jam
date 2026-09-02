@@ -1,4 +1,4 @@
-# 404 Busdriver
+# 404jam
 
 A free, browser-based MIDI controller for the **Roland SP-404 MkII** — a single
 HTML file, no installation, no dependencies, no account.
