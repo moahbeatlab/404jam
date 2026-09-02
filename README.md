@@ -70,8 +70,11 @@ derived from the publicly available SP-404MK2 reference manual.
 
 ## Demo / References
 
-- [404 BUS DRIVER: CONTROL YOUR SP-404MK2 FROM YOUR SMARTPHONE](https://www.youtube.com/watch?v=nbw5h7pACqI) — #sp404mk2 #tutorial #tipsntricks
-- [Trying This FREE MIDI Controller App Built for the SP-404 MKII](https://www.youtube.com/watch?v=-xxGHelR7Tc)
+[![404 BUS DRIVER: CONTROL YOUR SP-404MK2 FROM YOUR SMARTPHONE](https://img.youtube.com/vi/nbw5h7pACqI/hqdefault.jpg)](https://www.youtube.com/watch?v=nbw5h7pACqI)
+404 BUS DRIVER: CONTROL YOUR SP-404MK2 FROM YOUR SMARTPHONE — #sp404mk2 #tutorial #tipsntricks
+
+[![Trying This FREE MIDI Controller App Built for the SP-404 MKII](https://img.youtube.com/vi/-xxGHelR7Tc/hqdefault.jpg)](https://www.youtube.com/watch?v=-xxGHelR7Tc)
+Trying This FREE MIDI Controller App Built for the SP-404 MKII
 
 ## License
 
