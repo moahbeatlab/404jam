@@ -1,0 +1,566 @@
+  /* ============ 01 tokens ============ */
+  :root {
+    --bg: #121214; --panel: #1c1c20; --raised: #26262b; --line: #35353b;
+    --text: #e8e6e1; --muted: #8a8880;
+    --accent: #ff7a1a; --accent-dim: rgba(255,122,26,.25); --glow: rgba(255,122,26,.35);
+    --ok: #4cd07d; --warn: #ff4545;
+    /* the numeric LCD readouts (fader value, bpm, ...) are a physical dark
+       screen with light digits - fixed regardless of theme, like a real
+       device's display never flips to "light mode" */
+    --lcd-bg: #000; --lcd-text: #e8e6e1;
+    /* fader track backdrop: a separate pair from --panel/--raised because it
+       needs to read as "recessed" (darker than its surroundings) in dark
+       mode but "recessed" (also darker, just a lighter absolute value) in
+       light mode - inverting is wrong, it must stay relatively darker */
+    --track-bg: #0d0d0f; --track-line: #2c2c31;
+    --statusbar-h: 46px; --tabs-h: 60px;
+    --font-label: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  :root[data-theme="light"] {
+    --bg: #f3f2ee; --panel: #ffffff; --raised: #ebe9e4; --line: #d9d6cf;
+    --text: #201e1a; --muted: #726e64;
+    --accent: #ff7a1a; --accent-dim: rgba(255,122,26,.16); --glow: rgba(255,122,26,.32);
+    --ok: #1c9a54; --warn: #d8352f;
+    --track-bg: #e4e1d9; --track-line: #cac6bb;
+  }
+  /* ============ 02 reset + shell ============ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    position: fixed; inset: 0; width: 100%; height: 100dvh;
+    touch-action: none; overflow: hidden;
+    background: var(--bg); color: var(--text);
+    font-family: var(--font-label);
+    -webkit-font-smoothing: antialiased;
+    user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+    /* subtle film grain + vignette, no external assets */
+    background-image:
+      radial-gradient(ellipse at 50% 40%, rgba(255,255,255,.025), transparent 70%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+  button { font: inherit; color: inherit; background: none; border: none; cursor: pointer; touch-action: none; }
+  #app {
+    display: grid; height: 100dvh;
+    grid-template-rows: calc(var(--statusbar-h) + env(safe-area-inset-top)) var(--tabs-h) 1fr;
+    grid-template-columns: minmax(0, 1fr); /* no item may inflate the track */
+    grid-template-areas: "status" "tabs" "main";
+  }
+  .label { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; color: var(--muted); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .display {
+    background: var(--lcd-bg); border-radius: 4px; box-shadow: inset 0 0 0 1px #2a2a2e;
+    font-family: var(--font-mono); color: var(--lcd-text);
+    text-shadow: 0 0 6px rgba(232,230,225,.4);
+    background-image: repeating-linear-gradient(0deg, transparent 0 2px, rgba(255,255,255,.02) 2px 3px);
+  }
+  .pad {
+    background: var(--raised); border-radius: 8px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.4), 0 0 0 1px var(--line);
+  }
+  .pad.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow), inset 0 1px 0 rgba(255,255,255,.25); }
+  /* ============ 03 statusbar ============ */
+  #statusbar {
+    grid-area: status; display: flex; align-items: center; gap: 10px;
+    padding: env(safe-area-inset-top) calc(10px + env(safe-area-inset-right)) 0 calc(10px + env(safe-area-inset-left));
+    border-bottom: 1px solid var(--line); background: var(--panel);
+  }
+  #conn { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; height: 100%; text-align: left; }
+  #conn-dot { width: 9px; height: 9px; border-radius: 50%; background: #555; flex: none; }
+  #conn-dot.ok { background: var(--ok); box-shadow: 0 0 6px rgba(76,208,125,.6); }
+  #conn-dot.err { background: var(--warn); box-shadow: 0 0 6px rgba(255,69,69,.6); }
+  #conn-name { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tx { width: 7px; height: 7px; border-radius: 50%; background: #3a3a40; flex: none; transition: background .05s; }
+  #tx.blink { background: var(--accent); box-shadow: 0 0 6px var(--glow); }
+  #statusbar .sbtn {
+    height: 34px; padding: 0 12px; border-radius: 7px; flex: none;
+    font-size: 11px; letter-spacing: .07em; font-weight: 600;
+  }
+  #alloff { color: var(--warn); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), inset 0 -1px 0 rgba(0,0,0,.4), 0 0 0 1px var(--warn); }
+  #alloff.armed { background: var(--warn); color: #fff; box-shadow: 0 0 12px rgba(255,69,69,.5); }
+  /* ============ 04 bus tabs ============ */
+  #bustabs {
+    grid-area: tabs; display: flex; gap: 6px; align-items: stretch;
+    padding: 6px calc(8px + env(safe-area-inset-right)) 6px calc(8px + env(safe-area-inset-left));
+    background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  .bustab {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    font-size: 12px; font-weight: 600; letter-spacing: .06em; color: var(--muted);
+    position: relative; min-width: 0;
+  }
+  .bustab.active { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); }
+  .led { width: 10px; height: 10px; border-radius: 50%; flex: none;
+    background: radial-gradient(circle at 35% 35%, #4a4a50, #333338); box-shadow: inset 0 0 2px #000; }
+  .led.on { background: radial-gradient(circle at 35% 35%, #ffc48f, var(--accent)); box-shadow: 0 0 8px var(--glow); }
+  /* ============ 05 focus view ============ */
+  /* min-width 0: as a grid item, main must never inflate the track -
+     wide overview content scrolls inside #view-overview instead */
+  main { grid-area: main; min-height: 0; min-width: 0; position: relative; }
+  #view-focus { display: flex; flex-direction: column; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); gap: 10px; }
+  #focus-head { display: flex; gap: 10px; align-items: stretch; flex: none; height: 58px; }
+  #efx-pad { width: 104px; flex: none; font-size: 13px; font-weight: 700; letter-spacing: .1em; }
+  #fx-select { flex: 1; display: flex; gap: 6px; min-width: 0; }
+  #fx-prev, #fx-next { width: 46px; flex: none; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line); font-size: 17px; color: var(--muted); }
+  #fx-name {
+    flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    padding: 4px 10px; font-size: 15px; overflow: hidden;
+  }
+  #fx-name .fx-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  #fx-name .fx-sub { font-size: 9px; letter-spacing: .12em; color: var(--muted); text-shadow: none; }
+  /* one-tap favorite-effect chips for the active bus, right under the
+     header - saves a trip through the picker for effects you use a lot.
+     Collapses away entirely when the active bus's table has no favorites. */
+  #focus-favs { display: none; flex: none; gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+  #focus-favs.show { display: flex; }
+  #focus-favs .focus-fav-chip {
+    /* no star icon here - every chip in this strip is a favorite by
+       definition, so it'd just be redundant weight eating width */
+    flex: none; max-width: 84px; height: 26px; padding: 0 10px; border-radius: 13px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    font-size: 10.5px; font-weight: 700; letter-spacing: .02em; color: var(--text);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #focus-favs .focus-fav-chip.sel { background: var(--accent); color: #1a1105; box-shadow: 0 0 10px var(--glow); }
+  #focus-body { flex: 1; display: flex; gap: 10px; min-height: 0; min-width: 0; }
+  #faders { flex: 1; display: flex; gap: 10px; min-height: 0; min-width: 0; }
+  /* saved bus-scene pads for the active bus, recalled without leaving Focus.
+     Sits to the left of the fader area in both orientations (horiz-faders
+     only flips #faders' own internal direction, not #focus-body's) - width
+     collapses to 0 when the active bus has no captured scenes. */
+  #focus-scenes { flex: none; display: flex; flex-direction: column; gap: 6px; width: 0; overflow: hidden; min-height: 0; transition: width .15s; }
+  #focus-scenes.has-scenes { width: 80px; overflow-y: auto; touch-action: pan-y; }
+  #focus-scenes .focus-scene-item { flex: none; position: relative; }
+  #focus-scenes .focus-scene-btn { width: 100%; min-height: 48px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .01em; padding: 5px 4px; line-height: 1.3; overflow-wrap: break-word; hyphens: auto; }
+  #focus-scenes .focus-scene-edit {
+    position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 5px;
+    background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 10px;
+    display: flex; align-items: center; justify-content: center; color: var(--muted); z-index: 2;
+  }
+  /* ============ 06 fader component ============ */
+  .slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; min-height: 0; }
+  .slot.empty { opacity: .22; pointer-events: none; }
+  .fader { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; width: 100%; min-height: 0; position: relative; touch-action: none; }
+  .fader-val { font-size: 12px; padding: 3px 4px; min-width: 52px; max-width: 100%; text-align: center; flex: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fader-track-wrap { flex: 1; width: 100%; min-height: 0; position: relative; }
+  /* fat filled-bar fader (TouchOSC-style): the whole slot width is both the
+     visual bar and the drag surface - no thin track behind a small floating
+     pill, bigger to read and more forgiving to grab on phone/tablet.
+     JS only ever sets --pct; body.horiz-faders remaps which axis it drives,
+     so the same update() code drives both orientations. */
+  .fader-track { position: absolute; inset: 0; border-radius: 10px; background: var(--track-bg); box-shadow: inset 0 0 0 1px var(--track-line); overflow: hidden; }
+  .fader-fill { position: absolute; left: 0; right: 0; bottom: 0; height: var(--pct, 0%); background: var(--accent); }
+  /* the cap line needs a dark ring, not just the glow, so it stays visible
+     against a light-theme unfilled track and not just the dark-fill side */
+  .fader-thumb { position: absolute; left: 0; right: 0; bottom: var(--pct, 0%); height: 3px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 0 6px var(--glow); transform: translateY(50%); border-radius: 2px; }
+  .fader.drag .fader-fill { filter: brightness(1.3); }
+  .fader.drag .fader-thumb { height: 4px; box-shadow: 0 0 10px var(--glow); }
+  /* horizontal orientation: full-width strips stacked instead of narrow
+     columns, so a sideways drag actually has travel to work with. Scoped to
+     #faders (Focus view) only - the JAM grid's tiles are narrow columns by
+     design and a sideways fader has no room to work with there regardless
+     of this toggle, so JAM always stays vertical. */
+  body.horiz-faders #faders { flex-direction: column; }
+  body.horiz-faders #faders .slot { flex-direction: row; align-items: stretch; gap: 10px; }
+  body.horiz-faders #faders .slot-label { order: -1; align-self: center; width: 68px; flex: none; text-align: left; }
+  body.horiz-faders #faders .fader { flex-direction: row; align-items: stretch; }
+  /* value chip overlaid on the bar itself instead of its own flex column -
+     otherwise label + value together eat a third of the width before the
+     bar (the part that actually needs the room) even gets a look-in */
+  body.horiz-faders #faders .fader-val {
+    position: absolute; left: 6px; top: 50%; transform: translateY(-50%); z-index: 3;
+    min-width: 0; padding: 2px 7px; font-size: 10.5px;
+  }
+  body.horiz-faders #faders .fader-fill { left: 0; right: auto; top: 0; bottom: 0; height: 100%; width: var(--pct, 0%); }
+  body.horiz-faders #faders .fader-thumb { left: var(--pct, 0%); right: auto; top: 0; bottom: 0; height: 100%; width: 3px; transform: translateX(-50%); }
+  .slot-label { font-size: 10.5px; letter-spacing: .07em; text-transform: uppercase; font-weight: 600; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; flex: none; }
+  .bigval {
+    position: absolute; top: -6px; left: 50%; transform: translate(-50%, -100%);
+    font-size: 30px; padding: 4px 12px; z-index: 6; pointer-events: none;
+    opacity: 0; transition: opacity .15s; white-space: nowrap;
+  }
+  .bigval.show { opacity: 1; }
+  /* toggle pad + segment stepper in a slot */
+  .slot-toggle { flex: 1; width: 100%; max-width: 74px; border-radius: 8px; font-size: 11px; font-weight: 700; letter-spacing: .06em; min-height: 0; }
+  .seg { flex: 1; width: 100%; max-width: 74px; display: flex; flex-direction: column-reverse; gap: 4px; min-height: 0; }
+  .seg button { flex: 1; border-radius: 6px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 10px; font-weight: 600; color: var(--muted); min-height: 0; overflow: hidden; }
+  .seg button.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 10px var(--glow); }
+  /* horizontal orientation: these two control kinds aren't faders, but they
+     sit in the same row-of-slots and must not stay capped to a narrow
+     vertical-mode column width (Focus view only, see above) */
+  body.horiz-faders #faders .slot-toggle { max-width: none; }
+  body.horiz-faders #faders .seg { max-width: none; flex-direction: row; }
+  /* stepper popover */
+  #stepper { position: fixed; z-index: 40; display: none; gap: 8px; padding: 8px; border-radius: 10px; background: var(--panel); box-shadow: 0 6px 24px rgba(0,0,0,.6), 0 0 0 1px var(--line); }
+  #stepper.open { display: flex; }
+  #stepper button { width: 56px; height: 48px; border-radius: 8px; font-size: 20px; }
+  /* ============ 07 overview ============ */
+  #view-overview { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); gap: 8px; }
+  body.overview #view-overview { display: flex; }
+  body.overview #view-focus { display: none; }
+  .busstrip { flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; background: var(--panel); border-radius: 10px; padding: 8px; box-shadow: 0 0 0 1px var(--line); }
+  .busstrip.on { box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(255,122,26,.12); }
+  .strip-head { display: flex; align-items: center; gap: 8px; flex: none; }
+  .strip-head .label { flex: 1; text-align: left; }
+  .strip-efx { width: 64px; height: 44px; border-radius: 7px; font-size: 10px; font-weight: 700; letter-spacing: .06em; flex: none; }
+  .strip-fx { flex: none; padding: 5px 8px; font-size: 12px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .strip-faders { flex: 1; display: flex; gap: 5px; min-height: 0; }
+  .strip-faders .fader-val { display: none; }
+  .strip-faders .slot-label { font-size: 8.5px; }
+  /* ============ 08 picker ============ */
+  .overlay { position: fixed; inset: 0; z-index: 20; display: none; background: rgba(8,8,10,.72); }
+  .overlay.open { display: flex; }
+  #picker-panel {
+    margin-left: auto; width: min(420px, 100%); height: 100%;
+    background: var(--panel); box-shadow: -8px 0 30px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; position: relative;
+    padding-top: env(safe-area-inset-top);
+  }
+  #picker-head { display: flex; align-items: center; gap: 10px; padding: 12px calc(14px + env(safe-area-inset-right)) 12px 14px; border-bottom: 1px solid var(--line); flex: none; }
+  #picker-title { flex: 1; font-size: 13px; font-weight: 700; letter-spacing: .08em; }
+  #picker-close { width: 44px; height: 40px; border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 16px; }
+  #picker-body { flex: 1; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 10px calc(46px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) 12px; position: relative; }
+  .pick-cat { margin-top: 14px; }
+  .pick-cat h3 { font-size: 10px; letter-spacing: .12em; color: var(--muted); font-weight: 700; padding: 6px 2px; position: sticky; top: -10px; background: var(--panel); z-index: 2; }
+  .pick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pick-item {
+    min-height: 48px; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    display: flex; align-items: center; gap: 8px; padding: 4px 10px;
+    font-size: 12.5px; text-align: left; color: var(--text); position: relative;
+  }
+  .pick-item.sel { background: var(--accent); color: #1a1105; font-weight: 700; }
+  .pick-item.off-item { grid-column: 1 / -1; justify-content: center; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+  .pick-item.sel.off-item { color: #1a1105; }
+  .pick-item .star { margin-left: auto; font-size: 13px; color: var(--muted); opacity: .45; flex: none; }
+  .pick-item .star.fav { color: var(--accent); opacity: 1; }
+  .pick-item.sel .star.fav { color: #1a1105; }
+  /* buttons in scroll panels must not defeat the panel's pan-y (global button rule is none) */
+  .pick-item, .setup-btn, .snap-slot { touch-action: pan-y; }
+  .pick-note { font-size: 11px; line-height: 1.5; color: var(--muted); padding: 2px 2px 10px; }
+  @media (min-width: 700px) { .pick-grid { grid-template-columns: 1fr 1fr 1fr; } }
+  #jumpbar { position: absolute; right: calc(6px + env(safe-area-inset-right)); top: calc(70px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 4px; z-index: 3; }
+  #jumpbar button { width: 36px; height: 40px; font-size: 9px; font-weight: 700; color: var(--muted); border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); }
+  /* ============ 09 setup ============ */
+  #setup-panel, #snaps-panel, #xypick-panel, #padpick-panel, #help-panel, #jamedit-panel, #jampreset-panel, #xypreset-panel, #recipes-panel, #recipe-edit-panel {
+    margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 40px);
+    background: var(--panel); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 1px var(--line);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  #setup-head, #snaps-head, #xypick-head, #padpick-head, #help-head, #jamedit-head, #jampreset-head, #xypreset-head, #recipes-head, #recipe-edit-head { display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--line); flex: none; }
+  #setup-head h2, #snaps-head h2, #xypick-head h2, #padpick-head h2, #help-head h2, #jamedit-head h2, #jampreset-head h2, #xypreset-head h2, #recipes-head h2, #recipe-edit-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; font-weight: 700; }
+  #setup-body, #snaps-body, #xypick-body, #padpick-body, #help-body, #jamedit-body, #jampreset-body, #xypreset-body, #recipes-body, #recipe-edit-body { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 14px; }
+  #setup-body h4, #snaps-body h4, #xypick-body h4, #padpick-body h4, #jamedit-body h4, #jampreset-body h4, #xypreset-body h4, #recipes-body h4, #recipe-edit-body h4 { font-size: 10px; letter-spacing: .1em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  #jamedit-body > div > h4:not(:first-child) { margin-top: 4px; }
+  .je-field { display: flex; flex-direction: column; gap: 4px; font-size: 10px; letter-spacing: .08em; color: var(--muted); text-transform: uppercase; font-weight: 700; flex: 1; min-width: 90px; }
+  .je-field input, .je-field-wide { font: inherit; color: var(--text); background: #000; border: 1px solid var(--line); border-radius: 8px; padding: 9px 10px; min-height: 44px; }
+  .je-field-wide { width: 100%; text-transform: none; letter-spacing: normal; font-weight: 400; font-size: 14px; }
+  .hide { display: none !important; }
+  #help-panel { width: min(560px, calc(100% - 24px)); }
+  #help-body { gap: 6px; }
+  #help-body h3 { font-size: 11px; letter-spacing: .1em; color: var(--accent); font-weight: 700; margin-top: 10px; text-transform: uppercase; }
+  #help-body p { font-size: 12.5px; line-height: 1.65; color: var(--text); }
+  #help-body b { font-weight: 700; }
+  /* xy view */
+  #view-xy { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.xy #view-xy { display: flex; }
+  body.xy #view-focus, body.xy #view-overview { display: none; }
+  #xy-head { display: flex; gap: 8px; flex: none; height: 46px; }
+  #xy-xa, #xy-ya { flex: 1; min-width: 0; font-size: 12px; padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #xy-mom { width: 112px; flex: none; font-size: 10px; font-weight: 700; letter-spacing: .06em; border-radius: 8px; }
+  #xy-pad { flex: 1; position: relative; border-radius: 12px; background: #0d0d0f;
+    box-shadow: inset 0 0 0 1px #2c2c31; touch-action: none; overflow: hidden;
+    background-image:
+      repeating-linear-gradient(0deg, transparent 0 calc(25% - 1px), rgba(255,255,255,.04) calc(25% - 1px) 25%),
+      repeating-linear-gradient(90deg, transparent 0 calc(25% - 1px), rgba(255,255,255,.04) calc(25% - 1px) 25%); }
+  #xy-lineh, #xy-linev { position: absolute; background: rgba(255,122,26,.28); pointer-events: none; }
+  #xy-lineh { left: 0; right: 0; height: 1px; top: 50%; }
+  #xy-linev { top: 0; bottom: 0; width: 1px; left: 50%; }
+  #xy-cross { position: absolute; width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid var(--accent); box-shadow: 0 0 14px var(--glow);
+    transform: translate(-50%, -50%); pointer-events: none; left: 50%; top: 50%; }
+  #xy-vals { position: absolute; left: 10px; top: 8px; padding: 4px 9px; font-size: 11px; pointer-events: none; }
+  /* lfo row (inside xy view) */
+  #lfo-row { display: flex; gap: 6px; flex: none; height: 42px; }
+  #lfo-row .pad { border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; padding: 0 10px; flex: none; }
+  #lfo-target { flex: 1; min-width: 0; font-size: 11px; padding: 4px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* pattern view */
+  #view-pattern { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.pattern #view-pattern { display: flex; }
+  body.pattern #view-focus, body.pattern #view-overview, body.pattern #view-xy { display: none; }
+  #ptn-banks, #pad-banks { display: flex; flex-wrap: wrap; gap: 6px; flex: none; }
+  #ptn-banks button, #pad-banks button { flex: 1; min-width: 44px; height: 40px; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    font-size: 12px; font-weight: 700; color: var(--muted); }
+  #ptn-banks button.active, #pad-banks button.active { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), 0 0 0 1px var(--line); }
+  #ptn-banks button span, #pad-banks button span { opacity: .4; }
+  #ptn-banks button span.sel, #pad-banks button span.sel { opacity: 1; font-weight: 800; }
+  #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
+  #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
+  #ptn-grid button.sent { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow), inset 0 1px 0 rgba(255,255,255,.25); }
+  #pad-grid button.hit, #scale-grid button.hit { background: var(--accent); color: #1a1105; box-shadow: 0 0 14px var(--glow); }
+  #scale-grid button.root { box-shadow: inset 0 -3px 0 var(--accent), inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line); }
+  #scale-grid button.oor { opacity: .22; pointer-events: none; }
+  #pad-grid button .pl { display: block; font-size: 9px; font-weight: 600; color: inherit; opacity: .65; }
+  #view-pattern .pick-note, #view-play .pick-note { flex: none; }
+  #loop-row { display: flex; flex-wrap: wrap; gap: 6px; flex: none; align-items: center; }
+  #loop-row .pad { height: 40px; border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .04em; padding: 0 10px; }
+  /* play view: chromatic keys + pad board */
+  #view-play { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.play #view-play { display: flex; }
+  body.play #view-focus, body.play #view-overview, body.play #view-xy, body.play #view-pattern { display: none; }
+  #play-head { display: flex; gap: 6px; flex: none; height: 42px; }
+  #play-head .pad { border-radius: 8px; font-size: 10px; font-weight: 700; letter-spacing: .05em; padding: 0 12px; flex: none; }
+  #play-head .spacer { flex: 1; }
+  #keys-area { flex: 1; display: flex; gap: 8px; min-height: 0; }
+  #view-play.pads #keys-area, #view-play.scale #keys-area { display: none; }
+  #pads-area { flex: 1; display: none; flex-direction: column; gap: 10px; min-height: 0; }
+  #view-play.pads #pads-area { display: flex; }
+  #scale-area { flex: 1; display: none; flex-direction: column; gap: 10px; min-height: 0; }
+  #view-play.scale #scale-area { display: flex; }
+  #keys { flex: 1; position: relative; touch-action: none; min-width: 0; }
+  .key { position: absolute; bottom: 0; top: 0; border-radius: 0 0 6px 6px; }
+  .key.white { background: #e8e6e1; box-shadow: inset 0 0 0 1px #9a988f, inset 0 -6px 0 rgba(0,0,0,.08); }
+  .key.black { background: #1a1a1e; height: 56%; bottom: auto; z-index: 2; border-radius: 0 0 5px 5px; box-shadow: 0 3px 6px rgba(0,0,0,.5), inset 0 0 0 1px #000; }
+  .key.on { background: var(--accent); }
+  .key .kl { position: absolute; bottom: 6px; left: 0; right: 0; text-align: center; font-size: 9px; color: #6a685f; pointer-events: none; }
+  #bend { width: 54px; flex: none; border-radius: 8px; background: #0d0d0f; box-shadow: inset 0 0 0 1px #2c2c31; position: relative; touch-action: none; }
+  #bend.off { display: none; }
+  #bend-ind { position: absolute; left: 6px; right: 6px; height: 24px; top: calc(50% - 12px); border-radius: 5px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); pointer-events: none; }
+  #bend-ind::after { content: ""; position: absolute; left: 5px; right: 5px; top: 50%; height: 2px; transform: translateY(-50%); background: var(--accent); border-radius: 1px; }
+  /* lfo slot chips */
+  #lfo-slots { display: flex; gap: 4px; flex: none; }
+  #lfo-slots button { width: 34px; border-radius: 8px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 10px; font-weight: 700; color: var(--muted); position: relative; }
+  #lfo-slots button.sel { color: var(--text); box-shadow: inset 0 -3px 0 var(--accent), 0 0 0 1px var(--line); }
+  #lfo-slots button.running::after { content: ""; position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 5px var(--glow); }
+  /* bpm display */
+  #bpm { display: none; align-items: center; gap: 6px; padding: 4px 9px; flex: none;
+    background: #000; border-radius: 4px; box-shadow: inset 0 0 0 1px #2a2a2e;
+    font-family: var(--font-mono); font-size: 11px; color: var(--text);
+    text-shadow: 0 0 6px rgba(232,230,225,.4); }
+  #bpm.on { display: flex; }
+  #beat { width: 6px; height: 6px; border-radius: 50%; background: #3a3a40; }
+  #beat.tick { background: var(--accent); box-shadow: 0 0 5px var(--glow); }
+  /* snapshots */
+  .snap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .snap-slot { min-height: 64px; border-radius: 10px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3px; padding: 8px 32px 8px 12px; position: relative; color: var(--text); cursor: pointer; user-select: none; }
+  .snap-slot.empty { color: var(--muted); background: transparent; box-shadow: 0 0 0 1px var(--line); }
+  .snap-slot .sn-name { font-size: 12.5px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .snap-slot .sn-meta { font-size: 9px; letter-spacing: .08em; color: var(--muted); }
+  .snap-slot .sn-sum { font-size: 9.5px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sn-edit { width: 100%; background: #000; border: 1px solid var(--accent); color: var(--text);
+    border-radius: 5px; font: inherit; font-size: 12.5px; padding: 3px 6px; text-align: center;
+    user-select: text; -webkit-user-select: text; }
+  #snap-current { padding: 8px 10px; font-size: 11.5px; line-height: 1.65; white-space: pre-line; }
+  .snap-slot .sn-del { position: absolute; top: 2px; right: 2px; width: 30px; height: 30px; border-radius: 7px; color: var(--muted); font-size: 12px; }
+  #sync-status { font-size: 11px; color: var(--muted); letter-spacing: .05em; }
+  /* XY presets: curated templates + user-saved axis combos */
+  #xy-presets-btn { width: 84px; flex: none; font-size: 10px; font-weight: 700; letter-spacing: .05em; border-radius: 8px; }
+  .xy-custom-row { display: flex; align-items: stretch; gap: 6px; margin-bottom: 6px; }
+  .xy-custom-row .xy-custom-name { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xy-custom-icon { width: 40px; flex: none; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); color: var(--muted); font-size: 13px; }
+  .xy-custom-edit { flex: 1; min-width: 0; background: #000; border: 1px solid var(--accent); color: var(--text);
+    border-radius: 8px; font: inherit; font-size: 12.5px; padding: 0 10px; text-align: left;
+    user-select: text; -webkit-user-select: text; }
+  /* Recipe editor: one block per bus, each with an effect select, an
+     EFX on/off toggle, and however many labeled value fields that
+     effect actually has (reuses .je-field from the JAM control editor) */
+  .re-bus-block { padding: 10px; border-radius: 10px; background: var(--raised); box-shadow: 0 0 0 1px var(--line); display: flex; flex-direction: column; gap: 8px; }
+  .re-bus-block h4 { margin: 0; }
+  .re-fx-select { width: 100%; min-height: 44px; padding: 8px 10px; border-radius: 8px; background: #000; color: var(--text); border: 1px solid var(--line); font: inherit; font-size: 13px; }
+  .re-onoff { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: .05em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .re-onoff input { width: 20px; height: 20px; }
+  .re-fields { display: flex; flex-wrap: wrap; gap: 8px; }
+  #exchange { width: 100%; min-height: 90px; background: #000; color: var(--text);
+    font-family: var(--font-mono); font-size: 11px; border-radius: 6px;
+    border: 1px solid var(--line); padding: 8px; resize: vertical; margin-bottom: 8px; }
+  #rnd-btn { width: 46px; flex: none; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line);
+    font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--muted); }
+  #rnd-btn.undo { color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  #jam-clear-btn.undo { color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  #bus-save-btn { width: 46px; flex: none; border-radius: 8px; background: var(--raised);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line);
+    font-size: 9px; font-weight: 700; letter-spacing: .03em; color: var(--muted); }
+  .setup-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .setup-btn { min-height: 44px; padding: 8px 14px; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--line); font-size: 12.5px; }
+  .setup-btn.primary { background: var(--accent); color: #1a1105; font-weight: 700; }
+  #help-btn { color: var(--accent); font-weight: 700; letter-spacing: .03em;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 0 0 1px var(--accent);
+    display: inline-flex; align-items: center; gap: 7px; }
+  #help-btn svg { width: 15px; height: 15px; flex: none; }
+  .setup-btn.sel { box-shadow: 0 0 0 2px var(--accent); }
+  #diag { font-size: 12px; line-height: 1.6; color: var(--muted); }
+  #diag b { color: var(--text); font-weight: 600; }
+  #clock-diag { font-size: 12px; color: var(--muted); }
+  .infobox { border-left: 3px solid var(--accent); background: rgba(255,122,26,.06); border-radius: 0 8px 8px 0; padding: 10px 12px; font-size: 12.5px; line-height: 1.55; color: var(--text); }
+  .infobox .label { display: block; margin-bottom: 4px; color: var(--accent); }
+  /* ============ 09b jam view (programmable pinned MIDI controls) ============ */
+  #view-jam { display: none; height: 100%; padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; }
+  body.jam #view-jam { display: flex; }
+  body.jam #view-focus, body.jam #view-overview, body.jam #view-xy, body.jam #view-pattern, body.jam #view-play { display: none; }
+  #jam-head { display: flex; align-items: center; gap: 10px; flex: none; height: 40px; }
+  #jam-head .spacer { flex: 1; }
+  #jam-edit-btn { height: 100%; padding: 0 16px; border-radius: 8px; background: var(--raised); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 0 1px var(--line); font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+  #jam-edit-btn.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 12px var(--glow); }
+  #jam-grid {
+    flex: 1; min-height: 0; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain;
+    /* min-width tuned to land on exactly 4 columns across common phone
+       viewports (360-412px CSS width, e.g. iPhone 16 at 393, Moto G31 at
+       412) rather than 2 (too few) or 5 (cramped) */
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); grid-auto-rows: 128px; gap: 8px;
+    align-content: start;
+  }
+  @media (min-width: 700px) { #jam-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } }
+  .jam-slot {
+    border-radius: 10px; background: var(--panel); box-shadow: 0 0 0 1px var(--line);
+    display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 6px;
+    position: relative; min-width: 0; min-height: 0; touch-action: none;
+  }
+  .jam-slot .slot-label { max-width: 100%; }
+  .jam-add {
+    border-radius: 10px; background: transparent; box-shadow: 0 0 0 1px dashed var(--line);
+    border: 1px dashed var(--line); display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: var(--muted); touch-action: manipulation;
+  }
+  .jam-pad-btn { flex: 1; width: 100%; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    text-align: center; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; padding: 4px; }
+  .jam-slot.jam-pad .fader-val { display: none; } /* pads don't show a numeric readout */
+  /* value chip overlaid on the bar itself rather than its own row above it -
+     JAM tiles are small, that row was a meaningful chunk of a tile that's
+     already fighting for height */
+  .jam-slot .fader-val {
+    position: absolute; top: 5px; left: 50%; transform: translateX(-50%); z-index: 3;
+    min-width: 0; padding: 2px 8px; font-size: 11px;
+  }
+  /* edit mode: tiles lift slightly, gain a delete badge, and become drag handles */
+  body.jam-editing .jam-slot { box-shadow: 0 0 0 1px var(--line), inset 0 0 0 1px rgba(255,122,26,.35); }
+  body.jam-editing .jam-slot::before {
+    content: "✎"; position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 5px;
+    background: var(--raised); box-shadow: 0 0 0 1px var(--line); font-size: 11px; display: flex;
+    align-items: center; justify-content: center; color: var(--muted); pointer-events: none; z-index: 2;
+  }
+  body.jam-editing .jam-slot.jam-lift { transform: scale(1.05); box-shadow: 0 10px 26px rgba(0,0,0,.55), 0 0 0 2px var(--accent); z-index: 6; opacity: .95; }
+  body.jam-editing .jam-slot.jam-drop-before { box-shadow: inset 3px 0 0 var(--accent), 0 0 0 1px var(--line); }
+  body.jam-editing .jam-add { opacity: .5; pointer-events: none; }
+  /* swipe-to-delete: a big, mostly-horizontal swipe overrides the drop
+     target and tints the tile red as a "let go now and this is gone" cue -
+     grids can't rely on direction alone (dragging left is also "reorder
+     onto the tile to my left"), so this only arms past a real distance */
+  body.jam-editing .jam-slot.jam-delete-hint { background: var(--warn); box-shadow: 0 0 0 2px var(--warn); }
+  body.jam-editing .jam-slot.jam-delete-hint::before { content: "🗑"; background: transparent; box-shadow: none; }
+  /* select mode: mutually exclusive with edit/reorder so a tap is never
+     ambiguous between "select this" and "start dragging this" */
+  body.jam-selecting .jam-slot { box-shadow: 0 0 0 1px var(--line); }
+  body.jam-selecting .jam-slot::before {
+    content: ""; position: absolute; top: 6px; left: 6px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--raised); box-shadow: 0 0 0 1px var(--line); z-index: 2;
+  }
+  body.jam-selecting .jam-slot.jam-selected { box-shadow: 0 0 0 2px var(--accent); }
+  body.jam-selecting .jam-slot.jam-selected::before { content: "✓"; background: var(--accent); color: #1a1105; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  body.jam-selecting .jam-add { opacity: .5; pointer-events: none; }
+  #jam-select-btn.on { background: var(--accent); color: #1a1105; box-shadow: 0 0 12px var(--glow); }
+  #jam-batch-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; flex: none; padding: 8px; margin-bottom: 8px; border-radius: 8px; background: var(--panel); box-shadow: 0 0 0 1px var(--line); }
+  #jam-batch-bar .je-field { flex: none; min-width: 70px; }
+  /* rotary-knob alternative to the bar fader (Setup > JAM style). Both DOM
+     trees always exist so update() can paint whichever is hidden without a
+     branch; CSS just swaps which one is visible, scoped to #jam-grid so it
+     can never affect the Focus-view faders (they have no knob elements
+     anyway, but this keeps the same defensive scoping as horiz-faders). */
+  .jam-knob-wrap { display: none; flex: 1; width: 100%; min-height: 0; align-items: center; justify-content: center; }
+  body.jam-knobs #jam-grid .jam-knob-wrap { display: flex; }
+  body.jam-knobs #jam-grid .fader-track-wrap { display: none; }
+  .jam-knob-dial {
+    position: relative; width: 100%; aspect-ratio: 1; max-width: 74px; max-height: 100%;
+    border-radius: 50%; box-shadow: inset 0 0 0 1px var(--track-line);
+  }
+  .jam-knob-dial::after {
+    /* center cap sits over the conic-gradient background, leaving only its
+       outer edge visible as a ring - reads as a knob body, not a filled pie */
+    content: ""; position: absolute; inset: 7px; border-radius: 50%;
+    background: var(--raised); box-shadow: inset 0 0 0 1px var(--line), 0 1px 3px rgba(0,0,0,.35);
+  }
+  .jam-knob-pointer {
+    /* rests pointing straight up (12 o'clock, matching angle 0) so its
+       rotation reference agrees with the conic-gradient's - bottom:50% +
+       transform-origin:50% 100% pivots at the dial center with the bar
+       extending upward before any rotate() is applied */
+    position: absolute; left: 50%; bottom: 50%; width: 3px; height: 32%;
+    background: #fff; border-radius: 2px; transform-origin: 50% 100%; z-index: 1;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.4), 0 0 6px var(--glow);
+  }
+  .fader.drag .jam-knob-pointer { box-shadow: 0 0 10px var(--glow); }
+  /* ============ 10 no-midi hint ============ */
+  #nomidi { position: fixed; inset: 0; z-index: 30; display: none; background: var(--bg); padding: max(30px, env(safe-area-inset-top)) 24px 24px; overflow-y: auto; touch-action: pan-y; }
+  #nomidi.open { display: block; }
+  #nomidi .inner { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  #nomidi h1 { font-size: 20px; letter-spacing: .04em; }
+  #nomidi p { font-size: 13.5px; line-height: 1.65; color: var(--muted); }
+  #nomidi p b { color: var(--text); font-weight: 600; }
+  /* ============ 11 banner ============ */
+  #banner { position: fixed; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 25;
+    background: var(--warn); color: #fff; font-size: 12.5px; font-weight: 600; padding: 10px 16px; border-radius: 9px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.5); display: none; max-width: calc(100% - 28px); text-align: center; }
+  #banner.show { display: block; }
+  #banner.info { background: var(--raised); color: var(--text); box-shadow: 0 4px 18px rgba(0,0,0,.5), 0 0 0 1px var(--line); }
+  #banner:not(.info) { cursor: pointer; }
+  /* ============ 12 responsive ============ */
+  /* phone portrait <=520: overview becomes stacked cards, strip faders read-only */
+  @media (max-width: 520px) {
+    #view-overview { flex-direction: column; overflow-y: auto; touch-action: pan-y; }
+    .busstrip { flex: none; height: 116px; flex-direction: row; align-items: stretch; }
+    .strip-head { flex-direction: column; align-items: flex-start; gap: 6px; width: 92px; flex: none; justify-content: center; }
+    .strip-fx { width: 92px; align-self: center; flex: none; }
+    .strip-faders { pointer-events: none; }
+    .strip-faders .fader-thumb { display: none; }
+    #efx-pad { width: 96px; }
+    /* fx-select now carries 4 fixed-width buttons (prev/next/RND/SAVE) - at
+       46px each + gaps they'd starve the fx-name display of room to show
+       the effect name on a phone, so shrink them and the gap here rather
+       than let fx-name wrap/garble */
+    #fx-select { gap: 4px; }
+    #fx-prev, #fx-next, #rnd-btn, #bus-save-btn { width: 34px; }
+    #statusbar { gap: 6px; }
+    #statusbar .sbtn { padding: 0 6px; font-size: 10px; letter-spacing: .03em; }
+    .strip-efx { width: 100%; height: 44px; }
+    .strip-fx, .strip-head .label { touch-action: pan-y; }
+    #lfo-row { flex-wrap: wrap; height: auto; }
+    #lfo-row .pad, #lfo-target, #lfo-slots button { height: 40px; }
+    #lfo-target { min-width: 130px; }
+    #play-head { flex-wrap: wrap; height: auto; }
+    #play-head .pad { height: 38px; }
+  }
+  /* tablet/desktop overview: strips keep a playable width, container scrolls */
+  @media (min-width: 521px) {
+    .busstrip { min-width: 190px; touch-action: pan-x; }
+    #view-overview { overflow-x: auto; touch-action: pan-x; overscroll-behavior-x: contain; }
+    /* horizontal pan may start on card head/name (click won't fire after a pan);
+       faders and EFX pads keep touch-action none */
+    .strip-fx, .strip-head .label { touch-action: pan-x; }
+  }
+  /* phone landscape: tabs become a left rail */
+  @media (max-height: 500px) and (orientation: landscape) {
+    #app { grid-template-rows: calc(var(--statusbar-h) + env(safe-area-inset-top)) 1fr; grid-template-columns: calc(70px + env(safe-area-inset-left)) minmax(0, 1fr);
+      grid-template-areas: "status status" "tabs main"; }
+    #bustabs { flex-direction: column; border-bottom: none; border-right: 1px solid var(--line);
+      padding: 8px 6px calc(8px + env(safe-area-inset-bottom)) calc(6px + env(safe-area-inset-left)); }
+    #view-focus { flex-direction: row; }
+    #focus-head { flex-direction: column; height: auto; width: 120px; flex: none; }
+    #efx-pad { width: 100%; height: 58px; flex: none; }
+    #fx-select { flex-direction: column; }
+    #fx-prev, #fx-next, #rnd-btn, #bus-save-btn { width: 100%; height: 40px; flex: none; }
+    #fx-name { flex: 1; }
+    #view-overview { overflow-x: auto; }
+    #view-pattern { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
+    #ptn-grid { flex: none; min-height: 210px; }
+    #view-pattern button { touch-action: pan-y; }
+  }
+  /* wide: desktop hover niceties */
+  @media (hover: hover) {
+    .pick-item:hover, .setup-btn:hover, .bustab:hover { filter: brightness(1.15); }
+  }
