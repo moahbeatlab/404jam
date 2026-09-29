@@ -57,6 +57,14 @@ scenes), **XY presets**, and a few other additions — see below.
 Full documentation: [MANUAL.md](MANUAL.md) — also built into the app
 (Setup > Manual).
 
+## Android app
+
+A native wrapper around the same live site (no duplicated app code — Web
+MIDI, snapshots, everything behaves identically) is available from the
+[Releases page](https://github.com/moahbeatlab/404jam/releases). It's not on
+Google Play; download the APK and sideload it (enable "install unknown apps"
+for whatever app you open it with).
+
 ## Privacy
 
 Everything runs locally in your browser. No server, no tracking, no accounts;
