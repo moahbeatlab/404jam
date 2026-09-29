@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">404jam</string>
+    <string name="launch_url">https://moahbeatlab.github.io/404jam/</string>
+    <string name="host_url">moahbeatlab.github.io</string>
+
+    <!-- Declares this app's claimed association with the site above. Chrome
+         only actually trusts it (chrome-free, no URL bar) once the OTHER
+         half of the handshake exists: moahbeatlab.github.io/.well-known/
+         assetlinks.json (repo root, not the /404jam/ subpath) listing this
+         app's package name + signing certificate SHA-256 fingerprint. Until
+         that file exists, the app still runs fine, just with a visible
+         Chrome URL bar. -->
+    <string name="asset_statements">
+        [{
+            \"relation\": [\"delegate_permission/common.handle_all_urls\"],
+            \"target\": {\"namespace\": \"web\", \"site\": \"https://moahbeatlab.github.io\"}
+        }]
+    </string>
+</resources>
