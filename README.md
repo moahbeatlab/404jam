@@ -30,6 +30,14 @@ scenes), **XY presets**, and a few other additions — see below.
 - **Play surfaces:** chromatic keyboard (CH 16), scale pads with isometric
   Move-style layout, vocoder keyboard with pitch bend (CH 11), and a pad
   board incl. a freely assignable custom layout.
+- **PERF** (bottom bar): **Punch** — four snapshots of all the buses; hold one to
+  punch it in, let go and the buses go back to what they were (EDIT keeps what
+  you changed while holding; MORPH moves from now to a snapshot with a slider;
+  six presets fill a snapshot). **Motion** — record what the knobs of a bus do
+  over 1–8 bars, then loop it (4 slots per bus, speed, reverse, overdub;
+  follows the unit's MIDI clock, or the tap tempo). The LFOs also have a
+  **PUMP** shape (sidechain-style dip on the beat). Ideas and the behaviour
+  come from [404tui](https://github.com/moahbeatlab/404tui).
 - **Pattern grid** (Program Change, all ten banks), plus a one-button looper
   remote (REC).
 - **JAM tab:** your own pinned pads/faders — SP-404 bus parameters that stay
@@ -42,6 +50,7 @@ scenes), **XY presets**, and a few other additions — see below.
   of controls in one tap, built from real MIDI implementation charts (ships
   with an MC-101 4-track × Sound/Filter/Mod/FX template, in the device's own
   knob order).
+- **Look of 404tui:** flat tiles, one amber accent, a colour per bus, the views in a bar at the bottom.
 - **Light/dark theme**, an optional horizontal fader layout for wide
   tablets, and balance-style rotary knobs as an alternative to bars for JAM
   controls, all in Setup.
