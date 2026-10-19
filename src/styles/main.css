@@ -679,6 +679,7 @@
     #conn-name { display: none; }
     .viewtab { font-size: 11px; letter-spacing: 0; }
     #pn-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+    #view-perf[data-pmode="1"] #pn-slots { height: 150px; }
     #mo-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
     #mo-bar { grid-template-columns: auto 1fr auto; } #mo-bar small { display: none; }
   }
