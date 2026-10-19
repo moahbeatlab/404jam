@@ -287,6 +287,9 @@
   #ptn-banks button.active, #pad-banks button.active { color: var(--text); box-shadow: none; background: var(--accent); color: var(--ink); }
   #ptn-banks button span, #pad-banks button span { opacity: .4; }
   #ptn-banks button span.sel, #pad-banks button span.sel { opacity: 1; font-weight: 800; }
+  #ptn-banks .bankchip { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+  #ptn-banks .bankchip b { font-size: 20px; color: var(--accent); letter-spacing: 0; }
+  #lfpick-list .big b { text-transform: none; }
   #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
   #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
   #ptn-grid button.next { animation: ptn-blink .5s steps(1) infinite; }
@@ -642,7 +645,7 @@
   #lfpick-panel { margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 24px); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
   #lfpick-head { display: flex; align-items: center; padding: 12px 16px; flex: none; }
   #lfpick-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; }
-  #lfpick-list { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  #lfpick-list { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: 8px; }
   #lfpick-list .big { min-height: 56px; display: grid; place-content: center; gap: 2px; text-align: center; }
   #lfpick-list .big b { font-size: 16px; }
   #xy-pts-layer { position: absolute; inset: 0; pointer-events: none; }

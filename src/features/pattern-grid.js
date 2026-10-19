@@ -3,6 +3,7 @@ import { Pulse } from "../core/pulse.js";
 import { saveState, state } from "../core/store.js";
 import { $, el } from "../core/util.js";
 import { showBanner } from "../ui/banner.js";
+import { openPick } from "./lfo-page.js";
 
 /* ===== pattern grid (Program Change; bank = MIDI channel; needs Mode B) ===== */
 /* The unit takes a pattern over at the end of the one that plays and does not say when. The pattern that was tapped
@@ -35,27 +36,21 @@ function pairJump(current, i, halfMem) {
   halfMem[i] = next >= 5;
   return next;
 }
-const ptnPairHalf = [false, false, false, false, false];
 const padPairHalf = [false, false, false, false, false];
 function renderPattern() {
+  /* the bank: one chip that opens the list of banks (as in 404tui) */
   const bh = $("ptn-banks");
   bh.textContent = "";
-  /* one button per row-pair (A/F, B/G, C/H, D/I, E/J - row i pairs bank i
-     with bank i+5) instead of a button per bank, same compaction as PADS.
-     Each pair remembers its own last letter independently (pairJump). */
-  for (let i = 0; i < 5; i++) {
-    const b = el("button", (state.ptn.bank === i || state.ptn.bank === i + 5) ? "active" : "");
-    b.appendChild(el("span", state.ptn.bank === i ? "sel" : "", BANK_NAMES[i]));
-    b.appendChild(document.createTextNode("/"));
-    b.appendChild(el("span", state.ptn.bank === i + 5 ? "sel" : "", BANK_NAMES[i + 5]));
-    /* click, not pointerdown: the view scrolls in phone landscape */
-    b.addEventListener("click", () => {
-      state.ptn.bank = pairJump(state.ptn.bank, i, ptnPairHalf);
-      saveState();
-      renderPattern();
-    });
-    bh.appendChild(b);
-  }
+  const chip = el("button", "bankchip");
+  chip.appendChild(el("span", "", "BANK"));
+  chip.appendChild(el("b", "", BANK_NAMES[state.ptn.bank]));
+  chip.appendChild(el("i", "", "▾"));
+  chip.addEventListener("click", () => openPick("Patterns of bank", BANK_NAMES.map((n) => ({ t: n })), state.ptn.bank, (i) => {
+    state.ptn.bank = i;
+    saveState();
+    renderPattern();
+  }, 5));
+  bh.appendChild(chip);
   const g = $("ptn-grid");
   g.textContent = "";
   for (let pc = 0; pc < 16; pc++) {
@@ -79,4 +74,4 @@ function renderPattern() {
   }
 }
 
-export { BANK_NAMES, pairJump, ptnPairHalf, padPairHalf, renderPattern };
+export { BANK_NAMES, pairJump, padPairHalf, renderPattern };
