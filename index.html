@@ -131,7 +131,7 @@
         <div id="jam-grid"></div>
       </section>
       <section id="view-perf">
-        <div id="pf-sw" class="seg"><button data-pf="punch" class="on">PUNCH</button><button data-pf="motion">MOTION</button></div>
+        <div id="pf-sw" class="seg"><button data-pf="punch" class="on">PUNCH</button><button data-pf="motion">MOTION</button><button data-pf="lfo">LFO</button></div>
         <div id="pf-punch" class="pf-page">
           <div id="pn-bar">
             <div id="pn-mode" class="seg"><button>HOLD</button><button>EDIT</button><button>MORPH</button></div>
@@ -157,6 +157,12 @@
             <button id="mo-rev" class="big"><small>DIRECTION</small><b>fwd</b></button>
             <button id="mo-clear" class="big"><small>CLEAR</small><b>slot</b></button>
           </div>
+        </div>
+        <div id="pf-lfo" class="pf-page">
+          <div id="lf-sel" class="seg"></div>
+          <div id="lf-grid"></div>
+          <div id="lf-hint" class="hint"></div>
+          <button id="lf-start" class="big"></button>
         </div>
       </section>
     </main>
@@ -290,6 +296,16 @@
         <div class="setup-row" id="padpick-pad"></div>
         <div class="setup-row"><button id="padpick-none" class="setup-btn">Clear</button></div>
       </div>
+    </div>
+  </div>
+
+  <div id="lfpick" class="overlay">
+    <div id="lfpick-panel">
+      <div id="lfpick-head">
+        <h2 id="lfpick-title">LFO</h2>
+        <button id="lfpick-close" class="setup-btn">Close</button>
+      </div>
+      <div id="lfpick-list"></div>
     </div>
   </div>
 

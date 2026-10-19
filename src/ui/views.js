@@ -10,6 +10,7 @@ import { renderPlay } from "../features/play-view.js";
 import { updateRndBtn } from "../features/randomizer.js";
 import { buildMotion, renderMotion } from "../features/motion.js";
 import { buildPunch, renderPunch } from "../features/punch.js";
+import { buildLfoPage, renderLfoPage } from "../features/lfo-page.js";
 import { toggleXyView } from "../features/xy-presets.js";
 import { renderXy } from "../features/xy-pad.js";
 import { buildControl, controls, finishDragsIn, stripControls } from "./controls.js";
@@ -141,7 +142,7 @@ function setView(v) {
   if (v === "pattern") renderPattern();
   if (v === "play") renderPlay();
   if (v === "jam") buildJam();
-  if (v === "perf") { buildPunch(); buildMotion(); renderPunch(); renderMotion(); }
+  if (v === "perf") { buildPunch(); buildMotion(); buildLfoPage(); renderPunch(); renderMotion(); renderLfoPage(); }
 }
 function gotoFocus(bus) {
   setActiveBus(bus);
@@ -166,6 +167,7 @@ function buildTabs() {
       /* in the playable tablet/desktop overview a tab tap only sets the
          active bus - it must not yank the user out of the overview */
       if (document.body.classList.contains("overview") && !PHONE.matches) setActiveBusSilent(i);
+      else if (["xy", "pattern", "play", "jam", "perf"].includes(currentView())) setActiveBus(i); /* stay in the section chosen at the bottom */
       else gotoFocus(i);
     });
     host.appendChild(t);

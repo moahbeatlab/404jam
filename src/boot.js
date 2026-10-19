@@ -5,6 +5,7 @@ import { fxStep } from "./features/fx-nav.js";
 import { deleteJamEditor, jamDraft, quickSaveBusScene, renderJamEditor, saveJamEditor } from "./features/jam-editor.js";
 import { openJamPresets } from "./features/jam-presets.js";
 import { buildJam, clearJam, jamClearUndo, setJamClearUndo, jamEditing, setJamEditing, jamSceneActive, jamSelectMode, setJamSelectMode, jamSelected, releaseAllJamScenes, updateJamClearBtn } from "./features/jam.js";
+import { renderLfoPage } from "./features/lfo-page.js";
 import { LFO_DEPTHS, LFO_RATES, LFO_WAVES, LfoRt, lfoChips, lfoSel, setLfoSel, lfoTap, lfoToggle, renderLfo } from "./features/lfo.js";
 import { SCALES, buildPads, flushBend, flushNotesIn, padPickSlot, renderPlay, setupBend } from "./features/play-view.js";
 import { pullSync, pushSync, randomize, syncTimer, updateRndBtn } from "./features/randomizer.js";
@@ -168,7 +169,7 @@ function boot() {
   $("pf-sw").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
     $("view-perf").dataset.page = b.dataset.pf;
     $("pf-sw").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
-    renderMotion(); renderPunch();
+    renderMotion(); renderPunch(); renderLfoPage();
   }));
   $("alloff").addEventListener("click", allOff);
   $("snaps-btn").addEventListener("click", openSnaps);
@@ -218,7 +219,7 @@ function boot() {
   }, true);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("pnpreset").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("recipes").classList.remove("open"); $("recipe-edit").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
+    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("pnpreset").classList.remove("open"); $("lfpick").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("recipes").classList.remove("open"); $("recipe-edit").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
     if (e.target.tagName === "INPUT") return;
     if (e.key >= "1" && e.key <= "5") gotoFocus(+e.key - 1);
     else if (e.key === " ") { e.preventDefault(); const b = state.activeBus; sendSw(b, !state.buses[b].on); }
