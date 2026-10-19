@@ -6,7 +6,6 @@ import { deleteJamEditor, jamDraft, quickSaveBusScene, renderJamEditor, saveJamE
 import { openJamPresets } from "./features/jam-presets.js";
 import { buildJam, clearJam, jamClearUndo, setJamClearUndo, jamEditing, setJamEditing, jamSceneActive, jamSelectMode, setJamSelectMode, jamSelected, releaseAllJamScenes, updateJamClearBtn } from "./features/jam.js";
 import { renderLfoPage } from "./features/lfo-page.js";
-import { LFO_DEPTHS, LFO_RATES, LFO_WAVES, LfoRt, lfoChips, lfoSel, setLfoSel, lfoTap, lfoToggle, renderLfo } from "./features/lfo.js";
 import { SCALES, buildPads, flushBend, flushNotesIn, padPickSlot, renderPlay, setupBend } from "./features/play-view.js";
 import { pullSync, pushSync, randomize, syncTimer, updateRndBtn } from "./features/randomizer.js";
 import { renderMotion } from "./features/motion.js";
@@ -57,29 +56,11 @@ function boot() {
   $("xypick-close").addEventListener("click", () => $("xypick").classList.remove("open"));
   $("xypick").addEventListener("pointerdown", (e) => { if (e.target === $("xypick")) $("xypick").classList.remove("open"); });
   $("xypick-none").addEventListener("click", () => {
-    if (xyPickAxis === "lfo") {
-      const rt = LfoRt[lfoSel], old = state.lfos[lfoSel].target;
-      if (rt.on && old) setBusCc(old.bus, old.slot, rt.center, { force: true }); /* park */
-      state.lfos[lfoSel].target = null;
-      rt.on = false;
-      renderLfo();
-    } else { state.xy[xyPickAxis] = null; renderXy(); }
+    state.xy[xyPickAxis] = null; renderXy();
     saveState();
     $("xypick").classList.remove("open");
   });
   setupXyPad();
-  for (let i = 0; i < 4; i++) {
-    const c = el("button", "", String(i + 1));
-    c.addEventListener("click", () => { setLfoSel(i); renderLfo(); });
-    $("lfo-slots").appendChild(c);
-    lfoChips.push(c);
-  }
-  $("lfo-on").addEventListener("click", lfoToggle);
-  $("lfo-target").addEventListener("click", () => openXyPick("lfo"));
-  $("lfo-wave").addEventListener("click", () => { const l = state.lfos[lfoSel]; l.wave = (l.wave + 1) % LFO_WAVES.length; saveState(); renderLfo(); });
-  $("lfo-rate").addEventListener("click", () => { const l = state.lfos[lfoSel]; l.rate = (l.rate + 1) % LFO_RATES.length; saveState(); renderLfo(); });
-  $("lfo-depth").addEventListener("click", () => { const l = state.lfos[lfoSel]; l.depth = (l.depth + 1) % LFO_DEPTHS.length; saveState(); renderLfo(); });
-  $("lfo-tap").addEventListener("click", lfoTap);
   /* play view */
   setupBend();
   $("play-keys-btn").addEventListener("click", () => { state.play.mode = "keys"; saveState(); renderPlay(); });

@@ -3,10 +3,8 @@ import { fxDefFor } from "../core/conv.js";
 import { fxChange } from "../core/midi.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, el } from "../core/util.js";
-import { LfoRt, lfoSel, renderLfo } from "./lfo.js";
 import { renderXy, xyAssign } from "./xy-pad.js";
 import { showBanner } from "../ui/banner.js";
-import { setBusCc } from "../ui/controls.js";
 import { currentView, setActiveBus, setView } from "../ui/views.js";
 
 /* ===== XY presets: curated templates (real parameter names, like the JAM
@@ -159,9 +157,9 @@ function saveCurrentXyPreset() {
 let xyPickAxis = "x", xyPickBus = 0;
 function openXyPick(axis) {
   xyPickAxis = axis;
-  const a = axis === "lfo" ? state.lfos[lfoSel].target : xyAssign(axis);
+  const a = xyAssign(axis);
   xyPickBus = a ? a.bus : state.activeBus;
-  $("xypick-title").textContent = axis === "lfo" ? "LFO TARGET" : (axis === "x" ? "X" : "Y") + " AXIS";
+  $("xypick-title").textContent = (axis === "x" ? "X" : "Y") + " AXIS";
   renderXyPick();
   $("xypick").classList.add("open");
 }
@@ -176,30 +174,14 @@ function renderXyPick() {
   const sh = $("xypick-slot");
   sh.textContent = "";
   const def = fxDefFor(BUSES[xyPickBus].table, state.buses[xyPickBus].fx);
-  const cur = xyPickAxis === "lfo" ? state.lfos[lfoSel].target : xyAssign(xyPickAxis);
+  const cur = xyAssign(xyPickAxis);
   for (let i = 0; i < 6; i++) {
     const p = def && def.p[i];
     const sel = cur && cur.bus === xyPickBus && cur.slot === i;
     const b = el("button", "setup-btn" + (sel ? " sel" : ""), (i + 1) + " · " + (p ? p.n : "CTRL " + (i + 1)));
     b.addEventListener("click", () => {
-      if (xyPickAxis === "lfo") {
-        const rt = LfoRt[lfoSel];
-        const old = state.lfos[lfoSel].target;
-        if (rt.on && old && (old.bus !== xyPickBus || old.slot !== i))
-          setBusCc(old.bus, old.slot, rt.center, { force: true }); /* park the abandoned target */
-        LfoRt.forEach((r, j) => { /* one target belongs to one slot */
-          if (j !== lfoSel && r.on) {
-            const o = state.lfos[j].target;
-            if (o && o.bus === xyPickBus && o.slot === i) r.on = false;
-          }
-        });
-        state.lfos[lfoSel].target = { bus: xyPickBus, slot: i };
-        if (rt.on) { rt.center = state.buses[xyPickBus].cc[i]; rt.beats = 0; rt.lastT = performance.now(); }
-        renderLfo();
-      } else {
-        state.xy[xyPickAxis] = { bus: xyPickBus, slot: i };
-        renderXy();
-      }
+      state.xy[xyPickAxis] = { bus: xyPickBus, slot: i };
+      renderXy();
       saveState();
       $("xypick").classList.remove("open");
     });

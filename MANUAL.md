@@ -151,13 +151,15 @@ X/Y as…", rename with the ✎, tap the name to recall it later, ✕ to delete.
 Unlike templates these just re-point to whatever bus+slot you saved, no
 effect-switching involved.
 
-**LFO row:** four modulator slots (chips 1–4; orange dot = running). Per
-slot: target, waveform (SIN/TRI/SQR/SAW/**RND** = drift between random
-anchors), rate in note values (4/1 to 1/16), depth. The time source shows on
-the last button: **CLK** (MIDI clock present) or **TAP** — tap the beat a few
-times to set the tempo and anchor the phase. Grabbing the target fader pauses
-the LFO and re-centers it on your position; switching it off parks the value
-at the center. Slot 4 comes preconfigured as a slow drift.
+**LFOs** live on **PERF › LFO**: four modulator slots (orange outline = running). Tap
+a cell and its choices open: **BUS** and **KNOB** (the target; knobs carry the
+names of the effect), **SHAPE** (SIN/TRI/SQR/SAW/**RND** = drift between random
+anchors/**PUMP**), **RATE** in note values (4/1 to 1/16), **SHIFT** (the wave starts
+0, 1/4, 1/2 or 3/4 of a cycle later), **DEPTH**. **TEMPO** shows the time source:
+**CLK** (MIDI clock present) or **TAP** — tap the beat a few times to set the
+tempo and anchor the phase. Grabbing the target fader pauses the LFO and
+re-centers it on your position; switching it off parks the value at the
+center. Slot 4 comes preconfigured as a slow drift.
 
 ## PLAY: keys, scale, pads
 
