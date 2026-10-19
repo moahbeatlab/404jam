@@ -645,12 +645,15 @@
   #lfpick-list .big b { font-size: 16px; }
   #lf-sel button.running:not(.on) { box-shadow: inset 0 0 0 2px var(--accent); }
   #lf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); flex: none; }
+  #lf-depth { position: relative; flex: none; height: 64px; border-radius: var(--r); background: var(--raised); overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
+  #lf-depth i { position: absolute; inset: 0 auto 0 0; width: 50%; background: rgba(255,255,255,.14); }
+  #lf-depth b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 15px; letter-spacing: .04em; text-shadow: 0 0 4px #000a; }
+  .lf-cell[hidden] { display: none; }
   .lf-cell { min-height: 60px; display: grid; place-content: center; gap: 2px; text-align: center; padding: 6px; }
   .lf-cell small { letter-spacing: .12em; font-weight: 600; font-size: 10px; }
   .lf-cell b { font-size: 16px; line-height: 1.1; overflow-wrap: anywhere; }
   #lf-start { flex: 1; min-height: 80px; font-size: 16px; }
-  @media (orientation: portrait) { .lf-cell:last-child { grid-column: span 3; } }
-  @media (orientation: landscape) { #lf-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); } #lf-start { min-height: 56px; } }
+  @media (orientation: landscape) { #lf-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } #lf-start { min-height: 56px; } }
   #pnpreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; }
   .pn-target { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; padding: 0 16px 8px; }
   .pn-target small, #mo-bar small { color: var(--muted); font-size: .72em; letter-spacing: .08em; font-weight: 600; }

@@ -10,7 +10,6 @@ import { queueSlotRender, setBusCc } from "../ui/controls.js";
 /* ===== beat LFOs (4 slots: 3 LFOs + drift; clock-synced, tap fallback) ===== */
 const LFO_WAVES = ["SIN", "TRI", "SQR", "SAW", "RND", "PUMP"]; /* PUMP dips on the beat and swells back: sidechain-style ducking */
 const LFO_RATES = [["4/1", 16], ["2/1", 8], ["1/1", 4], ["1/2", 2], ["1/4", 1], ["1/8", 0.5], ["1/16", 0.25]];
-const LFO_DEPTHS = [25, 50, 75, 100];
 const LfoRt = [0, 1, 2, 3].map(() => ({ on: false, beats: 0, lastT: 0, center: 64, cyc: -1, ra: 0, rb: 0 }));
 let lfoSel = 0, lfoTaps = [];
 function setLfoSel(v) { lfoSel = v; }
@@ -66,7 +65,7 @@ setInterval(() => {
       if (k !== rt.cyc) { rt.cyc = k; rt.ra = rt.rb; rt.rb = Math.random() * 2 - 1; }
       w = rt.ra + (rt.rb - rt.ra) * ph;
     }
-    const amp = LFO_DEPTHS[cfg.depth] / 100 * (wave === "PUMP" ? 127 : 63.5);
+    const amp = cfg.amt / 100 * (wave === "PUMP" ? 127 : 63.5);
     const cc = clamp(Math.round(rt.center + w * amp), 0, 127);
     if (b.cc[t.slot] !== cc) {
       b.cc[t.slot] = cc; /* no saveState: a wobbling value is not worth persisting */
@@ -99,4 +98,4 @@ function lfoTap() {
 }
 
 const LFO_SHIFTS = ["0", "1/4", "1/2", "3/4"];
-export { LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LFO_DEPTHS, LfoRt, lfoSel, setLfoSel, lfoTaps, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };
+export { LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LfoRt, lfoSel, setLfoSel, lfoTaps, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };

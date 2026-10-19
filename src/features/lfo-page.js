@@ -1,8 +1,8 @@
 import { fxDefFor } from "../core/conv.js";
 import { saveState, state } from "../core/store.js";
-import { $, BUSES, el } from "../core/util.js";
+import { $, BUSES, clamp, el } from "../core/util.js";
 import { setBusCc } from "../ui/controls.js";
-import { LFO_SHIFTS, LFO_DEPTHS, LFO_RATES, LFO_WAVES, LfoRt, clockAlive, lfoBpm, lfoHooks, lfoSel, lfoTap, lfoToggle, renderLfo, setLfoSel } from "./lfo.js";
+import { LFO_SHIFTS, LFO_RATES, LFO_WAVES, LfoRt, clockAlive, lfoBpm, lfoHooks, lfoSel, lfoTap, lfoToggle, renderLfo, setLfoSel } from "./lfo.js";
 
 /* ===== PERF > LFO: the LFO page of 404tui. Tap a cell and the choices open; the LFOs are the same four as on the XY page. ===== */
 let built = false;
@@ -64,12 +64,29 @@ function build() {
   cell("wave", "SHAPE", () => openPick("SHAPE", LFO_WAVES.map((w) => ({ t: w, s: { RND: "drift", PUMP: "duck on the beat" }[w] })), cfg().wave, (i) => { cfg().wave = i; saveState(); renderLfo(); }));
   cell("rate", "RATE", () => openPick("RATE (one cycle)", LFO_RATES.map((r) => ({ t: r[0], s: r[1] >= 4 ? r[1] / 4 + (r[1] === 4 ? " bar" : " bars") : "" })), cfg().rate, (i) => { cfg().rate = i; saveState(); renderLfo(); }));
   cell("shift", "SHIFT", () => openPick("SHIFT (start of the cycle)", LFO_SHIFTS.map((x) => ({ t: x, s: x === "0" ? "in step" : "of a cycle later" })), cfg().shift | 0, (i) => { cfg().shift = i; saveState(); renderLfo(); }));
-  cell("depth", "DEPTH", () => openPick("DEPTH", LFO_DEPTHS.map((d) => ({ t: d + "%" })), cfg().depth, (i) => { cfg().depth = i; saveState(); renderLfo(); }));
-  cell("tap", "TEMPO", lfoTap);
+  cell("tap", "TEMPO", lfoTap); /* only there while the unit sends no clock */
+  /* DEPTH: a fader, drag it from left to right */
+  const fd = $("lf-depth");
+  let drag = null;
+  const setAmt = (e) => {
+    const r = fd.getBoundingClientRect();
+    cfg().amt = Math.round(clamp((e.clientX - r.left) / r.width, 0, 1) * 100);
+    paintDepth();
+  };
+  fd.addEventListener("pointerdown", (e) => { e.preventDefault(); fd.setPointerCapture(e.pointerId); drag = e.pointerId; setAmt(e); });
+  fd.addEventListener("pointermove", (e) => { if (drag === e.pointerId) setAmt(e); });
+  const endDrag = (e) => { if (drag !== e.pointerId) return; drag = null; saveState(); };
+  fd.addEventListener("pointerup", endDrag); fd.addEventListener("pointercancel", endDrag);
+  setInterval(() => { if (document.body.classList.contains("perf") && $("view-perf").dataset.page === "lfo") render(); }, 1000); /* the clock comes and goes */
   $("lf-start").addEventListener("click", lfoToggle);
   $("lfpick-close").addEventListener("click", () => $("lfpick").classList.remove("open"));
   $("lfpick").addEventListener("pointerdown", (e) => { if (e.target === $("lfpick")) $("lfpick").classList.remove("open"); });
   lfoHooks.push(render);
+}
+function paintDepth() {
+  const a = cfg().amt;
+  $("lf-depth").querySelector("i").style.width = a + "%";
+  $("lf-depth").querySelector("b").textContent = "DEPTH " + a + "%";
 }
 const set = (id, txt) => { cells[id].querySelector("b").textContent = txt; };
 function render() {
@@ -81,8 +98,9 @@ function render() {
   set("wave", LFO_WAVES[c.wave]);
   set("rate", LFO_RATES[c.rate][0]);
   set("shift", LFO_SHIFTS[c.shift | 0]);
-  set("depth", LFO_DEPTHS[c.depth] + "%");
-  set("tap", (clockAlive() ? "CLK " : "TAP ") + Math.round(lfoBpm()));
+  paintDepth();
+  set("tap", "TAP " + Math.round(lfoBpm()));
+  cells.tap.hidden = clockAlive();
   const st = $("lf-start");
   st.classList.toggle("on", on);
   st.textContent = on ? "LFO " + (lfoSel + 1) + " ON  ·  tap to stop" : t ? "START LFO " + (lfoSel + 1) : "choose BUS and KNOB first";
