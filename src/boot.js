@@ -1,6 +1,6 @@
 import { Midi } from "./core/midi.js";
 import { flushState, loadState, saveState, state } from "./core/store.js";
-import { $, BUSES, clamp, el } from "./core/util.js";
+import { $, BUSES, VERSION, clamp, el } from "./core/util.js";
 import { fxStep } from "./features/fx-nav.js";
 import { deleteJamEditor, jamDraft, quickSaveBusScene, renderJamEditor, saveJamEditor } from "./features/jam-editor.js";
 import { openJamPresets } from "./features/jam-presets.js";
@@ -39,6 +39,7 @@ function boot() {
   $("fx-name").addEventListener("click", () => openPicker(state.activeBus));
   $("fx-prev").addEventListener("click", () => fxStep(-1));
   $("fx-next").addEventListener("click", () => fxStep(1));
+  $("ver").textContent = "v" + VERSION;
   $("view-toggle").addEventListener("click", toggleView);
   /* Menu: the buttons that made the status bar too wide (they stay in the page, hidden, and are pressed from here) */
   $("menu-btn").addEventListener("click", () => {
