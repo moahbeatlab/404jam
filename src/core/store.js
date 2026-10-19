@@ -36,6 +36,8 @@ let state = {
   jamKnobs: false, /* Setup toggle: rotary knobs instead of bars for JAM faders */
   theme: "dark", /* Setup toggle: "dark" | "light" */
   jam: { slots: [] }, /* JAM tab: user-programmable pinned bus params + raw MIDI */
+  xyPts: [null, null, null, null], /* XY: 4 saved points {x,y} (0-127, null = axis not assigned then) */
+  xyMorph: { a: 0, b: 1, mode: 0, time: 2 }, /* mode 0 ping-pong, 1 once, 2 manual; time: index of XY_TIMES */
   xyPresets: [], /* XY tab: user-saved axis combos, { id, name, x:{bus,slot}, y:{bus,slot}, mom } */
   recipes: [], /* full 5-bus presets typed in from recipe cards, { id, name, buses:[{fx,cc[6],on} x5] } - populated by initFactoryRecipes(), called from loadState() */
 };
@@ -164,6 +166,19 @@ function loadState() {
       }
       state.xy.mom = !!s.xy.mom;
     }
+    if (Array.isArray(s.xyPts)) {
+      for (let i = 0; i < 4; i++) {
+        const r = s.xyPts[i], ok = (v) => v === null || (v >= 0 && v <= 127);
+        if (r && typeof r === "object" && ok(r.x) && ok(r.y)) state.xyPts[i] = { x: r.x === null ? null : r.x | 0, y: r.y === null ? null : r.y | 0 };
+      }
+    }
+    if (s.xyMorph && typeof s.xyMorph === "object") {
+      const m = s.xyMorph;
+      if (m.a >= 0 && m.a < 4) state.xyMorph.a = m.a | 0;
+      if (m.b >= 0 && m.b < 4) state.xyMorph.b = m.b | 0;
+      if (m.mode >= 0 && m.mode < 3) state.xyMorph.mode = m.mode | 0;
+      if (m.time >= 0 && m.time < 6) state.xyMorph.time = m.time | 0;
+    }
     const lfoSrcs = Array.isArray(s.lfos) ? s.lfos : (s.lfo ? [s.lfo] : []);
     lfoSrcs.slice(0, 4).forEach((l, i) => {
       if (!l || typeof l !== "object") return;
@@ -234,7 +249,7 @@ function loadState() {
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, punch: state.punch, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, xyPts: state.xyPts, xyMorph: state.xyMorph, lfos: state.lfos, punch: state.punch, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {

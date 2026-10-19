@@ -5,6 +5,8 @@ import { $, BUSES, CC_CTRL, clamp } from "../core/util.js";
 import { renderLfo } from "./lfo.js";
 import { setBusCc } from "../ui/controls.js";
 
+const xyHooks = []; /* the points and morph bar of the XY page redraw from renderXy */
+
 /* ===== XY pad (third view, absolute Kaoss-style position = value) ===== */
 function xyAssign(axis) { return state.xy[axis]; }
 function xyParam(a) {
@@ -45,6 +47,7 @@ function renderXy() {
   positionCross(ax ? state.buses[ax.bus].cc[ax.slot] / 127 : 0.5,
                 ay ? 1 - state.buses[ay.bus].cc[ay.slot] / 127 : 0.5);
   updateXyVals();
+  xyHooks.forEach((f) => f());
 }
 function setupXyPad() {
   const pad = $("xy-pad");
@@ -102,4 +105,4 @@ function setupXyPad() {
   pad.addEventListener("pointercancel", end);
 }
 
-export { xyAssign, xyParam, xyLabelText, positionCross, updateXyVals, renderXy, setupXyPad };
+export { xyHooks, xyAssign, xyParam, xyLabelText, positionCross, updateXyVals, renderXy, setupXyPad };

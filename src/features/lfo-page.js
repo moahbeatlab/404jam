@@ -22,7 +22,13 @@ function setTarget(bus, slot) {
   saveState();
   renderLfo();
 }
+let pickBound = false;
 function openPick(title, opts, cur, pick) {
+  if (!pickBound) { /* the choices overlay is shared by the LFO page and the XY morph bar, so its buttons are bound on first use */
+    pickBound = true;
+    $("lfpick-close").addEventListener("click", () => $("lfpick").classList.remove("open"));
+    $("lfpick").addEventListener("pointerdown", (e) => { if (e.target === $("lfpick")) $("lfpick").classList.remove("open"); });
+  }
   $("lfpick-title").textContent = title;
   const list = $("lfpick-list");
   list.replaceChildren();
@@ -67,8 +73,6 @@ function build() {
   cell("depth", "DEPTH", () => openPick("DEPTH", LFO_DEPTHS.map((d) => ({ t: d + "%" })), cfg().depth, (i) => { cfg().depth = i; saveState(); renderLfo(); }));
   cell("tap", "TEMPO", lfoTap);
   $("lf-start").addEventListener("click", lfoToggle);
-  $("lfpick-close").addEventListener("click", () => $("lfpick").classList.remove("open"));
-  $("lfpick").addEventListener("pointerdown", (e) => { if (e.target === $("lfpick")) $("lfpick").classList.remove("open"); });
   lfoHooks.push(render);
 }
 const set = (id, txt) => { cells[id].querySelector("b").textContent = txt; };
@@ -89,4 +93,4 @@ function render() {
   $("lf-hint").textContent = clockAlive() ? "Runs on the clock of the unit." : "No MIDI clock from the unit: the LFOs run on the tap tempo (tap TEMPO in the beat).";
 }
 
-export { build as buildLfoPage, render as renderLfoPage };
+export { openPick, build as buildLfoPage, render as renderLfoPage };

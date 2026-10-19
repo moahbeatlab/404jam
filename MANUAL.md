@@ -151,6 +151,15 @@ X/Y as…", rename with the ✎, tap the name to recall it later, ✕ to delete.
 Unlike templates these just re-point to whatever bus+slot you saved, no
 effect-switching involved.
 
+**POINTS and MORPH:** under the pad are four point buttons. **Hold** one to save where
+the pad is (the values of X and Y); **tap** it to jump there. **FROM** and **TO**
+choose the two points to morph between, **TIME** how long one way takes (1 beat
+to 8 bars, on the clock of the unit, else the tap tempo), **MODE** how it moves:
+**PING-PONG** (there and back, until you press STOP), **ONCE** (one way, then it
+stops; the next GO goes the other way) or **MANUAL** (drag the bar under the
+buttons). A finger on the pad stops a running morph. CLEAR (tapped twice) removes
+all four points. The points are kept with the rest of the state.
+
 **LFOs** live on **PERF › LFO**: four modulator slots (orange outline = running). Tap
 a cell and its choices open: **BUS** and **KNOB** (the target; knobs carry the
 names of the effect), **SHAPE** (SIN/TRI/SQR/SAW/**RND** = drift between random

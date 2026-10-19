@@ -64,9 +64,23 @@
         <div id="xy-pad">
           <div id="xy-lineh"></div>
           <div id="xy-linev"></div>
+          <div id="xy-pts-layer"></div>
           <div id="xy-cross"></div>
           <div id="xy-vals" class="display mono"></div>
         </div>
+        <div id="xy-pts">
+          <div id="xp-btns"></div>
+          <button id="xp-clear" class="pad">CLEAR</button>
+        </div>
+        <div id="xy-morph">
+          <button id="xm-a" class="big"><small>FROM</small><b>1</b></button>
+          <button id="xm-b" class="big"><small>TO</small><b>2</b></button>
+          <button id="xm-mode" class="big"><small>MODE</small><b>PING-PONG</b></button>
+          <button id="xm-time" class="big"><small>TIME</small><b>1 bar</b></button>
+          <button id="xm-go" class="big">GO</button>
+        </div>
+        <div id="xm-bar"><i></i></div>
+        <div id="xy-hint" class="hint"></div>
       </section>
       <section id="view-pattern">
         <div id="ptn-banks"></div>
@@ -489,7 +503,9 @@
         <b>hold saves</b> with inline naming, &#10005; deletes. Export/import as JSON &ndash;
         also for moving snapshots between devices.</p>
         <h3>XY pad</h3>
-        <p>Assign both axes at the top; position = value. <b>MOMENTARY</b> springs back on release.</p>
+        <p>Assign both axes at the top; position = value. <b>MOMENTARY</b> springs back on release.
+        <b>Hold</b> one of the four point buttons to save the pad&rsquo;s position, tap it to go there.
+        FROM/TO pick two points, TIME and MODE (PING-PONG, ONCE, MANUAL bar) set the morph between them.</p>
         <h3>LFOs (PERF &rsaquo; LFO)</h3>
         <p>Four LFOs. Tap a cell to see its choices: BUS and KNOB (the target), SHAPE
         (SIN/TRI/SQR/SAW/<b>RND</b> = drift/<b>PUMP</b>), RATE in note values, SHIFT (start

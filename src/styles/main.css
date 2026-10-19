@@ -643,6 +643,36 @@
   #lfpick-list { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   #lfpick-list .big { min-height: 56px; display: grid; place-content: center; gap: 2px; text-align: center; }
   #lfpick-list .big b { font-size: 16px; }
+  #xy-pts-layer { position: absolute; inset: 0; pointer-events: none; }
+  .xy-pt { position: absolute; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 800; color: var(--text); background: var(--raised); box-shadow: inset 0 0 0 2px var(--muted); }
+  .xy-pt.a, .xy-pt.b { box-shadow: inset 0 0 0 2px var(--accent); color: var(--accent); }
+  .xy-pt.b { background: var(--accent-dim); }
+  #xy-pts { display: flex; gap: var(--gap); flex: none; }
+  #xp-btns { flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--gap); }
+  .xp-pt { height: 46px; border-radius: 10px; font-size: 16px; font-weight: 800; position: relative; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+  .xp-pt.empty { background: var(--tile-empty); color: var(--faint); }
+  .xp-pt.on:not(.empty) { background: var(--accent); color: var(--ink); }
+  .xp-pt[data-end]:not([data-end=""])::after { content: attr(data-end); position: absolute; top: 3px; right: 6px; font-size: 9px; letter-spacing: .08em; opacity: .7; }
+  #xp-clear { width: 84px; flex: none; font-size: 10px; font-weight: 700; letter-spacing: .05em; border-radius: 10px; }
+  #xy-morph { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--gap); flex: none; }
+  #xy-morph .big { min-height: 52px; padding: 4px; display: grid; place-content: center; gap: 2px; text-align: center; }
+  #xy-morph .big b { font-size: 12px; line-height: 1.1; }
+  #xy-morph .big small { font-size: 9px; letter-spacing: .1em; }
+  #xm-go { font-size: 13px; font-weight: 800; }
+  #xm-go:disabled { opacity: .45; }
+  #xm-bar { height: 30px; flex: none; border-radius: 10px; background: var(--raised); overflow: hidden; touch-action: none; }
+  #xm-bar i { display: block; height: 100%; width: 0; background: var(--accent-dim); border-right: 3px solid var(--accent); box-sizing: border-box; }
+  @media (orientation: landscape) and (max-height: 520px) {
+    body.xy #view-xy { display: grid; grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto auto auto auto minmax(0, 1fr); column-gap: var(--gap); row-gap: 6px; }
+    #xy-head { grid-column: 1 / -1; }
+    #xy-pad { grid-column: 1; grid-row: 2 / 6; min-height: 0; }
+    #xy-pts, #xy-morph, #xm-bar, #xy-hint { grid-column: 2; }
+    #xy-morph { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #xy-morph .big { min-height: 44px; }
+    .xp-pt { height: 40px; }
+    #xm-bar { height: 26px; }
+    #xy-hint { overflow: hidden; font-size: 11px; }
+  }
   #lf-sel button.running:not(.on) { box-shadow: inset 0 0 0 2px var(--accent); }
   #lf-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); flex: none; }
   .lf-cell { min-height: 60px; display: grid; place-content: center; gap: 2px; text-align: center; padding: 6px; }
