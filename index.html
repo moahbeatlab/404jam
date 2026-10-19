@@ -61,15 +61,6 @@
           <button id="xy-mom" class="pad">MOMENTARY</button>
           <button id="xy-presets-btn" class="pad">PRESETS</button>
         </div>
-        <div id="lfo-row">
-          <div id="lfo-slots"></div>
-          <button id="lfo-on" class="pad">LFO</button>
-          <button id="lfo-target" class="display mono">Ziel: &ndash;</button>
-          <button id="lfo-wave" class="pad">SIN</button>
-          <button id="lfo-rate" class="pad">1/4</button>
-          <button id="lfo-depth" class="pad">50%</button>
-          <button id="lfo-tap" class="pad">TAP</button>
-        </div>
         <div id="xy-pad">
           <div id="xy-lineh"></div>
           <div id="xy-linev"></div>
@@ -497,11 +488,13 @@
         <p>8 slots for all 5 buses. <b>Tap loads</b> (empty: saves),
         <b>hold saves</b> with inline naming, &#10005; deletes. Export/import as JSON &ndash;
         also for moving snapshots between devices.</p>
-        <h3>XY pad and LFOs</h3>
-        <p>Assign both axes at the top; position = value. <b>MOMENTARY</b> springs back on release.
-        Four LFO slots (chips 1&ndash;4): target, wave (SIN/TRI/SQR/SAW/<b>RND</b> = drift),
-        rate in note values, depth. Time source: <b>CLK</b> (MIDI clock) or <b>TAP</b>
-        (tap the beat). A finger on the target fader pauses and re-centers;
+        <h3>XY pad</h3>
+        <p>Assign both axes at the top; position = value. <b>MOMENTARY</b> springs back on release.</p>
+        <h3>LFOs (PERF &rsaquo; LFO)</h3>
+        <p>Four LFOs. Tap a cell to see its choices: BUS and KNOB (the target), SHAPE
+        (SIN/TRI/SQR/SAW/<b>RND</b> = drift/<b>PUMP</b>), RATE in note values, SHIFT (start
+        the wave 1/4, 1/2 or 3/4 of a cycle later), DEPTH. TEMPO: <b>CLK</b> (MIDI clock) or
+        <b>TAP</b> (tap the beat). A finger on the target fader pauses and re-centers;
         switching off parks at the center.</p>
         <h3>PLAY</h3>
         <p><b>KEYS:</b> keyboard &ndash; sample chromatic (CH 16, C2&ndash;C4) or

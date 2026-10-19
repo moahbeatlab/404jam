@@ -14,7 +14,6 @@ const LFO_DEPTHS = [25, 50, 75, 100];
 const LfoRt = [0, 1, 2, 3].map(() => ({ on: false, beats: 0, lastT: 0, center: 64, cyc: -1, ra: 0, rb: 0 }));
 let lfoSel = 0, lfoTaps = [];
 function setLfoSel(v) { lfoSel = v; }
-const lfoChips = [];
 const lfoHooks = []; /* other views that show the LFOs (the PERF page) redraw from renderLfo */
 function clockAlive() { return Clock.last > 0 && performance.now() - Clock.last <= 1500; }
 function lfoBpm() { return (clockAlive() && Clock.bpm) ? Clock.bpm : state.tapBpm; }
@@ -84,17 +83,6 @@ function lfoTargetLabel(cfg) {
   return "Target: " + BUSES[t.bus].label + " · " + (p ? p.n : "CTRL " + (t.slot + 1));
 }
 function renderLfo() {
-  lfoChips.forEach((c, i) => {
-    c.classList.toggle("sel", i === lfoSel);
-    c.classList.toggle("running", LfoRt[i].on);
-  });
-  const cfg = state.lfos[lfoSel];
-  $("lfo-on").classList.toggle("on", LfoRt[lfoSel].on);
-  $("lfo-target").textContent = lfoTargetLabel(cfg);
-  $("lfo-wave").textContent = LFO_WAVES[cfg.wave];
-  $("lfo-rate").textContent = LFO_RATES[cfg.rate][0];
-  $("lfo-depth").textContent = LFO_DEPTHS[cfg.depth] + "%";
-  $("lfo-tap").textContent = clockAlive() ? "CLK " + Math.round(lfoBpm()) : "TAP " + Math.round(state.tapBpm);
   lfoHooks.forEach((f) => f());
 }
 function lfoTap() {
@@ -111,4 +99,4 @@ function lfoTap() {
 }
 
 const LFO_SHIFTS = ["0", "1/4", "1/2", "3/4"];
-export { LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LFO_DEPTHS, LfoRt, lfoSel, setLfoSel, lfoTaps, lfoChips, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };
+export { LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LFO_DEPTHS, LfoRt, lfoSel, setLfoSel, lfoTaps, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };
