@@ -2,7 +2,7 @@ import { fxDefFor } from "../core/conv.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, clamp, el } from "../core/util.js";
 import { setBusCc } from "../ui/controls.js";
-import { LFO_SHIFTS, LFO_RATES, LFO_WAVES, LfoRt, clockAlive, lfoBpm, lfoHooks, lfoSel, lfoTap, lfoToggle, renderLfo, setLfoSel } from "./lfo.js";
+import { lfoShape, LFO_SHIFTS, LFO_RATES, LFO_WAVES, LfoRt, clockAlive, lfoBpm, lfoHooks, lfoSel, lfoTap, lfoToggle, renderLfo, setLfoSel } from "./lfo.js";
 
 /* ===== PERF > LFO: the LFO page of 404tui. Tap a cell and the choices open; the LFOs are the same four as on the XY page. ===== */
 let built = false;
@@ -82,6 +82,42 @@ function build() {
   $("lfpick-close").addEventListener("click", () => $("lfpick").classList.remove("open"));
   $("lfpick").addEventListener("pointerdown", (e) => { if (e.target === $("lfpick")) $("lfpick").classList.remove("open"); });
   lfoHooks.push(render);
+  scopeLoop();
+}
+/* the line: one cycle of the wave (shape, shift, depth), and a dot where the LFO is now */
+function drawScope() {
+  const cv = $("lf-scope");
+  if (!built || !cv.offsetWidth) return;
+  const dpr = window.devicePixelRatio || 1, W = cv.offsetWidth, H = cv.offsetHeight;
+  if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+  const g = cv.getContext("2d"), cs = getComputedStyle(document.body);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, W, H);
+  const c = cfg(), rt = LfoRt[lfoSel], wave = LFO_WAVES[c.wave], pump = wave === "PUMP";
+  const amp = c.amt / 100 * (pump ? 127 : 63.5);
+  const pad = 10, y = (w) => pad + (H - 2 * pad) * (1 - clamp((64 + w * amp) / 127, 0, 1));
+  const accent = cs.getPropertyValue("--accent").trim() || "#ffb000", faint = cs.getPropertyValue("--line").trim() || "#34343a";
+  g.strokeStyle = faint; g.lineWidth = 1; g.setLineDash([4, 4]);
+  g.beginPath(); g.moveTo(0, y(0)); g.lineTo(W, y(0)); g.stroke(); g.setLineDash([]);
+  const f = (x) => {
+    if (wave === "RND") return rt.ra + (rt.rb - rt.ra) * x; /* the drift of this cycle */
+    let ph = x + (c.shift | 0) * 0.25; ph -= Math.floor(ph);
+    return lfoShape(wave, ph);
+  };
+  g.strokeStyle = rt.on ? accent : cs.getPropertyValue("--muted").trim() || "#9a9aa4"; g.lineWidth = 2.5; g.lineJoin = "round";
+  g.beginPath();
+  const N = wave === "SQR" ? 400 : 160;
+  for (let i = 0; i <= N; i++) { const x = i / N; const px = x * W, py = y(f(x)); if (i) g.lineTo(px, py); else g.moveTo(px, py); }
+  g.stroke();
+  if (rt.on) {
+    const x = rt.x, px = x * W, py = y(f(x));
+    g.fillStyle = accent; g.beginPath(); g.arc(px, py, 6, 0, 2 * Math.PI); g.fill();
+    g.strokeStyle = accent; g.globalAlpha = .3; g.lineWidth = 1; g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke(); g.globalAlpha = 1;
+  }
+}
+function scopeLoop() {
+  if (document.body.classList.contains("perf") && $("view-perf").dataset.page === "lfo") drawScope();
+  requestAnimationFrame(scopeLoop);
 }
 function paintDepth() {
   const a = cfg().amt;
