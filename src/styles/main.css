@@ -343,7 +343,7 @@
     box-shadow: none;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 3px; padding: 8px 32px 8px 12px; position: relative; color: var(--text); cursor: pointer; user-select: none; }
-  .snap-slot.empty { color: var(--muted); background: transparent; box-shadow: none; }
+  .snap-slot.empty { color: var(--muted); background: var(--tile-empty); box-shadow: none; }
   .snap-slot .sn-name { font-size: 12.5px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .snap-slot .sn-meta { font-size: 9px; letter-spacing: .08em; color: var(--muted); }
   .snap-slot .sn-sum { font-size: 9.5px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -684,3 +684,7 @@
   }
   #jam-head .pad { height: 100%; padding: 0 16px; font-size: 11px; color: var(--muted); }
   * { scrollbar-width: thin; scrollbar-color: var(--raised) transparent; }
+  @media (max-width: 520px) {
+    #jam-head { gap: 6px; }
+    #jam-head .pad { padding: 0 10px; font-size: 10px; letter-spacing: 0; }
+  }
