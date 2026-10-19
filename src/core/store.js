@@ -19,10 +19,10 @@ let state = {
   directFx: [null, null, null, null, null], /* mirrors device DFX slots: {name|null, t} */
   xy: { x: null, y: null, mom: false }, /* axis -> {bus, slot} | null; device-local */
   lfos: [ /* 4 modulator slots; slot 4 preset = slow RND drift */
-    { target: null, wave: 0, rate: 4, depth: 1, shift: 0 },
-    { target: null, wave: 0, rate: 3, depth: 1, shift: 0 },
-    { target: null, wave: 0, rate: 2, depth: 1, shift: 0 },
-    { target: null, wave: 4, rate: 0, depth: 0, shift: 0 },
+    { target: null, wave: 0, rate: 4, amt: 50, shift: 0 },
+    { target: null, wave: 0, rate: 3, amt: 50, shift: 0 },
+    { target: null, wave: 0, rate: 2, amt: 50, shift: 0 },
+    { target: null, wave: 4, rate: 0, amt: 25, shift: 0 },
   ],
   tapBpm: 120,
   punch: [null, null, null, null], /* PUNCH: 4 snapshots, each [5 x {set,on,fx,cc[6]}] or null */
@@ -186,7 +186,9 @@ function loadState() {
         state.lfos[i].target = { bus: l.target.bus | 0, slot: l.target.slot | 0 };
       if (l.wave >= 0 && l.wave < 6) state.lfos[i].wave = l.wave | 0;
       if (l.rate >= 0 && l.rate < 7) state.lfos[i].rate = l.rate | 0;
-      if (l.depth >= 0 && l.depth < 4) state.lfos[i].depth = l.depth | 0;
+      /* amt = depth in percent; saves from before had depth = a step 0-3 of 25/50/75/100 */
+      if (l.amt >= 0 && l.amt <= 100) state.lfos[i].amt = Math.round(l.amt);
+      else if (l.depth >= 0 && l.depth < 4) state.lfos[i].amt = [25, 50, 75, 100][l.depth | 0];
       if (l.shift >= 0 && l.shift < 4) state.lfos[i].shift = l.shift | 0;
     });
     if (Array.isArray(s.punch)) {

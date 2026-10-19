@@ -10,8 +10,15 @@ import { queueSlotRender, setBusCc } from "../ui/controls.js";
 /* ===== beat LFOs (4 slots: 3 LFOs + drift; clock-synced, tap fallback) ===== */
 const LFO_WAVES = ["SIN", "TRI", "SQR", "SAW", "RND", "PUMP"]; /* PUMP dips on the beat and swells back: sidechain-style ducking */
 const LFO_RATES = [["4/1", 16], ["2/1", 8], ["1/1", 4], ["1/2", 2], ["1/4", 1], ["1/8", 0.5], ["1/16", 0.25]];
-const LFO_DEPTHS = [25, 50, 75, 100];
-const LfoRt = [0, 1, 2, 3].map(() => ({ on: false, beats: 0, lastT: 0, center: 64, cyc: -1, ra: 0, rb: 0 }));
+const LfoRt = [0, 1, 2, 3].map(() => ({ x: 0, on: false, beats: 0, lastT: 0, center: 64, cyc: -1, ra: 0, rb: 0 }));
+/* one cycle of a wave, -1..1 (RND is not here: it drifts between random anchors) */
+function lfoShape(wave, ph) {
+  if (wave === "SIN") return Math.sin(ph * 2 * Math.PI);
+  if (wave === "TRI") return ph < 0.5 ? ph * 4 - 1 : 3 - ph * 4;
+  if (wave === "SQR") return ph < 0.5 ? 1 : -1;
+  if (wave === "SAW") return ph * 2 - 1;
+  return -Math.pow(1 - ph, 2); /* PUMP: full dip at the beat, back to the centre by the next */
+}
 let lfoSel = 0, lfoTaps = [];
 function setLfoSel(v) { lfoSel = v; }
 const lfoHooks = []; /* other views that show the LFOs (the PERF page) redraw from renderLfo */
@@ -52,21 +59,19 @@ setInterval(() => {
     /* incremental phase: BPM jitter only affects the current slice */
     rt.beats += Math.min(now - rt.lastT, 1000) / 60000 * lfoBpm();
     rt.lastT = now;
-    const cyc = rt.beats / LFO_RATES[cfg.rate][1] + (cfg.shift | 0) * 0.25; /* SHIFT: the wave starts a quarter cycle later, 0-3 times */
+    const base = rt.beats / LFO_RATES[cfg.rate][1];
+    rt.x = base - Math.floor(base); /* where the scope on the PERF page shows the dot */
+    const cyc = base + (cfg.shift | 0) * 0.25; /* SHIFT: the wave starts a quarter cycle later, 0-3 times */
     const ph = cyc - Math.floor(cyc);
     const wave = LFO_WAVES[cfg.wave];
     let w;
-    if (wave === "SIN") w = Math.sin(ph * 2 * Math.PI);
-    else if (wave === "TRI") w = ph < 0.5 ? ph * 4 - 1 : 3 - ph * 4;
-    else if (wave === "SQR") w = ph < 0.5 ? 1 : -1;
-    else if (wave === "SAW") w = ph * 2 - 1;
-    else if (wave === "PUMP") w = -Math.pow(1 - ph, 2); /* full dip at the beat, back to the centre by the next */
+    if (wave !== "RND") w = lfoShape(wave, ph);
     else { /* RND: drift between random anchors, renewed once per cycle */
       const k = Math.floor(cyc);
       if (k !== rt.cyc) { rt.cyc = k; rt.ra = rt.rb; rt.rb = Math.random() * 2 - 1; }
       w = rt.ra + (rt.rb - rt.ra) * ph;
     }
-    const amp = LFO_DEPTHS[cfg.depth] / 100 * (wave === "PUMP" ? 127 : 63.5);
+    const amp = cfg.amt / 100 * (wave === "PUMP" ? 127 : 63.5);
     const cc = clamp(Math.round(rt.center + w * amp), 0, 127);
     if (b.cc[t.slot] !== cc) {
       b.cc[t.slot] = cc; /* no saveState: a wobbling value is not worth persisting */
@@ -99,4 +104,4 @@ function lfoTap() {
 }
 
 const LFO_SHIFTS = ["0", "1/4", "1/2", "3/4"];
-export { LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LFO_DEPTHS, LfoRt, lfoSel, setLfoSel, lfoTaps, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };
+export { lfoShape, LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LfoRt, lfoSel, setLfoSel, lfoTaps, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };

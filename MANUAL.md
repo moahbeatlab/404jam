@@ -163,9 +163,11 @@ all four points. The points are kept with the rest of the state.
 **LFOs** live on **PERF › LFO**: four modulator slots (orange outline = running). Tap
 a cell and its choices open: **BUS** and **KNOB** (the target: CTRL 1–6), **SHAPE** (SIN/TRI/SQR/SAW/**RND** = drift between random
 anchors/**PUMP**), **RATE** in note values (4/1 to 1/16), **SHIFT** (the wave starts
-0, 1/4, 1/2 or 3/4 of a cycle later), **DEPTH**. **TEMPO** shows the time source:
-**CLK** (MIDI clock present) or **TAP** — tap the beat a few times to set the
-tempo and anchor the phase. Grabbing the target fader pauses the LFO and
+0, 1/4, 1/2 or 3/4 of a cycle later). **DEPTH** is a fader: drag it from left to
+right (0–100 %). While the unit sends its MIDI clock the LFOs follow it; without a
+clock a **TEMPO** cell appears: tap the beat a few times to set the tempo and
+anchor the phase. The line under START shows one cycle of the wave and a dot
+where the LFO is right now. Grabbing the target fader pauses the LFO and
 re-centers it on your position; switching it off parks the value at the
 center. Slot 4 comes preconfigured as a slow drift.
 

@@ -166,8 +166,10 @@
         <div id="pf-lfo" class="pf-page">
           <div id="lf-sel" class="seg"></div>
           <div id="lf-grid"></div>
+          <div id="lf-depth"><i></i><b></b></div>
           <div id="lf-hint" class="hint"></div>
           <button id="lf-start" class="big"></button>
+          <canvas id="lf-scope"></canvas>
         </div>
       </section>
     </main>
@@ -509,8 +511,9 @@
         <h3>LFOs (PERF &rsaquo; LFO)</h3>
         <p>Four LFOs. Tap a cell to see its choices: BUS and KNOB (the target), SHAPE
         (SIN/TRI/SQR/SAW/<b>RND</b> = drift/<b>PUMP</b>), RATE in note values, SHIFT (start
-        the wave 1/4, 1/2 or 3/4 of a cycle later), DEPTH. TEMPO: <b>CLK</b> (MIDI clock) or
-        <b>TAP</b> (tap the beat). A finger on the target fader pauses and re-centers;
+        the wave 1/4, 1/2 or 3/4 of a cycle later), DEPTH (a fader, drag it). The line under
+        START shows one cycle and where the LFO is. They follow the MIDI clock; without one,
+        TEMPO appears: tap the beat. A finger on the target fader pauses and re-centers;
         switching off parks at the center.</p>
         <h3>PLAY</h3>
         <p><b>KEYS:</b> keyboard &ndash; sample chromatic (CH 16, C2&ndash;C4) or
