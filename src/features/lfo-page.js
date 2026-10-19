@@ -1,4 +1,3 @@
-import { fxDefFor } from "../core/conv.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, el } from "../core/util.js";
 import { setBusCc } from "../ui/controls.js";
@@ -9,11 +8,7 @@ let built = false;
 const cells = {};
 const selBtns = [];
 
-function knobName(bus, k) {
-  const def = fxDefFor(BUSES[bus].table, state.buses[bus].fx);
-  const p = def && def.p[k];
-  return p && p.n ? p.n : "CTRL " + (k + 1);
-}
+const knobName = (bus, k) => "CTRL " + (k + 1);
 /* a new target: the LFO stops first, so the knob it was on is parked where it was */
 function setTarget(bus, slot) {
   const rt = LfoRt[lfoSel], cfg = state.lfos[lfoSel];
@@ -66,7 +61,7 @@ function build() {
   });
   cell("knob", "KNOB", () => {
     const t = cfg().target, bus = t ? t.bus : state.activeBus;
-    openPick("KNOB · " + BUSES[bus].label, [0, 1, 2, 3, 4, 5].map((k) => ({ t: knobName(bus, k), s: knobName(bus, k) === "CTRL " + (k + 1) ? "" : "CTRL " + (k + 1) })), t ? t.slot : -1, (k) => setTarget(bus, k));
+    openPick("KNOB · " + BUSES[bus].label, [0, 1, 2, 3, 4, 5].map((k) => ({ t: knobName(bus, k) })), t ? t.slot : -1, (k) => setTarget(bus, k));
   });
   cell("wave", "SHAPE", () => openPick("SHAPE", LFO_WAVES.map((w) => ({ t: w, s: { RND: "drift", PUMP: "duck on the beat" }[w] })), cfg().wave, (i) => { cfg().wave = i; saveState(); renderLfo(); }));
   cell("rate", "RATE", () => openPick("RATE (one cycle)", LFO_RATES.map((r) => ({ t: r[0], s: r[1] >= 4 ? r[1] / 4 + (r[1] === 4 ? " bar" : " bars") : "" })), cfg().rate, (i) => { cfg().rate = i; saveState(); renderLfo(); }));
