@@ -661,7 +661,8 @@
   .lf-cell small { letter-spacing: .12em; font-weight: 600; font-size: 10px; }
   .lf-cell b { font-size: 16px; line-height: 1.1; overflow-wrap: anywhere; }
   #lf-start { flex: 1; min-height: 80px; font-size: 16px; }
-  @media (orientation: landscape) { #lf-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } #lf-start { min-height: 56px; } }
+  @media (orientation: portrait) { .lf-cell:last-child { grid-column: span 3; } }
+  @media (orientation: landscape) { #lf-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); } #lf-start { min-height: 56px; } }
   #pnpreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; }
   .pn-target { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; padding: 0 16px 8px; }
   .pn-target small, #mo-bar small { color: var(--muted); font-size: .72em; letter-spacing: .08em; font-weight: 600; }
