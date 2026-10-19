@@ -23,10 +23,11 @@
         <span id="conn-dot"></span>
         <span id="conn-name" class="mono">nicht verbunden</span>
       </button>
-      <span id="tx"></span>
-      <span id="bpm"><span id="beat"></span><span id="bpm-val">&ndash;</span></span>
-      <button id="view-toggle" class="sbtn pad">Overview</button>
+      <span id="bars" class="off" title="the beat of the unit's MIDI clock"><i></i><i></i><i></i><i></i></span>
+      <span id="bpm"><span id="bpm-val">&ndash;</span></span>
       <button id="alloff" class="sbtn">ALL OFF</button>
+      <button id="menu-btn" class="sbtn pad">Menu</button>
+      <button id="view-toggle" class="sbtn pad">Overview</button>
       <button id="snaps-btn" class="sbtn pad">Snap</button>
       <button id="lib-btn" class="sbtn pad">Library</button>
       <button id="setup-btn" class="sbtn pad">Setup</button>
@@ -483,9 +484,9 @@
         fixed CH 16, FX control is fixed CH 1&ndash;5, no SysEx involved.
         If the app seems outdated, load the URL with <b>?v=99</b> (cache); the build number is shown in Setup.</p>
         <h3>Status bar and tabs</h3>
-        <p>Connection dot (tap = Setup), TX blinker, BPM on incoming clock,
-        Overview/Focus, XY, <b>ALL OFF</b> (all buses off + remembered; a second tap restores),
-        Snap, Setup. Tabs: BUS 1&ndash;4, IN, PLAY, PTN &ndash; the LEDs show active effects.</p>
+        <p>Connection dot (tap = Setup), the four <b>clock bars</b> (one lights per beat while the unit
+        sends MIDI clock) and the BPM, <b>ALL OFF</b> (all buses off + remembered; a second tap restores),
+        and <b>Menu</b>: Overview/Focus, Snapshots, Library, Setup. Tabs: BUS 1&ndash;4, IN, PLAY, PTN &ndash; the LEDs show active effects.</p>
         <h3>Fader gestures (Focus)</h3>
         <p>Relative drag &ndash; the first touch never jumps. <b>Fine-tune:</b> while dragging,
         pull sideways (finer from 60 px, very fine from 120 px). <b>Double tap</b> = default.

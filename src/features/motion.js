@@ -176,7 +176,9 @@ function paintPos() {
   slotEls.forEach((b, i) => {
     const m = bs.mo[i];
     const p = m.st === 4 ? m.fpos / Math.max(m.total, 1) : m.st === 2 ? m.pos / Math.max(m.total, 1) : 0;
-    b.querySelector(".pos").style.width = (p * 100) + "%";
+    const pos = b.querySelector(".pos");
+    pos.style.left = "calc(" + (p * 100) + "% - " + (p * 3) + "px)"; /* a thin bar moves along the box while it records or plays */
+    pos.style.opacity = m.st === 2 || m.st === 4 ? "" : "0";
     if (b.dataset.st !== String(m.st)) { b.dataset.st = String(m.st); render(); }
   });
 }
