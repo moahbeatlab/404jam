@@ -181,6 +181,6 @@ function paintPos() {
   });
 }
 Pulse.subs.add(tick);
-Pulse.busy = () => Motion.some((bs) => bs.mo.some((m) => m.st !== 0));
+Pulse.busyFns.add(() => Motion.some((bs) => bs.mo.some((m) => m.st !== 0)));
 
 export { Motion, observe, build as buildMotion, render as renderMotion };

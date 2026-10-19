@@ -18,7 +18,7 @@ function setTarget(bus, slot) {
   renderLfo();
 }
 let pickBound = false;
-function openPick(title, opts, cur, pick) {
+function openPick(title, opts, cur, pick, cols) {
   if (!pickBound) { /* the choices overlay is shared by the LFO page and the XY morph bar, so its buttons are bound on first use */
     pickBound = true;
     $("lfpick-close").addEventListener("click", () => $("lfpick").classList.remove("open"));
@@ -26,6 +26,7 @@ function openPick(title, opts, cur, pick) {
   }
   $("lfpick-title").textContent = title;
   const list = $("lfpick-list");
+  list.style.setProperty("--cols", cols || 2);
   list.replaceChildren();
   opts.forEach((o, i) => {
     const b = el("button", "big" + (i === cur ? " on" : ""));
