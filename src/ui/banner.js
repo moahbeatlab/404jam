@@ -2,16 +2,8 @@ import { Midi } from "../core/midi.js";
 import { state } from "../core/store.js";
 import { $ } from "../core/util.js";
 
-/* ===== 06 UI: TX led, banner, conn ===== */
-let txTimer = null, txLast = 0;
-function blinkTx() {
-  const now = performance.now();
-  if (now - txLast < 100) return;
-  txLast = now;
-  $("tx").classList.add("blink");
-  clearTimeout(txTimer);
-  txTimer = setTimeout(() => $("tx").classList.remove("blink"), 60);
-}
+/* ===== 06 UI: banner, conn ===== */
+function blinkTx() { /* the TX blinker made room for the clock bars; callers are kept */ }
 let bannerTimer = null;
 function showBanner(text, cls, ms) {
   const b = $("banner");
@@ -35,4 +27,4 @@ function updateConnUi() {
   }
 }
 
-export { txTimer, txLast, blinkTx, bannerTimer, showBanner, updateConnUi };
+export { blinkTx, bannerTimer, showBanner, updateConnUi };

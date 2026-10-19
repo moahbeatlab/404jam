@@ -16,11 +16,22 @@ function onClockByte(st, srcName) {
   Clock.ticks.push(now);
   if (Clock.ticks.length > 49) Clock.ticks.shift();
   pulse();
-  if (++Clock.count % 24 === 0) { /* quarter-note pulse */
-    $("beat").classList.add("tick");
-    setTimeout(() => $("beat").classList.remove("tick"), 90);
-  }
+  Clock.count++;
 }
+/* the four bars at the top: one lights per beat while the unit sends clock (bar 1 = the count from the unit's start) */
+let barsEl = null, lastBeat = -1;
+const clockAlive = () => Clock.last > 0 && performance.now() - Clock.last <= 1500;
+function paintBars(beat) {
+  if (!barsEl) barsEl = $("bars");
+  [...barsEl.children].forEach((b, i) => { b.classList.toggle("on", i === beat); b.classList.toggle("down", i === 0); });
+  barsEl.classList.toggle("off", beat < 0);
+  lastBeat = beat;
+}
+Pulse.subs.add((n) => {
+  if (!clockAlive()) return; /* tap-tempo pulses do not move the bars */
+  const beat = Math.floor((n % 96) / 24);
+  if (beat !== lastBeat) paintBars(beat);
+});
 function onClockOnly(e) {
   const d = e.data;
   if (!d || !d.length) return;
@@ -51,6 +62,7 @@ setInterval(() => {
   if (!alive) {
     Clock.src = null;
     bpmEl.classList.remove("on");
+    if (lastBeat !== -1) paintBars(-1);
   } else if (Clock.ticks.length > 25) {
     const t = Clock.ticks;
     const mean = (t[t.length - 1] - t[0]) / (t.length - 1);

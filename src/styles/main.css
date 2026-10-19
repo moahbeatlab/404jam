@@ -64,12 +64,16 @@
   #conn-dot.ok { background: var(--ok); box-shadow: 0 0 6px rgba(76,208,125,.6); }
   #conn-dot.err { background: var(--warn); box-shadow: 0 0 6px rgba(255,69,69,.6); }
   #conn-name { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #tx { width: 7px; height: 7px; border-radius: 50%; background: #3a3a40; flex: none; transition: background .05s; }
-  #tx.blink { background: var(--accent); box-shadow: none; }
   #statusbar .sbtn {
     height: 34px; padding: 0 12px; border-radius: 10px; flex: none;
     font-size: 11px; letter-spacing: .07em; font-weight: 600;
   }
+  #bars { display: flex; gap: 3px; flex: none; }
+  #bars i { width: 12px; height: 18px; border-radius: 4px; background: var(--raised); }
+  #bars i.on { background: var(--accent); }
+  #bars i.on.down { background: var(--ok); }
+  #bars.off i { background: var(--tile-empty); }
+  #view-toggle, #snaps-btn, #lib-btn, #setup-btn { display: none; } /* in the Menu */
   #alloff { color: var(--warn); box-shadow: inset 0 0 0 2px var(--warn); }
   #alloff.armed { background: var(--warn); color: #fff; box-shadow: 0 0 12px rgba(255,69,69,.5); }
   /* ============ 04 bus tabs ============ */
@@ -331,8 +335,6 @@
     font-family: var(--font-mono); font-size: 11px; color: var(--text);
      }
   #bpm.on { display: flex; }
-  #beat { width: 6px; height: 6px; border-radius: 50%; background: #3a3a40; }
-  #beat.tick { background: var(--accent); box-shadow: none; }
   /* snapshots */
   .snap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .snap-slot { min-height: 64px; border-radius: 10px; background: var(--raised);
@@ -573,8 +575,6 @@
   .bustab.active .led { box-shadow: inset 0 0 0 2px var(--ink); }
   #bpm.on { font-size: 13px; font-weight: 800; }
   #bpm-val { font-size: 17px; }
-  #beat { width: 14px; height: 10px; border-radius: 4px; background: var(--raised); }
-  #beat.tick { background: var(--ok); }
   .busstrip { background: var(--panel); box-shadow: none; border-radius: var(--r); }
   .busstrip.on { box-shadow: inset 0 0 0 2px var(--accent); }
   .fader-track { border-radius: var(--r); }
@@ -703,7 +703,7 @@
   .mo-slot b { font-size: 24px; line-height: 1; }
   .mo-slot .st { font-size: 11px; font-weight: 600; color: var(--muted); }
   .mo-slot svg { width: 86%; height: 22px; } .mo-slot svg path { fill: none; stroke: currentColor; stroke-width: 2.4; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
-  .mo-slot .pos { position: absolute; left: 0; bottom: 0; height: 5px; background: var(--ink); opacity: .7; width: 0; }
+  .mo-slot .pos { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--ink); opacity: .75; pointer-events: none; }
   .mo-slot.sel { box-shadow: inset 0 0 0 3px var(--text); }
   .mo-slot.rec { background: var(--warn); color: var(--ink); } .mo-slot.play, .mo-slot.wait { background: var(--accent); color: var(--ink); }
   .mo-slot.wait { animation: pulse .8s ease-in-out infinite alternate; }

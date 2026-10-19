@@ -33,10 +33,10 @@ no installation. This manual is also built into the app (Setup > Manual).
 
 ## Layout
 
-**Status bar:** connection dot (tap = Setup), TX blinker, BPM display
-(appears on incoming MIDI clock), Overview/Focus toggle, XY, **ALL OFF**
-(switches every bus off and remembers the state — a second tap restores),
-Snap, Setup.
+**Status bar:** connection dot (tap = Setup), four **clock bars** (one lights per
+beat while the unit sends MIDI clock; the first is the downbeat) with the BPM next
+to them, **ALL OFF** (switches every bus off and remembers the state — a second
+tap restores) and **Menu** (Overview/Focus, Snapshots, Library, Setup).
 
 **Tab bar:** BUS 1–4 and IN (focus view per bus), PLAY (playing surfaces),
 PTN (patterns), JAM (your own pinned controls). The LEDs
