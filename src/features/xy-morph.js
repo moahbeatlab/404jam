@@ -12,7 +12,7 @@ const MODES = ["PING-PONG", "ONCE", "MANUAL"];
 const HOLD = 450;
 const Mo = { run: false, t: 0, dir: 1, last: 0 };
 const btns = [];
-let built = false, msg = "", clearArm = 0;
+let built = false, msg = "";
 
 const axisVal = (a) => a ? state.buses[a.bus].cc[a.slot] : null;
 function here() { return { x: axisVal(xyAssign("x")), y: axisVal(xyAssign("y")) }; }
@@ -105,9 +105,18 @@ function build() {
   built = true;
   for (let i = 0; i < 4; i++) { const b = pointButton(i); $("xp-btns").appendChild(b); btns.push(b); }
   $("xp-clear").addEventListener("click", () => {
-    const now = performance.now();
-    if (now - clearArm > 2500) { clearArm = now; msg = "Tap CLEAR again to remove all four points."; render(); return; }
-    clearArm = 0; state.xyPts = [null, null, null, null]; stop(); saveState(); msg = "Points cleared."; render();
+    if (!state.xyPts.some(Boolean)) { msg = "No points saved."; render(); return; }
+    const opts = [0, 1, 2, 3].map((i) => ({ t: String(i + 1), s: state.xyPts[i] ? "saved" : "empty" }));
+    opts.push({ t: "ALL", s: "all four points" });
+    openPick("DELETE A POINT", opts, -1, (i) => {
+      if (i === 4) state.xyPts = [null, null, null, null];
+      else if (state.xyPts[i]) state.xyPts[i] = null;
+      else { msg = "Point " + (i + 1) + " is empty."; render(); return; }
+      if (!ends()) stop();
+      saveState();
+      msg = i === 4 ? "Points cleared." : "Point " + (i + 1) + " deleted.";
+      render();
+    });
   });
   $("xm-a").addEventListener("click", () => pickPoint("MORPH FROM", state.xyMorph.a, (i) => { state.xyMorph.a = i; Mo.t = 0; }));
   $("xm-b").addEventListener("click", () => pickPoint("MORPH TO", state.xyMorph.b, (i) => { state.xyMorph.b = i; Mo.t = 0; }));

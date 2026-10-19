@@ -157,8 +157,8 @@ choose the two points to morph between, **TIME** how long one way takes (1 beat
 to 8 bars, on the clock of the unit, else the tap tempo), **MODE** how it moves:
 **PING-PONG** (there and back, until you press STOP), **ONCE** (one way, then it
 stops; the next GO goes the other way) or **MANUAL** (drag the bar under the
-buttons). A finger on the pad stops a running morph. CLEAR (tapped twice) removes
-all four points. The points are kept with the rest of the state.
+buttons). A finger on the pad stops a running morph. CLEAR asks which point to
+delete (or ALL). The points are kept with the rest of the state.
 
 **LFOs** live on **PERF › LFO**: four modulator slots (orange outline = running). Tap
 a cell and its choices open: **BUS** and **KNOB** (the target: CTRL 1–6), **SHAPE** (SIN/TRI/SQR/SAW/**RND** = drift between random
