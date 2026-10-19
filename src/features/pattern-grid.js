@@ -1,9 +1,26 @@
 import { Midi } from "../core/midi.js";
+import { Pulse } from "../core/pulse.js";
 import { saveState, state } from "../core/store.js";
 import { $, el } from "../core/util.js";
 import { showBanner } from "../ui/banner.js";
 
 /* ===== pattern grid (Program Change; bank = MIDI channel; needs Mode B) ===== */
+/* The unit takes a pattern over at the end of the one that plays and does not say when. The pattern that was tapped
+   blinks until the next bar line (the nearest guess, as in 404tui), then it is the current one (state.ptn.last). */
+const Ptn = { next: null, due: 0, lastN: 0 };
+const TICKS_BAR = 96;
+const dueAfter = (n) => (Math.floor(n / TICKS_BAR) + 1) * TICKS_BAR;
+Pulse.busyFns.add(() => !!Ptn.next);
+Pulse.subs.add((n) => {
+  if (!Ptn.next) return;
+  if (n < Ptn.lastN) Ptn.due = TICKS_BAR; /* the unit started again: the count began from 0 */
+  Ptn.lastN = n;
+  if (n < Ptn.due) return;
+  state.ptn.last = Ptn.next;
+  Ptn.next = null;
+  saveState();
+  if (document.body.classList.contains("pattern")) renderPattern();
+});
 const BANK_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 /* compact A/F-style bank pickers (PTN, PADS): each of the 5 pair buttons
    remembers its OWN last-used letter independently, rather than a shared
@@ -43,7 +60,8 @@ function renderPattern() {
   g.textContent = "";
   for (let pc = 0; pc < 16; pc++) {
     const sent = state.ptn.last && state.ptn.last.bank === state.ptn.bank && state.ptn.last.pc === pc;
-    const b = el("button", "pad" + (sent ? " sent" : ""), String(pc + 1));
+    const nxt = Ptn.next && Ptn.next.bank === state.ptn.bank && Ptn.next.pc === pc;
+    const b = el("button", "pad" + (sent ? " sent" : "") + (nxt ? " next" : ""), String(pc + 1));
     b.addEventListener("click", () => {
       /* don't claim success (highlighting the pad) when nothing actually
          went out - a silently dropped MIDI connection looked identical to
@@ -52,8 +70,9 @@ function renderPattern() {
         showBanner("SP-404 not connected - pattern not sent", "warn", 4000);
         return;
       }
-      state.ptn.last = { bank: state.ptn.bank, pc };
-      saveState();
+      Ptn.next = { bank: state.ptn.bank, pc };
+      Ptn.lastN = Pulse.n;
+      Ptn.due = dueAfter(Pulse.n);
       renderPattern();
     });
     g.appendChild(b);

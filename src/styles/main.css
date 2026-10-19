@@ -289,6 +289,8 @@
   #ptn-banks button span.sel, #pad-banks button span.sel { opacity: 1; font-weight: 800; }
   #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
   #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
+  #ptn-grid button.next { animation: ptn-blink .5s steps(1) infinite; }
+  @keyframes ptn-blink { 0% { background: var(--accent); color: var(--ink); } 50% { background: var(--raised); color: var(--text); } }
   #ptn-grid button.sent { background: var(--accent); color: var(--ink); box-shadow: none; }
   #pad-grid button.hit, #scale-grid button.hit { background: var(--accent); color: var(--ink); box-shadow: none; }
   #scale-grid button.root { box-shadow: none; background: var(--accent); color: var(--ink); }
