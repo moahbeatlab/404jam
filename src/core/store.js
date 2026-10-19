@@ -25,6 +25,7 @@ let state = {
     { target: null, wave: 4, rate: 0, depth: 0 },
   ],
   tapBpm: 120,
+  punch: [null, null, null, null], /* PUNCH: 4 snapshots, each [5 x {set,on,fx,cc[6]}] or null */
   ptn: { bank: 0, last: null },
   play: { mode: "keys", target: "sample", oct: 0, padBank: 0, padChPair: 0,
     scaleRoot: 0, scaleType: 0, iso: true,
@@ -168,10 +169,17 @@ function loadState() {
       if (!l || typeof l !== "object") return;
       if (l.target && l.target.bus >= 0 && l.target.bus < 5 && l.target.slot >= 0 && l.target.slot < 6)
         state.lfos[i].target = { bus: l.target.bus | 0, slot: l.target.slot | 0 };
-      if (l.wave >= 0 && l.wave < 5) state.lfos[i].wave = l.wave | 0;
+      if (l.wave >= 0 && l.wave < 6) state.lfos[i].wave = l.wave | 0;
       if (l.rate >= 0 && l.rate < 7) state.lfos[i].rate = l.rate | 0;
       if (l.depth >= 0 && l.depth < 4) state.lfos[i].depth = l.depth | 0;
     });
+    if (Array.isArray(s.punch)) {
+      for (let i = 0; i < 4; i++) {
+        const r = s.punch[i];
+        if (Array.isArray(r) && r.length === 5 && r.every((b) => b && Array.isArray(b.cc) && b.cc.length === 6))
+          state.punch[i] = r.map((b) => ({ set: !!b.set, on: !!b.on, fx: clamp(b.fx | 0, 0, 127), cc: b.cc.map((v) => clamp(v | 0, 0, 127)) }));
+      }
+    }
     const tb = s.tapBpm || (s.lfo && s.lfo.tapBpm);
     if (tb >= 30 && tb <= 300) state.tapBpm = tb;
     if (s.play && typeof s.play === "object") {
@@ -225,7 +233,7 @@ function loadState() {
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, lfos: state.lfos, punch: state.punch, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {

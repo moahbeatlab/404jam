@@ -3,6 +3,7 @@ import { defaultCcs, fxDefFor } from "./conv.js";
 import { directName, saveState, state } from "./store.js";
 import { BUSES, CC_CTRL, CC_FX, CC_SW, RECV_CCS, clamp } from "./util.js";
 import { LfoRt } from "../features/lfo.js";
+import { observe } from "../features/motion.js";
 import { blinkTx, showBanner, updateConnUi } from "../ui/banner.js";
 import { controls, jamRawUpdateFns, queueSlotRender } from "../ui/controls.js";
 import { renderSetup } from "../ui/setup.js";
@@ -166,6 +167,7 @@ function applyCC(bus, ccNum, val, source) {
     const slot = CC_CTRL.indexOf(ccNum);
     if (slot < 0) return;
     b.cc[slot] = clamp(val, 0, 127);
+    observe(bus, slot, b.cc[slot]);
     queueSlotRender(bus, slot);
     queueSyncSiblings(bus, slot);
   }

@@ -1,17 +1,21 @@
 import { applyRawCC } from "./midi.js";
 import { $ } from "./util.js";
+import { state } from "./store.js";
+import { Pulse, pulse } from "./pulse.js";
 import { LfoRt, renderLfo } from "../features/lfo.js";
 
 /* ===== MIDI clock -> BPM (Link route: any connected port may carry clock) ===== */
 const Clock = { src: null, last: 0, ticks: [], count: 0 };
 function onClockByte(st, srcName) {
   const now = performance.now();
+  if (st === 0xFA) Pulse.n = 0;
   if (st === 0xFA || st === 0xFC) { Clock.ticks = []; Clock.count = 0; LfoRt.forEach((r) => { r.beats = 0; r.lastT = now; }); return; }
   if (st !== 0xF8) return;
   if (Clock.src && Clock.src !== srcName && now - Clock.last < 1500) return; /* lock to one source */
   Clock.src = srcName; Clock.last = now;
   Clock.ticks.push(now);
   if (Clock.ticks.length > 49) Clock.ticks.shift();
+  pulse();
   if (++Clock.count % 24 === 0) { /* quarter-note pulse */
     $("beat").classList.add("tick");
     setTimeout(() => $("beat").classList.remove("tick"), 90);
@@ -33,6 +37,14 @@ function onClockOnly(e) {
   if (msg.length < 3) return;
   if ((msg[0] & 0xF0) === 0xB0) applyRawCC(msg[0] & 0x0F, msg[1], msg[2]);
 }
+/* no clock from the unit: pulses from the tap tempo, for as long as something follows the beat */
+setInterval(() => {
+  const now = performance.now(), alive = Clock.last > 0 && now - Clock.last <= 1500;
+  if (alive || !Pulse.busy()) { Pulse.at = 0; return; }
+  const per = 60000 / (state.tapBpm || 120) / 24;
+  if (!Pulse.at) Pulse.at = now;
+  while (Pulse.at + per <= now) { Pulse.at += per; pulse(); }
+}, 8);
 setInterval(() => {
   const bpmEl = $("bpm");
   const alive = performance.now() - Clock.last <= 1500 && Clock.last > 0;

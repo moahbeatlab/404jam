@@ -1,4 +1,5 @@
 import { ccFromDefault, ccFromEnum, dispFromCc, enumFromCc, fxDefFor, syncOnFor } from "../core/conv.js";
+import { observe } from "../features/motion.js";
 import { Midi, queueSyncSiblings } from "../core/midi.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, CC_CTRL, clamp, el } from "../core/util.js";
@@ -52,6 +53,7 @@ function setBusCc(bus, slot, cc, opts) {
   const b = state.buses[bus];
   if (b.cc[slot] === cc && !(opts && opts.force)) return;
   b.cc[slot] = cc;
+  observe(bus, slot, cc);
   Midi.send(BUSES[bus].ch, CC_CTRL[slot], cc, opts && opts.force);
   queueSlotRender(bus, slot);
   queueSyncSiblings(bus, slot);

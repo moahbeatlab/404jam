@@ -8,6 +8,8 @@ import { buildJam, clearJam, jamClearUndo, setJamClearUndo, jamEditing, setJamEd
 import { LFO_DEPTHS, LFO_RATES, LFO_WAVES, LfoRt, lfoChips, lfoSel, setLfoSel, lfoTap, lfoToggle, renderLfo } from "./features/lfo.js";
 import { SCALES, buildPads, flushBend, flushNotesIn, padPickSlot, renderPlay, setupBend } from "./features/play-view.js";
 import { pullSync, pushSync, randomize, syncTimer, updateRndBtn } from "./features/randomizer.js";
+import { renderMotion } from "./features/motion.js";
+import { renderPunch } from "./features/punch.js";
 import { openRecipeEditor, openRecipes, saveRecipeDraft } from "./features/recipes.js";
 import { doExport, doImport, openSnaps } from "./features/snapshots.js";
 import { renderXy, setupXyPad } from "./features/xy-pad.js";
@@ -36,7 +38,6 @@ function boot() {
   $("fx-prev").addEventListener("click", () => fxStep(-1));
   $("fx-next").addEventListener("click", () => fxStep(1));
   $("view-toggle").addEventListener("click", toggleView);
-  $("xy-btn").addEventListener("click", toggleXyView);
   $("xy-xa").addEventListener("click", () => openXyPick("x"));
   $("xy-ya").addEventListener("click", () => openXyPick("y"));
   $("xy-mom").addEventListener("click", () => { state.xy.mom = !state.xy.mom; saveState(); renderXy(); });
@@ -164,6 +165,11 @@ function boot() {
   /* looper (device in looper mode, CH 1) - just REC: toggles start/stop */
   let lpRec = false;
   $("lp-rec").addEventListener("click", () => { lpRec = !lpRec; Midi.send(0, 88, lpRec ? 127 : 0, true); $("lp-rec").classList.toggle("on", lpRec); });
+  $("pf-sw").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    $("view-perf").dataset.page = b.dataset.pf;
+    $("pf-sw").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    renderMotion(); renderPunch();
+  }));
   $("alloff").addEventListener("click", allOff);
   $("snaps-btn").addEventListener("click", openSnaps);
   $("snaps-close").addEventListener("click", () => $("snaps").classList.remove("open"));
@@ -212,7 +218,7 @@ function boot() {
   }, true);
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("recipes").classList.remove("open"); $("recipe-edit").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
+    if (e.key === "Escape") { closePicker(); $("setup").classList.remove("open"); $("snaps").classList.remove("open"); $("pnpreset").classList.remove("open"); $("xypick").classList.remove("open"); $("padpick").classList.remove("open"); $("jamedit").classList.remove("open"); $("jampreset").classList.remove("open"); $("xypreset").classList.remove("open"); $("recipes").classList.remove("open"); $("recipe-edit").classList.remove("open"); $("help").classList.remove("open"); closeStepper(); return; }
     if (e.target.tagName === "INPUT") return;
     if (e.key >= "1" && e.key <= "5") gotoFocus(+e.key - 1);
     else if (e.key === " ") { e.preventDefault(); const b = state.activeBus; sendSw(b, !state.buses[b].on); }
@@ -289,7 +295,7 @@ function attachEfxPadDynamic(btn) {
 /* dev hook for hardware probing from the browser console:
    busdriver.send(0, 83, 43)   raw CC send (ch 0-based: 0 = BUS 1)
    busdriver.monitor = true    log all incoming MIDI (except clock/active sensing) */
-window.busdriver = { monitor: false, send: (ch, cc, val) => Midi.send(ch | 0, cc | 0, val | 0, true) };
+window.busdriver = { monitor: false, send: (ch, cc, val) => Midi.send(ch | 0, cc | 0, val | 0, true), Midi, state };
 
 boot();
 
