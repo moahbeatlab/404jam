@@ -6,6 +6,7 @@ import { deleteJamEditor, jamDraft, quickSaveBusScene, renderJamEditor, saveJamE
 import { openJamPresets } from "./features/jam-presets.js";
 import { buildJam, clearJam, jamClearUndo, setJamClearUndo, jamEditing, setJamEditing, jamSceneActive, jamSelectMode, setJamSelectMode, jamSelected, releaseAllJamScenes, updateJamClearBtn } from "./features/jam.js";
 import { renderLfoPage } from "./features/lfo-page.js";
+import { buildXyMorph } from "./features/xy-morph.js";
 import { SCALES, buildPads, flushBend, flushNotesIn, padPickSlot, renderPlay, setupBend } from "./features/play-view.js";
 import { pullSync, pushSync, randomize, syncTimer, updateRndBtn } from "./features/randomizer.js";
 import { renderMotion } from "./features/motion.js";
@@ -61,6 +62,7 @@ function boot() {
     $("xypick").classList.remove("open");
   });
   setupXyPad();
+  buildXyMorph();
   /* play view */
   setupBend();
   $("play-keys-btn").addEventListener("click", () => { state.play.mode = "keys"; saveState(); renderPlay(); });
