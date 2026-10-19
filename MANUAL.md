@@ -161,8 +161,7 @@ buttons). A finger on the pad stops a running morph. CLEAR (tapped twice) remove
 all four points. The points are kept with the rest of the state.
 
 **LFOs** live on **PERF › LFO**: four modulator slots (orange outline = running). Tap
-a cell and its choices open: **BUS** and **KNOB** (the target; knobs carry the
-names of the effect), **SHAPE** (SIN/TRI/SQR/SAW/**RND** = drift between random
+a cell and its choices open: **BUS** and **KNOB** (the target: CTRL 1–6), **SHAPE** (SIN/TRI/SQR/SAW/**RND** = drift between random
 anchors/**PUMP**), **RATE** in note values (4/1 to 1/16), **SHIFT** (the wave starts
 0, 1/4, 1/2 or 3/4 of a cycle later), **DEPTH**. **TEMPO** shows the time source:
 **CLK** (MIDI clock present) or **TAP** — tap the beat a few times to set the
