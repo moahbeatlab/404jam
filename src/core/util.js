@@ -1,8 +1,6 @@
-const BUILD = "2026-07-25.19"; /* bump on deploy - shown in Setup to spot stale caches */
-const LAST_CHANGED = "2026-08-31 (a241f90)"; /* date + short git hash of the last commit;
-   stamped by a follow-up commit right after the real one lands, since a commit can't
-   contain its own hash - shown in Setup so anyone can tell exactly which commit they're
-   running */
+/* set at build time by vite.config.js: the time of the build, and the date + short hash of the last commit */
+const BUILD = typeof __BUILD__ === "string" ? __BUILD__ : "dev";
+const LAST_CHANGED = typeof __LAST_CHANGED__ === "string" ? __LAST_CHANGED__ : "dev";
 
 /* ===== 02 UTIL ===== */
 const $ = (id) => document.getElementById(id);
