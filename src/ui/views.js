@@ -8,6 +8,9 @@ import { attachJamPad, buildJam, jamLabel } from "../features/jam.js";
 import { renderPattern } from "../features/pattern-grid.js";
 import { renderPlay } from "../features/play-view.js";
 import { updateRndBtn } from "../features/randomizer.js";
+import { buildMotion, renderMotion } from "../features/motion.js";
+import { buildPunch, renderPunch } from "../features/punch.js";
+import { toggleXyView } from "../features/xy-presets.js";
 import { renderXy } from "../features/xy-pad.js";
 import { buildControl, controls, finishDragsIn, stripControls } from "./controls.js";
 import { openPicker } from "./picker.js";
@@ -117,24 +120,28 @@ function setActiveBus(bus) {
   renderFocusSlots();
   updateFocusHead();
   updateRndBtn();
+  renderMotion();
 }
 function currentView() {
   const b = document.body.classList;
-  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("overview") ? "overview" : "focus";
+  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("perf") ? "perf" : b.contains("overview") ? "overview" : "focus";
 }
 function setView(v) {
   const b = document.body.classList;
-  b.remove("overview", "xy", "pattern", "play", "jam");
+  b.remove("overview", "xy", "pattern", "play", "jam", "perf");
   if (v !== "focus") b.add(v);
-  $("xy-btn").classList.toggle("on", v === "xy");
+  if (xyTab) xyTab.classList.toggle("active", v === "xy");
+  if (mixTab) mixTab.classList.toggle("active", v === "focus" || v === "overview");
   if (patternTab) patternTab.classList.toggle("active", v === "pattern");
   if (playTab) playTab.classList.toggle("active", v === "play");
   if (jamTab) jamTab.classList.toggle("active", v === "jam");
+  if (perfTab) perfTab.classList.toggle("active", v === "perf");
   $("view-toggle").textContent = v === "overview" ? "Focus" : "Overview";
   if (v === "xy") renderXy();
   if (v === "pattern") renderPattern();
   if (v === "play") renderPlay();
   if (v === "jam") buildJam();
+  if (v === "perf") { buildPunch(); buildMotion(); renderPunch(); renderMotion(); }
 }
 function gotoFocus(bus) {
   setActiveBus(bus);
@@ -146,7 +153,7 @@ function toggleView() {
 
 /* bus tabs */
 const tabs = [], tabLeds = [];
-let patternTab = null, playTab = null, jamTab = null;
+let patternTab = null, playTab = null, jamTab = null, perfTab = null, mixTab = null, xyTab = null;
 function buildTabs() {
   const host = $("bustabs");
   BUSES.forEach((B, i) => {
@@ -164,30 +171,21 @@ function buildTabs() {
     host.appendChild(t);
     tabs.push(t); tabLeds.push(led);
   });
-  const pl = el("button", "bustab");
-  pl.appendChild(el("span", "", "PLAY"));
-  pl.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    setView(currentView() === "play" ? "focus" : "play");
-  });
-  host.appendChild(pl);
-  playTab = pl;
-  const pt = el("button", "bustab");
-  pt.appendChild(el("span", "", "PTN"));
-  pt.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    setView(currentView() === "pattern" ? "focus" : "pattern");
-  });
-  host.appendChild(pt);
-  patternTab = pt;
-  const jm = el("button", "bustab");
-  jm.appendChild(el("span", "", "JAM"));
-  jm.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    setView(currentView() === "jam" ? "focus" : "jam");
-  });
-  host.appendChild(jm);
-  jamTab = jm;
+  const vt = $("viewtabs");
+  const mk = (label, go) => {
+    const t = el("button", "viewtab", label);
+    t.addEventListener("pointerdown", (e) => { e.preventDefault(); go(); });
+    vt.appendChild(t);
+    return t;
+  };
+  const toggle = (v) => () => setView(currentView() === v ? "focus" : v);
+  mixTab = mk("MIX", () => setView("focus"));
+  xyTab = mk("XY", toggleXyView);
+  perfTab = mk("PERF", toggle("perf"));
+  playTab = mk("PLAY", toggle("play"));
+  patternTab = mk("PTN", toggle("pattern"));
+  jamTab = mk("JAM", toggle("jam"));
+  mixTab.classList.add("active");
 }
 
 /* overview strips */
@@ -288,4 +286,4 @@ function allOff() {
   }
 }
 
-export { renderFocusSlots, lastFocusScenesSig, renderFocusScenes, updateFocusHead, renderFocusFavs, updateBusChrome, renderBus, setActiveBus, currentView, setView, gotoFocus, toggleView, tabs, tabLeds, patternTab, playTab, jamTab, buildTabs, strips, buildOverview, setActiveBusSilent, buildStripFaders, attachEfxPad, sendSw, allOff };
+export { perfTab, renderFocusSlots, lastFocusScenesSig, renderFocusScenes, updateFocusHead, renderFocusFavs, updateBusChrome, renderBus, setActiveBus, currentView, setView, gotoFocus, toggleView, tabs, tabLeds, patternTab, playTab, jamTab, buildTabs, strips, buildOverview, setActiveBusSilent, buildStripFaders, attachEfxPad, sendSw, allOff };

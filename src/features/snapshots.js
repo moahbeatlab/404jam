@@ -194,7 +194,7 @@ function doImport() {
   let d = null;
   try { d = JSON.parse($("exchange").value); } catch (e) {}
   if (!d || d.busdriver !== 1 || (!Array.isArray(d.snapshots) && !Array.isArray(d.jam) && !Array.isArray(d.xyPresets) && !Array.isArray(d.recipes))) {
-    showBanner("No valid Busdriver JSON in the text field", "warn", 3000);
+    showBanner("No valid 404jam JSON in the text field", "warn", 3000);
     return;
   }
   importUndo = { snapshots: state.snapshots.slice(), jam: state.jam.slots.slice(), xyPresets: state.xyPresets.slice(), recipes: state.recipes.slice(), t: performance.now() };
