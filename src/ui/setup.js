@@ -1,6 +1,6 @@
 import { Midi } from "../core/midi.js";
 import { directName, state } from "../core/store.js";
-import { $, BUILD, BUSES, CC_CTRL, CC_FX, CC_SW, LAST_CHANGED, el } from "../core/util.js";
+import { $, BUILD, VERSION, BUSES, CC_CTRL, CC_FX, CC_SW, LAST_CHANGED, el } from "../core/util.js";
 import { showBanner } from "./banner.js";
 import { openPicker } from "./picker.js";
 
@@ -9,6 +9,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 function renderSetup() {
   if (!$("setup").classList.contains("open")) return;
   const lines = [];
+  lines.push("Version: <b>v" + VERSION + "</b>");
   lines.push("Build: <b>" + BUILD + "</b>");
   lines.push("Web MIDI: " + (navigator.requestMIDIAccess ? "<b>available</b>" : "<b>not available</b>"));
   lines.push("Access: " + (Midi.access ? "<b>granted</b>" : Midi.demo ? "<b>demo mode</b>" : "not requested yet"));

@@ -59,6 +59,7 @@
   }
   .brand { font-weight: 800; font-size: 20px; color: var(--accent); letter-spacing: -.5px; flex: none; }
   .brand span { color: var(--text); }
+  .brand small { margin-left: 6px; font-size: 10px; font-weight: 600; letter-spacing: 0; color: var(--muted); vertical-align: baseline; }
   #conn { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; height: 100%; text-align: left; }
   #conn-dot { width: 9px; height: 9px; border-radius: 50%; background: #555; flex: none; }
   #conn-dot.ok { background: var(--ok); box-shadow: 0 0 6px rgba(76,208,125,.6); }
@@ -625,6 +626,7 @@
   .pn-slot.held { background: var(--accent); color: var(--ink); }
   .pn-slot.held .pn-sum { color: rgba(0,0,0,.65); }
   .pn-slot.act { background: var(--accent); color: var(--ink); }
+  .pn-slot.act .pn-sum { color: rgba(0,0,0,.65); }
   .pn-slot.sel:not(.held):not(.act) { box-shadow: inset 0 0 0 3px var(--text); }
   .pn-dots { display: flex; gap: 4px; justify-content: center; }
   .pn-dots i { width: 14px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); }

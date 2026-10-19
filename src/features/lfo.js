@@ -8,8 +8,8 @@ import { punchOwns } from "./punch.js";
 import { queueSlotRender, setBusCc } from "../ui/controls.js";
 
 /* ===== beat LFOs (4 slots: 3 LFOs + drift; clock-synced, tap fallback) ===== */
-const LFO_WAVES = ["SIN", "TRI", "SQR", "SAW", "RND", "PUMP"]; /* PUMP dips on the beat and swells back: sidechain-style ducking */
-const LFO_RATES = [["4/1", 16], ["2/1", 8], ["1/1", 4], ["1/2", 2], ["1/4", 1], ["1/8", 0.5], ["1/16", 0.25]];
+const LFO_WAVES = ["SIN", "TRI", "SQR", "SAW", "RND", "PUMP", "SAW DN", "S&H"]; /* new shapes go at the end: saved LFOs keep their number. PUMP dips on the beat and swells back: sidechain-style ducking */
+const LFO_RATES = [["4/1", 16], ["2/1", 8], ["1/1", 4], ["1/2", 2], ["1/4", 1], ["1/8", 0.5], ["1/16", 0.25], ["8/1", 32]]; /* 8/1 is last for the same reason; the picker lists them longest first */
 const LfoRt = [0, 1, 2, 3].map(() => ({ x: 0, on: false, beats: 0, lastT: 0, center: 64, cyc: -1, ra: 0, rb: 0 }));
 /* one cycle of a wave, -1..1 (RND is not here: it drifts between random anchors) */
 function lfoShape(wave, ph) {
@@ -17,6 +17,7 @@ function lfoShape(wave, ph) {
   if (wave === "TRI") return ph < 0.5 ? ph * 4 - 1 : 3 - ph * 4;
   if (wave === "SQR") return ph < 0.5 ? 1 : -1;
   if (wave === "SAW") return ph * 2 - 1;
+  if (wave === "SAW DN") return 1 - ph * 2;
   return -Math.pow(1 - ph, 2); /* PUMP: full dip at the beat, back to the centre by the next */
 }
 let lfoSel = 0, lfoTaps = [];
@@ -65,11 +66,11 @@ setInterval(() => {
     const ph = cyc - Math.floor(cyc);
     const wave = LFO_WAVES[cfg.wave];
     let w;
-    if (wave !== "RND") w = lfoShape(wave, ph);
+    if (wave !== "RND" && wave !== "S&H") w = lfoShape(wave, ph);
     else { /* RND: drift between random anchors, renewed once per cycle */
       const k = Math.floor(cyc);
       if (k !== rt.cyc) { rt.cyc = k; rt.ra = rt.rb; rt.rb = Math.random() * 2 - 1; }
-      w = rt.ra + (rt.rb - rt.ra) * ph;
+      w = wave === "S&H" ? rt.rb : rt.ra + (rt.rb - rt.ra) * ph; /* S&H holds the value for the whole cycle */
     }
     const amp = cfg.amt / 100 * (wave === "PUMP" ? 127 : 63.5);
     const cc = clamp(Math.round(rt.center + w * amp), 0, 127);

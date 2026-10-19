@@ -184,8 +184,8 @@ function loadState() {
       if (!l || typeof l !== "object") return;
       if (l.target && l.target.bus >= 0 && l.target.bus < 5 && l.target.slot >= 0 && l.target.slot < 6)
         state.lfos[i].target = { bus: l.target.bus | 0, slot: l.target.slot | 0 };
-      if (l.wave >= 0 && l.wave < 6) state.lfos[i].wave = l.wave | 0;
-      if (l.rate >= 0 && l.rate < 7) state.lfos[i].rate = l.rate | 0;
+      if (l.wave >= 0 && l.wave < 8) state.lfos[i].wave = l.wave | 0;
+      if (l.rate >= 0 && l.rate < 8) state.lfos[i].rate = l.rate | 0;
       /* amt = depth in percent; saves from before had depth = a step 0-3 of 25/50/75/100 */
       if (l.amt >= 0 && l.amt <= 100) state.lfos[i].amt = Math.round(l.amt);
       else if (l.depth >= 0 && l.depth < 4) state.lfos[i].amt = [25, 50, 75, 100][l.depth | 0];

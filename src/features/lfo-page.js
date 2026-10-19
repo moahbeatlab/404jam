@@ -63,8 +63,12 @@ function build() {
     const t = cfg().target, bus = t ? t.bus : state.activeBus;
     openPick("KNOB · " + BUSES[bus].label, [0, 1, 2, 3, 4, 5].map((k) => ({ t: knobName(bus, k) })), t ? t.slot : -1, (k) => setTarget(bus, k));
   });
-  cell("wave", "SHAPE", () => openPick("SHAPE", LFO_WAVES.map((w) => ({ t: w, s: { RND: "drift", PUMP: "duck on the beat" }[w] })), cfg().wave, (i) => { cfg().wave = i; saveState(); renderLfo(); }));
-  cell("rate", "RATE", () => openPick("RATE (one cycle)", LFO_RATES.map((r) => ({ t: r[0], s: r[1] >= 4 ? r[1] / 4 + (r[1] === 4 ? " bar" : " bars") : "" })), cfg().rate, (i) => { cfg().rate = i; saveState(); renderLfo(); }));
+  /* the lists show the choices in a sensible order; the saved number stays the place in LFO_WAVES / LFO_RATES */
+  const waveOrder = [0, 1, 2, 3, 6, 4, 7, 5];
+  const WAVE_NOTE = { "SAW DN": "falling ramp", RND: "glides between random points", "S&H": "holds a random value, then jumps", PUMP: "duck on the beat" };
+  cell("wave", "SHAPE", () => openPick("SHAPE", waveOrder.map((i) => ({ t: LFO_WAVES[i], s: WAVE_NOTE[LFO_WAVES[i]] })), waveOrder.indexOf(cfg().wave), (k) => { cfg().wave = waveOrder[k]; saveState(); renderLfo(); }));
+  const rateOrder = LFO_RATES.map((_, i) => i).sort((x, y) => LFO_RATES[y][1] - LFO_RATES[x][1]);
+  cell("rate", "RATE", () => openPick("RATE (one cycle)", rateOrder.map((i) => { const r = LFO_RATES[i]; return { t: r[0], s: r[1] >= 4 ? r[1] / 4 + (r[1] === 4 ? " bar" : " bars") : "" }; }), rateOrder.indexOf(cfg().rate), (k) => { cfg().rate = rateOrder[k]; saveState(); renderLfo(); }));
   cell("shift", "SHIFT", () => openPick("SHIFT (start of the cycle)", LFO_SHIFTS.map((x) => ({ t: x, s: x === "0" ? "in step" : "of a cycle later" })), cfg().shift | 0, (i) => { cfg().shift = i; saveState(); renderLfo(); }));
   cell("tap", "TEMPO", lfoTap); /* only there while the unit sends no clock */
   /* DEPTH: a fader, drag it from left to right */
@@ -101,6 +105,7 @@ function drawScope() {
   g.beginPath(); g.moveTo(0, y(0)); g.lineTo(W, y(0)); g.stroke(); g.setLineDash([]);
   const f = (x) => {
     if (wave === "RND") return rt.ra + (rt.rb - rt.ra) * x; /* the drift of this cycle */
+    if (wave === "S&H") return rt.rb; /* the value held in this cycle */
     let ph = x + (c.shift | 0) * 0.25; ph -= Math.floor(ph);
     return lfoShape(wave, ph);
   };

@@ -1,4 +1,5 @@
 /* set at build time by vite.config.js: the time of the build, and the date + short hash of the last commit */
+const VERSION = typeof __VERSION__ === "string" ? __VERSION__ : "dev";
 const BUILD = typeof __BUILD__ === "string" ? __BUILD__ : "dev";
 const LAST_CHANGED = typeof __LAST_CHANGED__ === "string" ? __LAST_CHANGED__ : "dev";
 
@@ -25,4 +26,4 @@ const BUSES = [
 ];
 const NOTE_NAMES = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
 
-export { BUILD, LAST_CHANGED, $, clamp, el, PHONE, CC_CTRL, CC_SW, CC_FX, RECV_CCS, BUSES, NOTE_NAMES };
+export { VERSION, BUILD, LAST_CHANGED, $, clamp, el, PHONE, CC_CTRL, CC_SW, CC_FX, RECV_CCS, BUSES, NOTE_NAMES };
