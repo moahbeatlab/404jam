@@ -2,7 +2,7 @@ import { fxDefFor } from "../core/conv.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, el } from "../core/util.js";
 import { setBusCc } from "../ui/controls.js";
-import { LFO_DEPTHS, LFO_RATES, LFO_WAVES, LfoRt, clockAlive, lfoBpm, lfoHooks, lfoSel, lfoTap, lfoToggle, renderLfo, setLfoSel } from "./lfo.js";
+import { LFO_SHIFTS, LFO_DEPTHS, LFO_RATES, LFO_WAVES, LfoRt, clockAlive, lfoBpm, lfoHooks, lfoSel, lfoTap, lfoToggle, renderLfo, setLfoSel } from "./lfo.js";
 
 /* ===== PERF > LFO: the LFO page of 404tui. Tap a cell and the choices open; the LFOs are the same four as on the XY page. ===== */
 let built = false;
@@ -63,6 +63,7 @@ function build() {
   });
   cell("wave", "SHAPE", () => openPick("SHAPE", LFO_WAVES.map((w) => ({ t: w, s: { RND: "drift", PUMP: "duck on the beat" }[w] })), cfg().wave, (i) => { cfg().wave = i; saveState(); renderLfo(); }));
   cell("rate", "RATE", () => openPick("RATE (one cycle)", LFO_RATES.map((r) => ({ t: r[0], s: r[1] >= 4 ? r[1] / 4 + (r[1] === 4 ? " bar" : " bars") : "" })), cfg().rate, (i) => { cfg().rate = i; saveState(); renderLfo(); }));
+  cell("shift", "SHIFT", () => openPick("SHIFT (start of the cycle)", LFO_SHIFTS.map((x) => ({ t: x, s: x === "0" ? "in step" : "of a cycle later" })), cfg().shift | 0, (i) => { cfg().shift = i; saveState(); renderLfo(); }));
   cell("depth", "DEPTH", () => openPick("DEPTH", LFO_DEPTHS.map((d) => ({ t: d + "%" })), cfg().depth, (i) => { cfg().depth = i; saveState(); renderLfo(); }));
   cell("tap", "TEMPO", lfoTap);
   $("lf-start").addEventListener("click", lfoToggle);
@@ -79,6 +80,7 @@ function render() {
   set("knob", t ? knobName(t.bus, t.slot) : "–");
   set("wave", LFO_WAVES[c.wave]);
   set("rate", LFO_RATES[c.rate][0]);
+  set("shift", LFO_SHIFTS[c.shift | 0]);
   set("depth", LFO_DEPTHS[c.depth] + "%");
   set("tap", (clockAlive() ? "CLK " : "TAP ") + Math.round(lfoBpm()));
   const st = $("lf-start");

@@ -53,7 +53,7 @@ setInterval(() => {
     /* incremental phase: BPM jitter only affects the current slice */
     rt.beats += Math.min(now - rt.lastT, 1000) / 60000 * lfoBpm();
     rt.lastT = now;
-    const cyc = rt.beats / LFO_RATES[cfg.rate][1];
+    const cyc = rt.beats / LFO_RATES[cfg.rate][1] + (cfg.shift | 0) * 0.25; /* SHIFT: the wave starts a quarter cycle later, 0-3 times */
     const ph = cyc - Math.floor(cyc);
     const wave = LFO_WAVES[cfg.wave];
     let w;
@@ -110,4 +110,5 @@ function lfoTap() {
   renderLfo();
 }
 
-export { lfoHooks, LFO_WAVES, LFO_RATES, LFO_DEPTHS, LfoRt, lfoSel, setLfoSel, lfoTaps, lfoChips, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };
+const LFO_SHIFTS = ["0", "1/4", "1/2", "3/4"];
+export { LFO_SHIFTS, lfoHooks, LFO_WAVES, LFO_RATES, LFO_DEPTHS, LfoRt, lfoSel, setLfoSel, lfoTaps, lfoChips, clockAlive, lfoBpm, lfoToggle, lfoTargetLabel, renderLfo, lfoTap };
