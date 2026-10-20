@@ -54,7 +54,7 @@ function renderPattern() {
   chip.appendChild(el("span", "", "BANK"));
   chip.appendChild(el("b", "", BANK_NAMES[state.ptn.bank]));
   chip.appendChild(el("i", "", "▾"));
-  chip.addEventListener("click", () => openPick("Patterns of bank", BANK_NAMES.map((n, i) => ({ t: n, s: SimInfo.on ? (i < 2 ? "8 demo patterns" : "empty") : "" })), state.ptn.bank, (i) => {
+  chip.addEventListener("click", () => openPick("Patterns of bank", BANK_NAMES.map((n, i) => ({ t: n, s: SimInfo.on ? (SimInfo.pat(i, 0) ? "8 demo patterns" : "empty") : "" })), state.ptn.bank, (i) => {
     state.ptn.bank = i;
     saveState();
     renderPattern();

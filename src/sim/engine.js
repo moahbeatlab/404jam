@@ -13,7 +13,7 @@ import { PATTERNS } from "./patterns.js";
    simple approximations of their effects, program changes (patterns) and a MIDI clock that goes back into the app.
    It is a toy to try the features, not an emulation of the unit. ===== */
 const SRC = "Demo unit";
-const Sim = { on: false, loading: false, ctx: null, master: null, vol: 0.8, tempo: 92, bankBpm: [92, 90, 124, 140, 92, 92, 92, 92, 92, 92], running: false, cur: null, next: undefined, curId: "", chroma: null, nowStep: -1, kit: [], hooks: new Set(), powerHooks: new Set() };
+const Sim = { on: false, loading: false, ctx: null, master: null, vol: 0.8, tempo: 92, bankBpm: [92, 90, 124, 140, 90, 80, 100, 120, 124, 95], running: false, cur: null, next: undefined, curId: "", chroma: null, nowStep: -1, kit: [], hooks: new Set(), powerHooks: new Set() };
 const pads = new Map(); /* bank*16 + pad -> { buf, name, bus, gate, choke, key } */
 const voices = new Set(), held = new Map();
 let buses = [];
@@ -212,10 +212,11 @@ async function enable() {
     if (window.busdriver) window.busdriver.sim = Sim; /* for tests in the console */
     Sim.on = true;
     SimInfo.on = true;
+    SimInfo.count = (b) => { let n = 0; for (let p = 1; p <= 16; p++) if (pads.has(b * 16 + p)) n++; return n; };
     SimInfo.pad = (b, p) => { const x = pads.get(b * 16 + p); return x ? x.name : null; };
     SimInfo.pat = (b, pc) => (PATTERNS[b] && PATTERNS[b][pc] ? PATTERNS[b][pc].name : null);
     SimInfo.chroma = () => (Sim.chroma ? "ABCDEFGHIJ"[Sim.chroma.bank] + Sim.chroma.pad + " " + Sim.chroma.name : null);
-    showBanner("Demo unit on: sounds and patterns 1–8 on banks A to D", "info", 4500);
+    showBanner("Demo unit on: sounds and patterns 1–8 on all banks A to J", "info", 4500);
   } catch (e) {
     showBanner("Demo unit: could not load the sounds (" + (e && e.message || e) + ")", "warn", 6000);
   }
