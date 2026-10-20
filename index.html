@@ -119,22 +119,47 @@
         </div>
         <p class="pick-note" id="play-note">Chromatic: pitches whichever sample you last tapped in PADS (CH 16, fixed - independent of the Pad MIDI Channels setting; C2&ndash;C4).</p>
       </section>
-      <section id="view-arp">
+      <section id="view-arp" data-page="notes">
         <div id="ar-top">
-          <button id="ar-go" class="big">START</button>
-          <button id="ar-fill" class="big"><small>HOLD</small><b>FILL</b></button>
+          <button id="ar-sample" class="big"><small>SAMPLE</small><b>PICK</b></button>
+          <button id="ar-key" class="big"><small>SAMPLE KEY</small><b>C</b></button>
         </div>
-        <div id="ar-notes"></div>
-        <div id="ar-chords">
-          <button id="ar-root" class="big"><small>ROOT</small><b>C</b></button>
-          <button id="ar-scale" class="big"><small>SCALE</small><b>OFF</b></button>
-          <button id="ar-chord" class="big"><small>CHORD</small><b>MAJ</b></button>
-          <button id="ar-clear" class="big"><small>NOTES</small><b>CLEAR</b></button>
+        <button id="ar-go" class="big">START</button>
+        <div id="ar-seg" class="subseg"><button data-p="notes">NOTES</button><button data-p="feel">PATTERN</button></div>
+        <div class="ar-p1">
+          <div id="ar-notes"></div>
+          <div id="ar-chords">
+            <button id="ar-root" class="big"><small>ROOT</small><b>C</b></button>
+            <button id="ar-scale" class="big"><small>SCALE</small><b>OFF</b></button>
+            <button id="ar-chord" class="big"><small>CHORD</small><b>MAJ</b></button>
+            <button id="ar-clear" class="big"><small>NOTES</small><b>CLEAR</b></button>
+          </div>
         </div>
-        <div id="ar-grid"></div>
-        <div id="ar-lanehead"><span>CONDITIONS PER STEP</span><button id="ar-all" class="pad">SET ALL</button></div>
-        <div id="ar-lane"></div>
+        <div class="ar-p2"><div id="ar-grid"></div></div>
         <div id="ar-hint" class="hint"></div>
+        <div id="ar-clock" class="hint"></div>
+      </section>
+      <section id="view-trig" data-page="steps">
+        <div id="tr-top">
+          <button id="tr-sample" class="big"><small>SAMPLE</small><b>PICK</b></button>
+          <button id="tr-key" class="big"><small>SAMPLE KEY</small><b>C</b></button>
+        </div>
+        <div id="tr-run">
+          <button id="tr-go" class="big">START</button>
+          <button id="tr-fill" class="big"><small>HOLD</small><b>FILL</b></button>
+        </div>
+        <div id="tr-seg" class="subseg"><button data-p="steps">STEPS</button><button data-p="feel">TIMING</button></div>
+        <div class="tr-p1">
+          <div id="tr-lane"></div>
+          <div id="tr-editor">
+            <h4>STEP 1</h4>
+            <button id="tr-note" class="big"><small>NOTE</small><b>–</b></button>
+            <button id="tr-cond" class="big"><small>CONDITION</small><b>–</b></button>
+            <button id="tr-clear" class="big"><small>STEP</small><b>CLEAR</b></button>
+          </div>
+        </div>
+        <div class="tr-p2"><div id="tr-grid"></div></div>
+        <div id="tr-hint" class="hint"></div>
       </section>
       <section id="view-jam">
         <div id="jam-head">
