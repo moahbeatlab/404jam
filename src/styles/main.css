@@ -735,55 +735,6 @@
     #jam-head .pad { padding: 0 10px; font-size: 10px; letter-spacing: 0; }
   }
 
-  /* ============ ARP (chords, arps) and TRIG (steps with conditions) ============ */
-  #view-arp, #view-trig { display: none; height: 100%; padding: 8px calc(10px + env(safe-area-inset-right)) 8px calc(10px + env(safe-area-inset-left)); flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; }
-  body.arp #view-arp, body.trig #view-trig { display: flex; }
-  body.arp #view-focus, body.arp #view-overview, body.trig #view-focus, body.trig #view-overview { display: none; }
-  #view-arp > *, #view-trig > * { flex: none; }
-  #ar-top, #tr-top { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  #ar-top .big, #tr-top .big { min-height: 56px; }
-  #ar-top b, #tr-top b { font-size: 20px; }
-  #ar-go { min-height: 60px; font-size: 17px; }
-  #tr-run { display: flex; gap: 8px; }
-  #tr-go { flex: 1; min-height: 60px; font-size: 17px; }
-  #tr-fill { width: 104px; min-height: 60px; touch-action: none; }
-  #tr-fill b { font-size: 16px; }
-  .subseg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .subseg button { min-height: 42px; border-radius: 10px; background: var(--raised); font-weight: 800; font-size: 13px; letter-spacing: .06em; color: var(--text); box-shadow: none; }
-  .subseg button.on { background: var(--accent); color: var(--ink); }
-  #view-arp[data-page="notes"] .ar-p2, #view-arp[data-page="feel"] .ar-p1 { display: none; }
-  #view-trig[data-page="steps"] .tr-p2, #view-trig[data-page="feel"] .tr-p1 { display: none; }
-  #ar-notes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-  #ar-notes .pad { min-height: 52px; border-radius: 10px; font-size: 15px; font-weight: 700; letter-spacing: 0; }
-  #ar-notes .pad.on { background: var(--accent); color: var(--ink); }
-  #ar-notes .pad.root { box-shadow: inset 0 -4px 0 var(--ok); }
-  #ar-chords { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  #ar-chords .big { min-height: 60px; padding: 4px; }
-  #ar-chords .big b { font-size: 15px; }
-  #ar-chords .big small, #tr-editor .big small, #ar-top small, #tr-top small { font-size: 9px; letter-spacing: .08em; }
-  #ar-grid, #tr-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-  #ar-grid .lf-cell, #tr-grid .lf-cell { min-height: 76px; }
-  #ar-grid .lf-cell b, #tr-grid .lf-cell b { font-size: 18px; }
-  #tr-lane { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-  .ar-step { min-height: 64px; border-radius: 10px; background: var(--raised); color: var(--text); display: grid; place-content: center; gap: 0; padding: 2px; text-align: center; box-shadow: none; }
-  .ar-step small { font-size: 9px; color: var(--muted); letter-spacing: 0; }
-  .ar-step b { font-size: 17px; line-height: 1.1; }
-  .ar-step i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--muted); min-height: 1.1em; }
-  .ar-step.set { background: #3a3320; }
-  .ar-step.set b { color: var(--accent); }
-  .ar-step.cnd i { color: var(--text); }
-  .ar-step.off { opacity: .3; }
-  .ar-step.sel { box-shadow: inset 0 0 0 2px var(--text); }
-  .ar-step.now { background: var(--accent); }
-  .ar-step.now b, .ar-step.now i, .ar-step.now small { color: var(--ink); }
-  #tr-editor { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
-  #tr-editor h4 { grid-column: 1 / -1; font-size: 11px; letter-spacing: .1em; color: var(--muted); font-weight: 600; }
-  #tr-editor .big { min-height: 60px; }
-  #tr-editor .big:disabled { opacity: .35; }
-  #ar-hint, #ar-clock, #tr-hint { color: var(--muted); font-size: 12px; line-height: 1.3; }
-  body.arp-run .viewtab[data-v="ARP"]:not(.active), body.trig-run .viewtab[data-v="TRIG"]:not(.active) { box-shadow: inset 0 0 0 2px var(--accent); }
-  @media (orientation: landscape) { #tr-lane { grid-template-columns: repeat(8, minmax(0, 1fr)); } #ar-notes { grid-template-columns: repeat(12, minmax(0, 1fr)); } }
-
   /* ============ DEMO UNIT panel ============ */
   #sim-panel { margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 24px); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; }
   #sim-scroll { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
