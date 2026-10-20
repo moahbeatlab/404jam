@@ -1,7 +1,8 @@
 import { Midi } from "../core/midi.js";
 import { saveState, state } from "../core/store.js";
 import { $, NOTE_NAMES, clamp, el } from "../core/util.js";
-import { BANK_NAMES, padPairHalf, pairJump, renderPattern } from "./pattern-grid.js";
+import { BANK_NAMES, renderPattern } from "./pattern-grid.js";
+import { openPick } from "./lfo-page.js";
 import { showBanner } from "../ui/banner.js";
 import { finishDragsIn } from "../ui/controls.js";
 
@@ -97,26 +98,18 @@ let padPickSlot = 0, padPickBank = 0;
 function buildPads() {
   const bh = $("pad-banks");
   bh.textContent = "";
-  /* compact bank picker: one button per row-pair (A/F, B/G, C/H, D/I, E/J -
-     row i pairs bank i with bank i+5, the two Mode-B channel halves) instead
-     of a button per bank - still reaches all 10, just less space. Each pair
-     remembers its own last letter independently (pairJump). */
-  for (let i = 0; i < 5; i++) {
-    const b = el("button", (state.play.padBank === i || state.play.padBank === i + 5) ? "active" : "");
-    b.appendChild(el("span", state.play.padBank === i ? "sel" : "", BANK_NAMES[i]));
-    b.appendChild(document.createTextNode("/"));
-    b.appendChild(el("span", state.play.padBank === i + 5 ? "sel" : "", BANK_NAMES[i + 5]));
-    b.addEventListener("pointerdown", (e) => {
-      e.preventDefault();
-      state.play.padBank = pairJump(state.play.padBank, i, padPairHalf);
-      saveState();
-      buildPads();
-    });
-    bh.appendChild(b);
-  }
-  const star = el("button", state.play.padBank === 10 ? "active" : "", "★");
-  star.addEventListener("pointerdown", (e) => { e.preventDefault(); state.play.padBank = 10; saveState(); buildPads(); });
-  bh.appendChild(star);
+  /* the bank: one chip that opens the list of banks, as on PTN (10 banks plus the custom layout) */
+  const cur = state.play.padBank;
+  const chip = el("button", "bankchip");
+  chip.appendChild(el("span", "", "BANK"));
+  chip.appendChild(el("b", "", cur === 10 ? "★" : BANK_NAMES[cur]));
+  chip.appendChild(el("i", "", "▾"));
+  chip.addEventListener("click", () => openPick("Pads of bank", BANK_NAMES.map((n) => ({ t: n })).concat([{ t: "★", s: "custom" }]), cur, (i) => {
+    state.play.padBank = i;
+    saveState();
+    buildPads();
+  }, 5));
+  bh.appendChild(chip);
   const g = $("pad-grid");
   flushNotesIn(g);
   g.textContent = "";

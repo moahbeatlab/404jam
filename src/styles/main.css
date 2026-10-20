@@ -292,8 +292,8 @@
   #ptn-banks button.active, #pad-banks button.active { color: var(--text); box-shadow: none; background: var(--accent); color: var(--ink); }
   #ptn-banks button span, #pad-banks button span { opacity: .4; }
   #ptn-banks button span.sel, #pad-banks button span.sel { opacity: 1; font-weight: 800; }
-  #ptn-banks .bankchip { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
-  #ptn-banks .bankchip b { font-size: 20px; color: var(--accent); letter-spacing: 0; }
+  #ptn-banks .bankchip, #pad-banks .bankchip { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 13px; font-weight: 700; letter-spacing: .08em; color: var(--muted); }
+  #ptn-banks .bankchip b, #pad-banks .bankchip b { font-size: 20px; color: var(--accent); letter-spacing: 0; }
   #lfpick-list .big b { text-transform: none; }
   #ptn-grid, #pad-grid, #scale-grid { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr); gap: 8px; min-height: 0; }
   #ptn-grid button, #pad-grid button, #scale-grid button { border-radius: 10px; font-size: 15px; font-weight: 700; color: var(--text); min-height: 0; overflow: hidden; }
