@@ -171,6 +171,15 @@ where the LFO is right now. Grabbing the target fader pauses the LFO and
 re-centers it on your position; switching it off parks the value at the
 center. Slot 4 comes preconfigured as a slow drift.
 
+## ARP: chords, arps and conditions
+
+Turns a one-shot into a chord or an arp (chromatic channel, the pad you last tapped in PADS).
+**START** begins on the next bar of the unit's clock (without a clock: at once, on the tap tempo). **FILL** (hold) enables FILL steps.
+- **Notes:** tap the 12 note buttons, or pick ROOT + CHORD (or ROOT + SCALE, then SCALE or a chord on a degree I–VII / I7–VII7).
+- **SAMPLE KEY:** the key the sample is tuned to, so a sample in F still sounds the notes you picked. Assumes the unit plays the sample at its own pitch on C3 (unverified): SHIFT moves it by an octave.
+- **Pattern:** UP, DOWN, UP-DN, DN-UP, RANDOM, ORDER (as entered), GLISS (chromatic run), THIRDS, PEDAL, CHORD (all at once). Also RATE, GATE, SWING, OCTAVES.
+- **Conditions per step:** tap a step: ● always, 75/50/25/10 %, 1:2 … 4:4 (which loop), 1st / !1st, FILL / !FILL, ✕ rest. STEPS sets the loop length. Skipped steps stay silent but the pattern keeps moving.
+
 ## PADS: keys, scale, pads
 
 - **KEYS:** keyboard. Target "SAMPLE CH16" plays whichever sample you last

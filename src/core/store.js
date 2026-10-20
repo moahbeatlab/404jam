@@ -30,6 +30,7 @@ let state = {
   play: { mode: "keys", target: "sample", oct: 0, padBank: 0, padChPair: 0,
     scaleRoot: 0, scaleType: 0, iso: true,
     custom: [null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null] },
+  arp: { pcs: [0, 4, 7], root: 0, scale: 0, chord: 0, deg: 0, dir: 0, rate: 3, gate: 2, swing: 0, oct: 2, shift: 0, key: 0, len: 16, steps: Array(16).fill(0) },
   midi: { outName: null, inName: null },
   wake: false,
   horizFaders: false, /* Setup toggle: sideways-drag full-width fader strips */
@@ -200,6 +201,14 @@ function loadState() {
     }
     const tb = s.tapBpm || (s.lfo && s.lfo.tapBpm);
     if (tb >= 30 && tb <= 300) state.tapBpm = tb;
+    if (s.arp && typeof s.arp === "object") {
+      const r = s.arp, A = state.arp, num = (v, lo, hi, d) => (v >= lo && v <= hi ? v | 0 : d);
+      if (Array.isArray(r.pcs)) A.pcs = r.pcs.filter((p, i, all) => p >= 0 && p < 12 && all.indexOf(p) === i).map((p) => p | 0);
+      A.root = num(r.root, 0, 11, A.root); A.scale = num(r.scale, 0, 7, A.scale); A.chord = num(r.chord, 0, 11, A.chord); A.deg = num(r.deg, 0, 14, A.deg);
+      A.dir = num(r.dir, 0, 9, A.dir); A.rate = num(r.rate, 0, 5, A.rate); A.gate = num(r.gate, 0, 3, A.gate); A.swing = num(r.swing, 0, 2, A.swing);
+      A.oct = num(r.oct, 1, 3, A.oct); A.shift = num(r.shift, -1, 1, A.shift); A.key = num(r.key, 0, 11, A.key); A.len = num(r.len, 1, 16, A.len);
+      if (Array.isArray(r.steps)) A.steps = Array.from({ length: 16 }, (_, i) => num(r.steps[i], 0, 18, 0));
+    }
     if (s.play && typeof s.play === "object") {
       if (s.play.mode === "pads" || s.play.mode === "scale") state.play.mode = s.play.mode;
       if (s.play.target === "voc") state.play.target = "voc";
@@ -251,7 +260,7 @@ function loadState() {
 let saveTimer = null;
 function writeState() {
   try {
-    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, xyPts: state.xyPts, xyMorph: state.xyMorph, lfos: state.lfos, punch: state.punch, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ v: 1, buses: state.buses, mem: state.mem, favs: state.favs, recents: state.recents, snapshots: state.snapshots, directFx: state.directFx, xy: state.xy, xyPts: state.xyPts, xyMorph: state.xyMorph, lfos: state.lfos, punch: state.punch, tapBpm: state.tapBpm, ptn: state.ptn, play: state.play, arp: state.arp, midi: state.midi, wake: state.wake, horizFaders: state.horizFaders, jamKnobs: state.jamKnobs, jam: state.jam, xyPresets: state.xyPresets, recipes: state.recipes, theme: state.theme }));
   } catch (e) { /* quota/private mode: ignore */ }
 }
 function saveState() {
