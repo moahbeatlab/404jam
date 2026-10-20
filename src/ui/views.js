@@ -184,7 +184,7 @@ function buildTabs() {
   mixTab = mk("MIX", () => setView("focus"));
   xyTab = mk("XY", toggleXyView);
   perfTab = mk("PERF", toggle("perf"));
-  playTab = mk("PLAY", toggle("play"));
+  playTab = mk("PADS", toggle("play"));
   patternTab = mk("PTN", toggle("pattern"));
   jamTab = mk("JAM", toggle("jam"));
   mixTab.classList.add("active");

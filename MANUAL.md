@@ -20,7 +20,7 @@ no installation. This manual is also built into the app (Setup > Manual).
   - **"PC Rx" → ON.** Needed only for pattern switching (PTN tab). Without
     it the app's Program Change messages send fine but the device silently
     ignores them — no error, just nothing happening.
-  - **"Pad MIDI Channels" → match the app's PAD-CH button** (PLAY > PADS,
+  - **"Pad MIDI Channels" → match the app's PAD-CH button** (PADS,
     default 1/2). Whatever channel pair you set on the device is what you
     pick there.
   - Nothing else to configure: Chromatic/Sample Play always uses a fixed
@@ -38,7 +38,7 @@ beat while the unit sends MIDI clock; the first is the downbeat) with the BPM ne
 to them, **ALL OFF** (switches every bus off and remembers the state — a second
 tap restores) and **Menu** (Overview/Focus, Snapshots, Library, Setup).
 
-**Tab bar:** BUS 1–4 and IN (focus view per bus), PLAY (playing surfaces),
+**Tab bar:** BUS 1–4 and IN (focus view per bus), PADS (playing surfaces),
 PTN (patterns), JAM (your own pinned controls). The LEDs
 in the bus tabs always show which effects are on.
 
@@ -171,7 +171,7 @@ where the LFO is right now. Grabbing the target fader pauses the LFO and
 re-centers it on your position; switching it off parks the value at the
 center. Slot 4 comes preconfigured as a slow drift.
 
-## PLAY: keys, scale, pads
+## PADS: keys, scale, pads
 
 - **KEYS:** keyboard. Target "SAMPLE CH16" plays whichever sample you last
   tapped in PADS, chromatically (C2–C4, octave paging on phones) — tap the

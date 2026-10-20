@@ -480,13 +480,13 @@
         (mode A only covers FX control), &quot;PC Rx&quot; <b>ON</b> (patterns only &ndash;
         without it the device silently ignores Program Change), and
         &quot;Pad MIDI Channels&quot; matching the app's <b>PAD-CH</b> button
-        (PLAY &gt; PADS, default 1/2). Nothing else to set: chromatic play is a
+        (PADS &gt; PADS, default 1/2). Nothing else to set: chromatic play is a
         fixed CH 16, FX control is fixed CH 1&ndash;5, no SysEx involved.
         If the app seems outdated, load the URL with <b>?v=99</b> (cache); the build number is shown in Setup.</p>
         <h3>Status bar and tabs</h3>
         <p>Connection dot (tap = Setup), the four <b>clock bars</b> (one lights per beat while the unit
         sends MIDI clock) and the BPM, <b>ALL OFF</b> (all buses off + remembered; a second tap restores),
-        and <b>Menu</b>: Overview/Focus, Snapshots, Library, Setup. Tabs: BUS 1&ndash;4, IN, PLAY, PTN &ndash; the LEDs show active effects.</p>
+        and <b>Menu</b>: Overview/Focus, Snapshots, Library, Setup. Tabs: BUS 1&ndash;4, IN, PADS, PTN &ndash; the LEDs show active effects.</p>
         <h3>Fader gestures (Focus)</h3>
         <p>Relative drag &ndash; the first touch never jumps. <b>Fine-tune:</b> while dragging,
         pull sideways (finer from 60 px, very fine from 120 px). <b>Double tap</b> = default.
@@ -516,23 +516,19 @@
         START shows one cycle and where the LFO is. They follow the MIDI clock; without one,
         TEMPO appears: tap the beat. A finger on the target fader pauses and re-centers;
         switching off parks at the center.</p>
-        <h3>PLAY</h3>
+        <h3>PADS</h3>
         <p><b>KEYS:</b> keyboard &ndash; sample chromatic (CH 16, C2&ndash;C4) or
         vocoder (CH 11) with pitch-bend strip. <b>SCALE:</b> 4&times;4 grid with only
         in-scale notes; ISO = Move layout (rows a fourth apart), LIN = continuous;
         roots highlighted. <b>PADS:</b> pad board laid out like the device
-        (pad 1 top left); banks A&ndash;J as five pair buttons (A/F, B/G, C/H,
-        D/I, E/J, pairing each bank with its Mode-B channel-half counterpart)
-        &ndash; each button remembers its own letter independently, tap the
-        active pair again to flip its other letter; all ten stay reachable.
+        (pad 1 top left); the <b>BANK</b> chip opens the list of banks (A&ndash;J, plus &#9733; custom).
         &#9733; = custom layout (hold to assign); PAD-CH must
         match the device setting &quot;Pad MIDI Channels&quot;. <b>Looper</b>
         (below the pads): just <b>LOOPER REC</b>, toggling start/stop (CC#88).
         Device must be in looper mode itself; the rest of the looper CC set
         isn't exposed here - use the device directly for overdub/delete/undo/tempo.</p>
         <h3>PTN: patterns</h3>
-        <p>Pick a bank via the five pair buttons (A/F, B/G, C/H, D/I, E/J -
-        same picker as PADS, each remembering its own letter independently),
+        <p>The <b>BANK</b> chip opens the list of banks (same as PADS),
         tap a pattern (mode B + PC Rx ON; highlighted = last sent).</p>
         <h3>Tempo / Ableton Link</h3>
         <p>BPM reads MIDI clock from any port (AUM, Ableton, a bridge). Link route:
