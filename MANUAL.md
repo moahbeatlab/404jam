@@ -173,17 +173,7 @@ center. Slot 4 comes preconfigured as a slow drift.
 
 ## Demo unit (no SP-404 needed)
 
-**Menu > Demo unit > TURN ON** (also offered on the "no Web MIDI" screen) makes the app talk to a pretend SP-404 in the browser, with sound. Everything works against it: pads (**bank A**: 16 drum sounds on BUS 1, **bank B**: 8 melodic one-shots on BUS 2, B6 is a chord in F), KEYS/SCALE and the chromatic channel (the pad you tapped last, C3 = its own pitch), ARP, TRIG, the buses (CC for effect, switch and the six knobs: the effects are simple stand-ins, only filter, lo-fi, drive, chorus-like, delay and reverb kinds make sound), the **PTN** tab (banks A and B, patterns 1–8, switching on the bar) and a MIDI clock that the app follows (clock bars, BPM, Motion, LFOs, ARP/TRIG start on the bar). PLAY/STOP, tempo and volume are in the panel. The sounds are synthesized one-shots in `public/sim/` (replaceable). A toy, not an emulation of the unit.
-
-## ARP: chords and arps
-
-Turns a one-shot into a chord or an arp on the chromatic channel (CH16). Pick the **SAMPLE** (bank, then pad: it is hit once so the unit takes it as the chromatic sample, unverified) and the **SAMPLE KEY** it is tuned to, so a sample in F still sounds the notes you picked. Assumes the unit plays the sample at its own pitch on C3 (unverified); SHIFT moves it by an octave. **START** begins on the next bar of the unit's clock (without a clock: at once, on the tap tempo).
-- **NOTES:** tap the 12 note buttons, or pick ROOT + CHORD (MAJ, MIN, 7, MAJ7, MIN7, SUS2, SUS4, DIM, AUG, 5, 6, 9), or ROOT + SCALE and then the whole scale or a chord on a degree (I–VII, I7–VII7).
-- **PATTERN:** UP, DOWN, UP-DN, DN-UP, RANDOM, ORDER (as entered), GLISS (chromatic run), THIRDS, PEDAL (root between notes), CHORD (all at once); RATE 1/4 to 1/32 (with triplets), GATE, SWING, OCTAVES, SHIFT.
-
-## TRIG: steps with conditions
-
-Pick the **SAMPLE** and its key, tap a step to put a note on it (an empty step takes the note you used last), then set the step's **NOTE** and **CONDITION**: ● always, 75/50/25/10 %, 1:2 … 4:4 (on which loop), 1st / !1st (first loop only / not first), FILL / !FILL (while the **FILL** button is held / not held). Skipped steps stay silent and the pattern keeps moving. TIMING: RATE, STEPS (loop length 1–16), GATE, SWING. Same clock as the unit, starts on the bar, so it plays along with your patterns.
+**Menu > Demo unit > TURN ON** (also offered on the "no Web MIDI" screen) makes the app talk to a pretend SP-404 in the browser, with sound. Everything works against it: pads (**bank A**: 16 drum sounds on BUS 1, **bank B**: 8 melodic one-shots on BUS 2, B6 is a chord in F), KEYS/SCALE and the chromatic channel (the pad you tapped last, C3 = its own pitch), the buses (CC for effect, switch and the six knobs: the effects are simple stand-ins, only filter, lo-fi, drive, chorus-like, delay and reverb kinds make sound), the **PTN** tab (banks A and B, patterns 1–8, switching on the bar) and a MIDI clock that the app follows (clock bars, BPM, Motion, LFOs). PLAY/STOP, tempo and volume are in the panel. The sounds are synthesized one-shots in `public/sim/` (replaceable). A toy, not an emulation of the unit.
 
 ## PADS: keys, scale, pads
 

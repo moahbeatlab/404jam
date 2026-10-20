@@ -7,8 +7,6 @@ import { openJamEditor } from "../features/jam-editor.js";
 import { attachJamPad, buildJam, jamLabel } from "../features/jam.js";
 import { renderPattern } from "../features/pattern-grid.js";
 import { renderPlay } from "../features/play-view.js";
-import { buildArp, renderArp } from "../features/arp.js";
-import { buildTrig, renderTrig } from "../features/trig.js";
 import { updateRndBtn } from "../features/randomizer.js";
 import { buildMotion, renderMotion } from "../features/motion.js";
 import { buildPunch, renderPunch } from "../features/punch.js";
@@ -127,11 +125,11 @@ function setActiveBus(bus) {
 }
 function currentView() {
   const b = document.body.classList;
-  return b.contains("trig") ? "trig" : b.contains("arp") ? "arp" : b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("perf") ? "perf" : b.contains("overview") ? "overview" : "focus";
+  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("perf") ? "perf" : b.contains("overview") ? "overview" : "focus";
 }
 function setView(v) {
   const b = document.body.classList;
-  b.remove("overview", "xy", "pattern", "play", "jam", "perf", "arp", "trig");
+  b.remove("overview", "xy", "pattern", "play", "jam", "perf");
   if (v !== "focus") b.add(v);
   if (xyTab) xyTab.classList.toggle("active", v === "xy");
   if (mixTab) mixTab.classList.toggle("active", v === "focus" || v === "overview");
@@ -139,14 +137,10 @@ function setView(v) {
   if (playTab) playTab.classList.toggle("active", v === "play");
   if (jamTab) jamTab.classList.toggle("active", v === "jam");
   if (perfTab) perfTab.classList.toggle("active", v === "perf");
-  if (arpTab) arpTab.classList.toggle("active", v === "arp");
-  if (trigTab) trigTab.classList.toggle("active", v === "trig");
   $("view-toggle").textContent = v === "overview" ? "Focus" : "Overview";
   if (v === "xy") renderXy();
   if (v === "pattern") renderPattern();
   if (v === "play") renderPlay();
-  if (v === "arp") { buildArp(); renderArp(); }
-  if (v === "trig") { buildTrig(); renderTrig(); }
   if (v === "jam") buildJam();
   if (v === "perf") { buildPunch(); buildMotion(); buildLfoPage(); renderPunch(); renderMotion(); renderLfoPage(); }
 }
@@ -160,7 +154,7 @@ function toggleView() {
 
 /* bus tabs */
 const tabs = [], tabLeds = [];
-let trigTab = null, arpTab = null, patternTab = null, playTab = null, jamTab = null, perfTab = null, mixTab = null, xyTab = null;
+let patternTab = null, playTab = null, jamTab = null, perfTab = null, mixTab = null, xyTab = null;
 function buildTabs() {
   const host = $("bustabs");
   BUSES.forEach((B, i) => {
@@ -173,7 +167,7 @@ function buildTabs() {
       /* in the playable tablet/desktop overview a tab tap only sets the
          active bus - it must not yank the user out of the overview */
       if (document.body.classList.contains("overview") && !PHONE.matches) setActiveBusSilent(i);
-      else if (["xy", "pattern", "play", "jam", "perf", "arp", "trig"].includes(currentView())) setActiveBus(i); /* stay in the section chosen at the bottom */
+      else if (["xy", "pattern", "play", "jam", "perf"].includes(currentView())) setActiveBus(i); /* stay in the section chosen at the bottom */
       else gotoFocus(i);
     });
     host.appendChild(t);
@@ -192,8 +186,6 @@ function buildTabs() {
   xyTab = mk("XY", toggleXyView);
   perfTab = mk("PERF", toggle("perf"));
   playTab = mk("PADS", toggle("play"));
-  arpTab = mk("ARP", toggle("arp"));
-  trigTab = mk("TRIG", toggle("trig"));
   patternTab = mk("PTN", toggle("pattern"));
   jamTab = mk("JAM", toggle("jam"));
   mixTab.classList.add("active");
