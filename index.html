@@ -349,6 +349,31 @@
     </div>
   </div>
 
+  <div id="sim" class="overlay">
+    <div id="sim-panel">
+      <div id="lfpick-head">
+        <h2>DEMO UNIT</h2>
+        <button id="sim-close" class="setup-btn">Close</button>
+      </div>
+      <div id="sim-scroll">
+        <p class="pick-note">A pretend SP-404 in this browser, so you can try 404jam without the unit: sounds on the pads,
+        the chromatic channel, BUS 1&ndash;4 with simple stand-ins for their effects, patterns on PTN and a MIDI clock.
+        A toy, not an emulation. The sounds are synthesized one-shots.</p>
+        <button id="sim-power" class="big">TURN ON</button>
+        <div id="sim-body" class="off">
+          <div id="sim-trans">
+            <button id="sim-play" class="big">&#9654; PLAY</button>
+            <button id="sim-tdown" class="big">&minus;</button>
+            <b id="sim-bpm">92 BPM</b>
+            <button id="sim-tup" class="big">+</button>
+          </div>
+          <div id="sim-now" class="hint"></div>
+          <label class="hint" id="sim-voll">Volume <input id="sim-vol" type="range" min="0" max="100" value="80"></label>
+          <pre id="sim-kit" class="hint"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="lfpick" class="overlay">
     <div id="lfpick-panel">
       <div id="lfpick-head">
@@ -601,7 +626,7 @@
       Connect the SP-404 MkII via USB-C.</p>
       <p>Device MIDI mode: <b>A and B</b> both work for
       FX control ([SHIFT] + [PAD 12] &gt; SYSTEM &gt; MIDI).</p>
-      <div class="setup-row"><button id="demo-btn" class="setup-btn">View the UI anyway (demo mode)</button></div>
+      <div class="setup-row"><button id="demo-btn" class="setup-btn">Try the demo unit (sound in this browser)</button></div>
     </div>
   </div>
 

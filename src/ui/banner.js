@@ -14,7 +14,7 @@ function showBanner(text, cls, ms) {
 }
 function updateConnUi() {
   const dot = $("conn-dot"), name = $("conn-name");
-  if (Midi.demo) { dot.className = ""; name.textContent = "Demo mode (no MIDI)"; return; }
+  if (Midi.demo) { dot.className = Midi.simHandler ? "ok" : ""; name.textContent = Midi.simHandler ? "Demo unit (sound in this browser)" : "Demo mode (no MIDI)"; return; }
   if (!navigator.requestMIDIAccess) { dot.className = "err"; name.textContent = "no Web MIDI"; return; }
   const o = Midi.out();
   if (o) {

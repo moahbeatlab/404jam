@@ -782,3 +782,16 @@
   #ar-hint, #ar-clock, #tr-hint { color: var(--muted); font-size: 12px; line-height: 1.3; }
   body.arp-run .viewtab[data-v="ARP"]:not(.active), body.trig-run .viewtab[data-v="TRIG"]:not(.active) { box-shadow: inset 0 0 0 2px var(--accent); }
   @media (orientation: landscape) { #tr-lane { grid-template-columns: repeat(8, minmax(0, 1fr)); } #ar-notes { grid-template-columns: repeat(12, minmax(0, 1fr)); } }
+
+  /* ============ DEMO UNIT panel ============ */
+  #sim-panel { margin: auto; width: min(480px, calc(100% - 24px)); max-height: calc(100dvh - 24px); background: var(--panel); display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; }
+  #sim-scroll { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: flex; flex-direction: column; gap: 10px; }
+  #sim-power { min-height: 56px; font-size: 16px; }
+  #sim-body { display: flex; flex-direction: column; gap: 10px; }
+  #sim-body.off { display: none; }
+  #sim-trans { display: grid; grid-template-columns: 1.6fr 1fr 1.2fr 1fr; gap: 8px; align-items: center; }
+  #sim-trans .big { min-height: 56px; font-size: 16px; }
+  #sim-bpm { text-align: center; font-size: 15px; }
+  #sim-voll { display: flex; align-items: center; gap: 10px; }
+  #sim-vol { flex: 1; }
+  #sim-kit { white-space: pre-wrap; font-family: inherit; margin: 0; }

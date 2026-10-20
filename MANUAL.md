@@ -171,6 +171,10 @@ where the LFO is right now. Grabbing the target fader pauses the LFO and
 re-centers it on your position; switching it off parks the value at the
 center. Slot 4 comes preconfigured as a slow drift.
 
+## Demo unit (no SP-404 needed)
+
+**Menu > Demo unit > TURN ON** (also offered on the "no Web MIDI" screen) makes the app talk to a pretend SP-404 in the browser, with sound. Everything works against it: pads (**bank A**: 16 drum sounds on BUS 1, **bank B**: 8 melodic one-shots on BUS 2, B6 is a chord in F), KEYS/SCALE and the chromatic channel (the pad you tapped last, C3 = its own pitch), ARP, TRIG, the buses (CC for effect, switch and the six knobs: the effects are simple stand-ins, only filter, lo-fi, drive, chorus-like, delay and reverb kinds make sound), the **PTN** tab (banks A and B, patterns 1–8, switching on the bar) and a MIDI clock that the app follows (clock bars, BPM, Motion, LFOs, ARP/TRIG start on the bar). PLAY/STOP, tempo and volume are in the panel. The sounds are synthesized one-shots in `public/sim/` (replaceable). A toy, not an emulation of the unit.
+
 ## ARP: chords and arps
 
 Turns a one-shot into a chord or an arp on the chromatic channel (CH16). Pick the **SAMPLE** (bank, then pad: it is hit once so the unit takes it as the chromatic sample, unverified) and the **SAMPLE KEY** it is tuned to, so a sample in F still sounds the notes you picked. Assumes the unit plays the sample at its own pitch on C3 (unverified); SHIFT moves it by an octave. **START** begins on the next bar of the unit's clock (without a clock: at once, on the tap tempo).

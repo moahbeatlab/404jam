@@ -12,7 +12,7 @@ import { renderBus, updateBusChrome } from "../ui/views.js";
 /* ===== 05 MIDI (transport seam: all bytes leave through sendBytes,
         arrive through handleBytes - a future WebSocket bridge plugs in here) ===== */
 const Midi = {
-  access: null, demo: false,
+  access: null, demo: false, simHandler: null,
   echoLog: new Map(), lastSent: new Map(),
   activeCCs: new Set(), /* keys ch<<8|cc currently owned by a finger */
   /* state check tolerant of shims that report undefined instead of "connected" */
@@ -39,7 +39,7 @@ const Midi = {
     return found;
   },
   sendBytesTo(portName, bytes) {
-    if (this.demo) return true;
+    if (this.demo) { if (this.simHandler && !portName) this.simHandler(bytes); return true; }
     const o = portName ? this.outByName(portName) : this.out();
     if (!o) return false;
     try { o.send(bytes); return true; } catch (e) { return false; }
