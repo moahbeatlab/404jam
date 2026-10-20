@@ -8,9 +8,12 @@ import { buildJam, clearJam, jamClearUndo, setJamClearUndo, jamEditing, setJamEd
 import { openPick } from "./features/lfo-page.js";
 import { renderLfoPage } from "./features/lfo-page.js";
 import { buildXyMorph } from "./features/xy-morph.js";
-import { SCALES, buildPads, flushBend, flushNotesIn, padPickSlot, renderPlay, setupBend } from "./features/play-view.js";
+import { SCALES, buildPads, flushBend, flushNotesIn, padPickSlot, refreshPlayNote, renderPlay, setupBend } from "./features/play-view.js";
 import { pullSync, pushSync, randomize, syncTimer, updateRndBtn } from "./features/randomizer.js";
 import { renderMotion } from "./features/motion.js";
+import { renderPattern } from "./features/pattern-grid.js";
+import { openSim } from "./sim/panel.js";
+import { Sim } from "./sim/engine.js";
 import { renderPunch } from "./features/punch.js";
 import { openRecipeEditor, openRecipes, saveRecipeDraft } from "./features/recipes.js";
 import { doExport, doImport, openSnaps } from "./features/snapshots.js";
@@ -44,8 +47,11 @@ function boot() {
   /* Menu: the buttons that made the status bar too wide (they stay in the page, hidden, and are pressed from here) */
   $("menu-btn").addEventListener("click", () => {
     const items = [[$("view-toggle").textContent, "view-toggle"], ["Snapshots", "snaps-btn"], ["Library", "lib-btn"], ["Setup", "setup-btn"]];
-    openPick("MENU", items.map((x) => ({ t: x[0] })), -1, (i) => $(items[i][1]).click());
+    openPick("MENU", items.map((x) => ({ t: x[0] })).concat([{ t: "Demo unit", s: "sound without the SP" }]), -1, (i) => (i < items.length ? $(items[i][1]).click() : openSim()));
   });
+  /* the demo unit changes what the pads and patterns pages show */
+  Sim.powerHooks.add(() => { const v = currentView(); if (v === "play") renderPlay(); if (v === "pattern") renderPattern(); });
+  Sim.hooks.add(() => { if (currentView() === "play") refreshPlayNote(); });
   $("xy-xa").addEventListener("click", () => openXyPick("x"));
   $("xy-ya").addEventListener("click", () => openXyPick("y"));
   $("xy-mom").addEventListener("click", () => { state.xy.mom = !state.xy.mom; saveState(); renderXy(); });
@@ -242,10 +248,8 @@ function boot() {
   if (!navigator.requestMIDIAccess) {
     $("nomidi").classList.add("open");
     $("demo-btn").addEventListener("click", () => {
-      Midi.demo = true;
       $("nomidi").classList.remove("open");
-      updateConnUi();
-      showBanner("Demo mode: no MIDI is sent", "info", 4000);
+      openSim();
     });
   } else if (state.midi.outName) {
     Midi.connect(false); /* previously granted: resolves silently */

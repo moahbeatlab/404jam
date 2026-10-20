@@ -88,7 +88,8 @@
         <div id="ptn-grid"></div>
         <p class="pick-note">Program change: bank = MIDI channel, pattern = PC 0&ndash;15.
         Requires <b>MIDI mode B</b> on the device and &quot;PC Rx&quot; = ON.
-        The device does not say when it switches: the pattern you tapped <b>blinks</b> until the end of the bar (a guess from the clock), then it is highlighted as the current one.</p>
+        The device does not say when it switches: the pattern you tapped <b>blinks</b> until the end of the bar (a guess from the clock), then it is highlighted as the current one.
+        <b>STOP</b> (or hold the current pattern) sends MIDI Stop; whether the unit follows it depends on its MIDI Sync setting (not verified).</p>
       </section>
       <section id="view-play">
         <div id="play-head">
@@ -118,6 +119,48 @@
           <div id="scale-grid"></div>
         </div>
         <p class="pick-note" id="play-note">Chromatic: pitches whichever sample you last tapped in PADS (CH 16, fixed - independent of the Pad MIDI Channels setting; C2&ndash;C4).</p>
+      </section>
+      <section id="view-arp" data-page="notes">
+        <div id="ar-top">
+          <button id="ar-sample" class="big"><small>SAMPLE</small><b>PICK</b></button>
+          <button id="ar-key" class="big"><small>SAMPLE KEY</small><b>C</b></button>
+        </div>
+        <button id="ar-go" class="big">START</button>
+        <div id="ar-seg" class="subseg"><button data-p="notes">NOTES</button><button data-p="feel">PATTERN</button></div>
+        <div class="ar-p1">
+          <div id="ar-notes"></div>
+          <div id="ar-chords">
+            <button id="ar-root" class="big"><small>ROOT</small><b>C</b></button>
+            <button id="ar-scale" class="big"><small>SCALE</small><b>OFF</b></button>
+            <button id="ar-chord" class="big"><small>CHORD</small><b>MAJ</b></button>
+            <button id="ar-clear" class="big"><small>NOTES</small><b>CLEAR</b></button>
+          </div>
+        </div>
+        <div class="ar-p2"><div id="ar-grid"></div></div>
+        <div id="ar-hint" class="hint"></div>
+        <div id="ar-clock" class="hint"></div>
+      </section>
+      <section id="view-trig" data-page="steps">
+        <div id="tr-top">
+          <button id="tr-sample" class="big"><small>SAMPLE</small><b>PICK</b></button>
+          <button id="tr-key" class="big"><small>SAMPLE KEY</small><b>C</b></button>
+        </div>
+        <div id="tr-run">
+          <button id="tr-go" class="big">START</button>
+          <button id="tr-fill" class="big"><small>HOLD</small><b>FILL</b></button>
+        </div>
+        <div id="tr-seg" class="subseg"><button data-p="steps">STEPS</button><button data-p="feel">TIMING</button></div>
+        <div class="tr-p1">
+          <div id="tr-lane"></div>
+          <div id="tr-editor">
+            <h4>STEP 1</h4>
+            <button id="tr-note" class="big"><small>NOTE</small><b>–</b></button>
+            <button id="tr-cond" class="big"><small>CONDITION</small><b>–</b></button>
+            <button id="tr-clear" class="big"><small>STEP</small><b>CLEAR</b></button>
+          </div>
+        </div>
+        <div class="tr-p2"><div id="tr-grid"></div></div>
+        <div id="tr-hint" class="hint"></div>
       </section>
       <section id="view-jam">
         <div id="jam-head">
@@ -307,6 +350,31 @@
     </div>
   </div>
 
+  <div id="sim" class="overlay">
+    <div id="sim-panel">
+      <div id="lfpick-head">
+        <h2>DEMO UNIT</h2>
+        <button id="sim-close" class="setup-btn">Close</button>
+      </div>
+      <div id="sim-scroll">
+        <p class="pick-note">A pretend SP-404 in this browser, so you can try 404jam without the unit: sounds on the pads,
+        the chromatic channel, BUS 1&ndash;4 with simple stand-ins for their effects, patterns on PTN and a MIDI clock.
+        A toy, not an emulation. The sounds are synthesized one-shots.</p>
+        <button id="sim-power" class="big">TURN ON</button>
+        <div id="sim-body" class="off">
+          <div id="sim-trans">
+            <button id="sim-play" class="big">&#9654; PLAY</button>
+            <button id="sim-tdown" class="big">&minus;</button>
+            <b id="sim-bpm">92 BPM</b>
+            <button id="sim-tup" class="big">+</button>
+          </div>
+          <div id="sim-now" class="hint"></div>
+          <label class="hint" id="sim-voll">Volume <input id="sim-vol" type="range" min="0" max="100" value="80"></label>
+          <pre id="sim-kit" class="hint"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
   <div id="lfpick" class="overlay">
     <div id="lfpick-panel">
       <div id="lfpick-head">
@@ -559,7 +627,7 @@
       Connect the SP-404 MkII via USB-C.</p>
       <p>Device MIDI mode: <b>A and B</b> both work for
       FX control ([SHIFT] + [PAD 12] &gt; SYSTEM &gt; MIDI).</p>
-      <div class="setup-row"><button id="demo-btn" class="setup-btn">View the UI anyway (demo mode)</button></div>
+      <div class="setup-row"><button id="demo-btn" class="setup-btn">Try the demo unit (sound in this browser)</button></div>
     </div>
   </div>
 
