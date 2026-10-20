@@ -240,6 +240,326 @@
    "gate": true,
    "key": "C",
    "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 1,
+   "name": "909 Kick",
+   "file": "c01.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 2,
+   "name": "909 Snare",
+   "file": "c02.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 3,
+   "name": "909 Clap",
+   "file": "c03.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 4,
+   "name": "909 Hat closed",
+   "file": "c04.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 2
+  },
+  {
+   "bank": 2,
+   "pad": 5,
+   "name": "909 Hat open",
+   "file": "c05.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 2
+  },
+  {
+   "bank": 2,
+   "pad": 6,
+   "name": "Ride",
+   "file": "c06.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 7,
+   "name": "Rim",
+   "file": "c07.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 8,
+   "name": "Tom",
+   "file": "c08.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 9,
+   "name": "Perc",
+   "file": "c09.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 10,
+   "name": "Shaker",
+   "file": "c10.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 11,
+   "name": "Crash",
+   "file": "c11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 12,
+   "name": "Tom high",
+   "file": "c12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 13,
+   "name": "808 Sub F",
+   "file": "c13.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 2,
+   "pad": 14,
+   "name": "Reese F",
+   "file": "c14.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 2,
+   "pad": 15,
+   "name": "Stab Fm",
+   "file": "c15.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 16,
+   "name": "Pluck F",
+   "file": "c16.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 1,
+   "name": "Kick long",
+   "file": "d01.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 2,
+   "name": "Kick short",
+   "file": "d02.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 3,
+   "name": "Snare",
+   "file": "d03.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 4,
+   "name": "Snare 2",
+   "file": "d04.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 5,
+   "name": "Clap",
+   "file": "d05.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 6,
+   "name": "Hat closed",
+   "file": "d06.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 3
+  },
+  {
+   "bank": 3,
+   "pad": 7,
+   "name": "Hat open",
+   "file": "d07.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 3
+  },
+  {
+   "bank": 3,
+   "pad": 8,
+   "name": "Hat pedal",
+   "file": "d08.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 3
+  },
+  {
+   "bank": 3,
+   "pad": 9,
+   "name": "Cowbell",
+   "file": "d09.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 10,
+   "name": "Conga",
+   "file": "d10.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 11,
+   "name": "Clave",
+   "file": "d11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 12,
+   "name": "Cymbal",
+   "file": "d12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 13,
+   "name": "Tom low",
+   "file": "d13.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 14,
+   "name": "Tom mid",
+   "file": "d14.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 15,
+   "name": "Tom high",
+   "file": "d15.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 16,
+   "name": "Shaker",
+   "file": "d16.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
   }
  ]
 }

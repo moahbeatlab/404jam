@@ -212,7 +212,7 @@ async function enable() {
     SimInfo.pad = (b, p) => { const x = pads.get(b * 16 + p); return x ? x.name : null; };
     SimInfo.pat = (b, pc) => (PATTERNS[b] && PATTERNS[b][pc] ? PATTERNS[b][pc].name : null);
     SimInfo.chroma = () => (Sim.chroma ? "ABCDEFGHIJ"[Sim.chroma.bank] + Sim.chroma.pad + " " + Sim.chroma.name : null);
-    showBanner("Demo unit on: sounds on banks A and B, patterns 1–8 in banks A and B", "info", 4500);
+    showBanner("Demo unit on: sounds and patterns 1–8 on banks A to D", "info", 4500);
   } catch (e) {
     showBanner("Demo unit: could not load the sounds (" + (e && e.message || e) + ")", "warn", 6000);
   }

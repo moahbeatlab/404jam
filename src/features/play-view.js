@@ -249,7 +249,7 @@ function refreshPlayNote() {
   const mode = state.play.mode;
   let t = playNoteText();
   if (SimInfo.on && mode !== "pads" && state.play.target === "sample") t += " Demo unit: " + (SimInfo.chroma() ? "pitching " + SimInfo.chroma() + "." : "tap a pad in PADS first, then play it here.");
-  if (SimInfo.on && mode === "pads") t += " Demo unit: banks A and B have sounds (dimmed pads are empty).";
+  if (SimInfo.on && mode === "pads") t += " Demo unit: banks A to D have sounds (dimmed pads are empty).";
   $("play-note").textContent = t;
 }
 function setupBend() {

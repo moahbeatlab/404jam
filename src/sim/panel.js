@@ -32,7 +32,7 @@ function render() {
   $("sim-play").classList.toggle("on", Sim.running);
   $("sim-bpm").textContent = Sim.tempo + " BPM";
   const next = Sim.next !== undefined ? " · next " + Sim.next.id : "";
-  $("sim-now").textContent = Sim.running ? "Pattern " + Sim.curId + (Sim.cur ? " " + Sim.cur.name : " (empty)") + next : "Stopped. Pick a pattern on PTN (banks A and B, 1–8) or press PLAY.";
+  $("sim-now").textContent = Sim.running ? "Pattern " + Sim.curId + (Sim.cur ? " " + Sim.cur.name : " (empty)") + next : "Stopped. Pick a pattern on PTN (banks A to D, 1–8) or press PLAY.";
   $("sim-kit").textContent = Sim.on ? kitText() : "";
 }
 function openSim() {
