@@ -795,3 +795,6 @@
   #sim-voll { display: flex; align-items: center; gap: 10px; }
   #sim-vol { flex: 1; }
   #sim-kit { white-space: pre-wrap; font-family: inherit; margin: 0; }
+  #pad-grid button .pl, #ptn-grid button .pl { display: block; font-size: 10px; font-weight: 600; line-height: 1.15; margin-top: 3px; opacity: .8; }
+  #pad-grid button.empty, #ptn-grid button.empty { opacity: .38; }
+  #ptn-grid button.sent .pl { opacity: .9; }

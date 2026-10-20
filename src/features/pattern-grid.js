@@ -4,6 +4,7 @@ import { saveState, state } from "../core/store.js";
 import { $, el } from "../core/util.js";
 import { showBanner } from "../ui/banner.js";
 import { openPick } from "./lfo-page.js";
+import { SimInfo } from "../sim/info.js";
 
 /* ===== pattern grid (Program Change; bank = MIDI channel; needs Mode B) ===== */
 /* The unit takes a pattern over at the end of the one that plays and does not say when. The pattern that was tapped
@@ -45,7 +46,7 @@ function renderPattern() {
   chip.appendChild(el("span", "", "BANK"));
   chip.appendChild(el("b", "", BANK_NAMES[state.ptn.bank]));
   chip.appendChild(el("i", "", "▾"));
-  chip.addEventListener("click", () => openPick("Patterns of bank", BANK_NAMES.map((n) => ({ t: n })), state.ptn.bank, (i) => {
+  chip.addEventListener("click", () => openPick("Patterns of bank", BANK_NAMES.map((n, i) => ({ t: n, s: SimInfo.on ? (i < 2 ? "8 demo patterns" : "empty") : "" })), state.ptn.bank, (i) => {
     state.ptn.bank = i;
     saveState();
     renderPattern();
@@ -56,7 +57,10 @@ function renderPattern() {
   for (let pc = 0; pc < 16; pc++) {
     const sent = state.ptn.last && state.ptn.last.bank === state.ptn.bank && state.ptn.last.pc === pc;
     const nxt = Ptn.next && Ptn.next.bank === state.ptn.bank && Ptn.next.pc === pc;
-    const b = el("button", "pad" + (sent ? " sent" : "") + (nxt ? " next" : ""), String(pc + 1));
+    const nm = SimInfo.on ? SimInfo.pat(state.ptn.bank, pc) : null;
+    const b = el("button", "pad" + (sent ? " sent" : "") + (nxt ? " next" : "") + (SimInfo.on && !nm ? " empty" : ""));
+    b.appendChild(el("span", "", String(pc + 1)));
+    if (SimInfo.on) b.appendChild(el("span", "pl", nm || "empty"));
     b.addEventListener("click", () => {
       /* don't claim success (highlighting the pad) when nothing actually
          went out - a silently dropped MIDI connection looked identical to

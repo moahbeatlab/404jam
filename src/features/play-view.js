@@ -5,6 +5,7 @@ import { BANK_NAMES, renderPattern } from "./pattern-grid.js";
 import { openPick } from "./lfo-page.js";
 import { showBanner } from "../ui/banner.js";
 import { finishDragsIn } from "../ui/controls.js";
+import { SimInfo } from "../sim/info.js";
 
 /* ===== play view: chromatic keys / vocoder keys / pad board =====
    note map (Mode B): pads on two adjacent channels (device setting "Pad
@@ -104,7 +105,7 @@ function buildPads() {
   chip.appendChild(el("span", "", "BANK"));
   chip.appendChild(el("b", "", cur === 10 ? "★" : BANK_NAMES[cur]));
   chip.appendChild(el("i", "", "▾"));
-  chip.addEventListener("click", () => openPick("Pads of bank", BANK_NAMES.map((n) => ({ t: n })).concat([{ t: "★", s: "custom" }]), cur, (i) => {
+  chip.addEventListener("click", () => openPick("Pads of bank", BANK_NAMES.map((n, i) => ({ t: n, s: SimInfo.on ? (i < 2 ? "demo sounds" : "empty") : "" })).concat([{ t: "★", s: "custom" }]), cur, (i) => {
     state.play.padBank = i;
     saveState();
     buildPads();
@@ -119,8 +120,10 @@ function buildPads() {
     const btn = el("button", "pad");
     if (custom) {
       const a = state.play.custom[cell];
+      const nm = a && SimInfo.on ? SimInfo.pad(a.bank, a.pad) : null;
       btn.appendChild(el("span", "", a ? BANK_NAMES[a.bank] + a.pad : "–"));
-      btn.appendChild(el("span", "pl", a ? "hold: edit" : "hold: assign"));
+      btn.appendChild(el("span", "pl", nm || (a ? "hold: edit" : "hold: assign")));
+      if (SimInfo.on && a && !nm) btn.classList.add("empty");
       attachNoteSource(btn, () => {
         const asg = state.play.custom[cell];
         return asg ? padNote(asg.bank, asg.pad) : null;
@@ -139,7 +142,12 @@ function buildPads() {
       btn.addEventListener("pointerup", clr);
       btn.addEventListener("pointercancel", clr);
     } else {
-      btn.textContent = String(cell);
+      btn.appendChild(el("span", "", String(cell)));
+      if (SimInfo.on) {
+        const nm = SimInfo.pad(state.play.padBank, cell);
+        btn.appendChild(el("span", "pl", nm || "empty"));
+        if (!nm) btn.classList.add("empty");
+      }
       attachNoteSource(btn, () => padNote(state.play.padBank, cell));
     }
     g.appendChild(btn);
@@ -224,14 +232,25 @@ function renderPlay() {
   $("play-scalesel").textContent = SCALES[state.play.scaleType][0];
   $("play-layout").textContent = state.play.iso ? "ISO" : "LIN";
   $("bend").classList.toggle("off", !(mode === "keys" && state.play.target === "voc"));
-  $("play-note").textContent = mode === "pads"
+  refreshPlayNote();
+  if (mode === "pads") buildPads(); else if (mode === "scale") buildScale(); else buildKeys();
+}
+function playNoteText() {
+  const mode = state.play.mode;
+  return mode === "pads"
     ? "Note map mode B, channels " + (state.play.padChPair + 1) + "/" + (state.play.padChPair + 2) + " (device setting \"Pad MIDI Channels\"). ★ = custom layout."
     : mode === "scale"
       ? "Scale pads " + NOTE_NAMES[state.play.scaleRoot] + " " + SCALES[state.play.scaleType][0] + ": bottom left = root, " + (state.play.iso ? "rows a fourth apart (Move layout)" : "rows continuous") + ". Roots highlighted."
       : state.play.target === "sample"
         ? "Chromatic: pitches whichever sample you last tapped in PADS (CH 16, fixed - independent of the Pad MIDI Channels setting; C2–C4)."
         : "Vocoder: pitches for the INPUT vocoder (CH 11); pitch bend on the right.";
-  if (mode === "pads") buildPads(); else if (mode === "scale") buildScale(); else buildKeys();
+}
+function refreshPlayNote() {
+  const mode = state.play.mode;
+  let t = playNoteText();
+  if (SimInfo.on && mode !== "pads" && state.play.target === "sample") t += " Demo unit: " + (SimInfo.chroma() ? "pitching " + SimInfo.chroma() + "." : "tap a pad in PADS first, then play it here.");
+  if (SimInfo.on && mode === "pads") t += " Demo unit: banks A and B have sounds (dimmed pads are empty).";
+  $("play-note").textContent = t;
 }
 function setupBend() {
   const bend = $("bend"), ind = $("bend-ind");
@@ -254,4 +273,4 @@ function setupBend() {
   bend.addEventListener("pointercancel", end);
 }
 
-export { PAD_ORDER, PAD_ROWS, padNote, heldNotes, flushNotesIn, flushBend, noteName, attachNoteSource, keysRange, playCh, BLACKS, buildKeys, padPickSlot, padPickBank, buildPads, openPadPick, renderPadPick, SCALES, buildScale, renderPlay, setupBend };
+export { PAD_ORDER, PAD_ROWS, padNote, heldNotes, flushNotesIn, flushBend, noteName, attachNoteSource, keysRange, playCh, BLACKS, buildKeys, padPickSlot, padPickBank, buildPads, openPadPick, renderPadPick, SCALES, buildScale, renderPlay, refreshPlayNote, setupBend };

@@ -5,6 +5,7 @@ import { state } from "../core/store.js";
 import { BUSES, CC_CTRL, CC_FX, CC_SW } from "../core/util.js";
 import { PAD_ORDER } from "../features/play-view.js";
 import { showBanner, updateConnUi } from "../ui/banner.js";
+import { SimInfo } from "./info.js";
 import { PATTERNS } from "./patterns.js";
 
 /* ===== the demo unit: a pretend SP-404 in the browser. 404jam sends its MIDI bytes here instead of to a port, and this plays
@@ -12,7 +13,7 @@ import { PATTERNS } from "./patterns.js";
    simple approximations of their effects, program changes (patterns) and a MIDI clock that goes back into the app.
    It is a toy to try the features, not an emulation of the unit. ===== */
 const SRC = "Demo unit";
-const Sim = { on: false, loading: false, ctx: null, master: null, vol: 0.8, tempo: 92, running: false, cur: null, next: undefined, curId: "", chroma: null, nowStep: -1, kit: [], hooks: new Set() };
+const Sim = { on: false, loading: false, ctx: null, master: null, vol: 0.8, tempo: 92, running: false, cur: null, next: undefined, curId: "", chroma: null, nowStep: -1, kit: [], hooks: new Set(), powerHooks: new Set() };
 const pads = new Map(); /* bank*16 + pad -> { buf, name, bus, gate, choke, key } */
 const voices = new Set(), held = new Map();
 let buses = [];
@@ -205,18 +206,23 @@ async function enable() {
     Midi.demo = true; Midi.simHandler = receive;
     if (window.busdriver) window.busdriver.sim = Sim; /* for tests in the console */
     Sim.on = true;
+    SimInfo.on = true;
+    SimInfo.pad = (b, p) => { const x = pads.get(b * 16 + p); return x ? x.name : null; };
+    SimInfo.pat = (b, pc) => (PATTERNS[b] && PATTERNS[b][pc] ? PATTERNS[b][pc].name : null);
+    SimInfo.chroma = () => (Sim.chroma ? "ABCDEFGHIJ"[Sim.chroma.bank] + Sim.chroma.pad + " " + Sim.chroma.name : null);
+    showBanner("Demo unit on: sounds on banks A and B, patterns 1–8 in banks A and B", "info", 4500);
   } catch (e) {
     showBanner("Demo unit: could not load the sounds (" + (e && e.message || e) + ")", "warn", 6000);
   }
   Sim.loading = false;
-  updateConnUi(); Sim.hooks.forEach((f) => f());
+  updateConnUi(); Sim.hooks.forEach((f) => f()); Sim.powerHooks.forEach((f) => f());
 }
 function disable() {
   if (!Sim.on) return;
   stopTransport();
   voices.forEach((v) => release(v, 0.02)); voices.clear(); held.clear();
-  Sim.on = false; Midi.demo = false; Midi.simHandler = null;
+  Sim.on = false; SimInfo.on = false; Midi.demo = false; Midi.simHandler = null;
   Sim.ctx.suspend();
-  updateConnUi(); Sim.hooks.forEach((f) => f());
+  updateConnUi(); Sim.hooks.forEach((f) => f()); Sim.powerHooks.forEach((f) => f());
 }
 export { Sim, enable, disable, receive, startTransport, stopTransport, setTempo, setVolume, pads };
