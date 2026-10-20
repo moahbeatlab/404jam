@@ -124,6 +124,8 @@ function padFor(ch, note) {
 }
 function receive(bytes) {
   if (!Sim.on || !Sim.ctx) return;
+  if (bytes[0] === 0xFC) { stopTransport(); return; } /* MIDI Stop / Start from the app */
+  if (bytes[0] === 0xFA) { startTransport(); return; }
   const st = bytes[0] & 0xF0, ch = bytes[0] & 0x0F;
   if (st === 0x90 && bytes[2] > 0) {
     const key = ch + ":" + bytes[1], vel = bytes[2];

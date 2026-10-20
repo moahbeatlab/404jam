@@ -23,6 +23,14 @@ Pulse.subs.add((n) => {
   saveState();
   if (document.body.classList.contains("pattern")) renderPattern();
 });
+/* STOP: MIDI Stop to the unit (whether the unit follows it depends on its MIDI sync setting: not verified), and the highlight goes out */
+function stopPattern() {
+  if (!Midi.sendBytes([0xFC])) { showBanner("SP-404 not connected - nothing sent", "warn", 4000); return; }
+  Ptn.next = null;
+  state.ptn.last = null;
+  saveState();
+  renderPattern();
+}
 const BANK_NAMES = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
 /* compact A/F-style bank pickers (PTN, PADS): each of the 5 pair buttons
    remembers its OWN last-used letter independently, rather than a shared
@@ -52,6 +60,9 @@ function renderPattern() {
     renderPattern();
   }, 5));
   bh.appendChild(chip);
+  const stop = el("button", "stopchip", "■ STOP");
+  stop.addEventListener("click", stopPattern);
+  bh.appendChild(stop);
   const g = $("ptn-grid");
   g.textContent = "";
   for (let pc = 0; pc < 16; pc++) {
@@ -61,7 +72,15 @@ function renderPattern() {
     const b = el("button", "pad" + (sent ? " sent" : "") + (nxt ? " next" : "") + (SimInfo.on && !nm ? " empty" : ""));
     b.appendChild(el("span", "", String(pc + 1)));
     if (SimInfo.on) b.appendChild(el("span", "pl", nm || "empty"));
+    /* holding the current pattern stops it */
+    let held = false, holdT = null;
+    if (sent) {
+      b.addEventListener("pointerdown", () => { held = false; holdT = setTimeout(() => { held = true; stopPattern(); }, 600); });
+      const clr = () => clearTimeout(holdT);
+      b.addEventListener("pointerup", clr); b.addEventListener("pointercancel", clr); b.addEventListener("pointerleave", clr);
+    }
     b.addEventListener("click", () => {
+      if (held) { held = false; return; }
       /* don't claim success (highlighting the pad) when nothing actually
          went out - a silently dropped MIDI connection looked identical to
          a working pattern change otherwise */

@@ -798,3 +798,5 @@
   #pad-grid button .pl, #ptn-grid button .pl { display: block; font-size: 10px; font-weight: 600; line-height: 1.15; margin-top: 3px; opacity: .8; }
   #pad-grid button.empty, #ptn-grid button.empty { opacity: .38; }
   #ptn-grid button.sent .pl { opacity: .9; }
+  #ptn-banks button.stopchip { flex: none; width: 104px; font-size: 12px; letter-spacing: .06em; color: var(--text); }
+  #ptn-banks button.stopchip:active { background: var(--warn); }
