@@ -355,7 +355,10 @@
   /* XY presets: curated templates + user-saved axis combos */
   #xy-presets-btn { width: 84px; flex: none; font-size: 10px; font-weight: 700; letter-spacing: .05em; border-radius: 10px; }
   .xy-custom-row { display: flex; align-items: stretch; gap: 6px; margin-bottom: 6px; }
-  .xy-custom-row .xy-custom-name { flex: 1; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .xy-custom-row .xy-custom-name { flex: 1; min-width: 0; text-align: left; overflow: hidden; }
+  .xy-tpl, .xy-custom-name { display: block; text-align: left; width: 100%; height: auto; padding: 10px 14px; }
+  .xy-tpl b, .xy-custom-name b { display: block; font-size: 15px; }
+  .xy-tpl small, .xy-custom-name small { display: block; white-space: pre-line; font-size: 11px; font-weight: 500; letter-spacing: 0; color: var(--muted); line-height: 1.35; margin-top: 3px; }
   .xy-custom-icon { width: 40px; flex: none; border-radius: 10px; background: var(--raised); box-shadow: none; color: var(--muted); font-size: 13px; }
   .xy-custom-edit { flex: 1; min-width: 0; background: var(--tile-empty); border: 1px solid var(--accent); color: var(--text);
     border-radius: 10px; font: inherit; font-size: 12.5px; padding: 0 10px; text-align: left;

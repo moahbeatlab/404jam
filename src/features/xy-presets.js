@@ -1,5 +1,5 @@
 import { BUS_TABLES } from "../data/effects-db.js";
-import { fxDefFor } from "../core/conv.js";
+import { fxDefFor, fxNameFor } from "../core/conv.js";
 import { fxChange } from "../core/midi.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, el } from "../core/util.js";
@@ -26,6 +26,19 @@ const XY_TEMPLATES = [
 function xyTemplateBuses(t) {
   return BUSES.map((B, i) => (BUS_TABLES[B.table].includes(t.fx) ? i : null)).filter((i) => i !== null);
 }
+/* what an axis points at, in words: "BUS 3 · CTRL 1 LOW" (the knob number is the slot of the bus' current effect) */
+const fxNameOf = (bus) => { const n = fxNameFor(BUSES[bus].table, state.buses[bus].fx); return state.buses[bus].fx ? n : "nothing"; };
+function slotText(bus, slot) {
+  const def = fxDefFor(BUSES[bus].table, state.buses[bus].fx), p = def && def.p[slot];
+  return "CTRL " + (slot + 1) + (p ? " " + p.n : "");
+}
+const axisText = (a) => BUSES[a.bus].label + " · " + slotText(a.bus, a.slot);
+/* the knobs a template points X and Y at, from the effect's own parameter list */
+function tplKnobs(t) {
+  const bus = xyTemplateBuses(t)[0], table = BUSES[bus].table, def = fxDefFor(table, BUS_TABLES[table].indexOf(t.fx));
+  return { x: def.p.findIndex((p) => p.n === t.x) + 1, y: def.p.findIndex((p) => p.n === t.y) + 1 };
+}
+const tplAxes = (t) => { const k = tplKnobs(t); return "X (left–right): " + t.x + " = CTRL " + k.x + "\nY (up–down): " + t.y + " = CTRL " + k.y; };
 const XY_PRESETS_MAX = 16;
 function sanitizeXyPreset(p) {
   if (!p || typeof p !== "object") return null;
@@ -40,9 +53,8 @@ function sanitizeXyPreset(p) {
 }
 function openXyPresets() {
   $("xypreset-title").textContent = "XY PRESETS";
-  $("xypreset-note").textContent = "Templates switch the bus to that effect if it isn't already " +
-    "loaded, then assign both axes from its real parameter names. Your own combos just re-point " +
-    "X/Y to wherever they were pointed when you saved them.";
+  const nowX = state.xy.x ? axisText(state.xy.x) : "not set", nowY = state.xy.y ? axisText(state.xy.y) : "not set";
+  $("xypreset-note").textContent = "Now: X (left–right) = " + nowX + ", Y (up–down) = " + nowY + ". A template puts its effect on the bus you pick (if it isn't there already) and points X and Y at two of its knobs. Your own combos point X and Y back at the buses and knobs they had when you saved them.";
   renderXyTemplateList();
   renderXyCustomList();
   $("xypreset").classList.add("open");
@@ -51,7 +63,9 @@ function renderXyTemplateList() {
   const host = $("xypreset-templates");
   host.textContent = "";
   XY_TEMPLATES.forEach((t) => {
-    const b = el("button", "setup-btn", t.name);
+    const b = el("button", "setup-btn xy-tpl");
+    b.appendChild(el("b", "", t.fx));
+    b.appendChild(el("small", "", tplAxes(t) + "\nBus: " + xyTemplateBuses(t).map((i) => BUSES[i].short).join(", ")));
     b.addEventListener("click", () => openXyTemplateBusPick(t));
     host.appendChild(b);
   });
@@ -63,11 +77,13 @@ function openXyTemplateBusPick(t) {
   back.addEventListener("click", renderXyTemplateList);
   host.appendChild(back);
   xyTemplateBuses(t).forEach((i) => {
-    const b = el("button", "setup-btn", BUSES[i].label);
+    const cur = fxNameOf(i), b = el("button", "setup-btn xy-tpl");
+    b.appendChild(el("b", "", BUSES[i].label));
+    b.appendChild(el("small", "", cur === t.fx ? "already has " + t.fx : "now: " + cur + ", gets " + t.fx));
     b.addEventListener("click", () => applyXyTemplate(t, i));
     host.appendChild(b);
   });
-  $("xypreset-note").textContent = t.note + " Pick which bus.";
+  $("xypreset-note").textContent = t.fx + ": " + tplAxes(t).replace("\n", ", ") + ". " + t.note + " Pick the bus to put it on.";
 }
 function applyXyTemplate(t, bus) {
   const table = BUSES[bus].table;
@@ -84,7 +100,7 @@ function applyXyTemplate(t, bus) {
   setActiveBus(bus);
   renderXy();
   $("xypreset").classList.remove("open");
-  showBanner("\"" + t.name + "\" applied to " + BUSES[bus].label, "info", 2500);
+  showBanner(BUSES[bus].label + " " + t.fx + ": X = " + t.x + " (CTRL " + (xi + 1) + "), Y = " + t.y + " (CTRL " + (yi + 1) + ")", "info", 4000);
 }
 function renderXyCustomList() {
   const host = $("xypreset-custom");
@@ -95,7 +111,9 @@ function renderXyCustomList() {
   }
   state.xyPresets.forEach((p) => {
     const row = el("div", "xy-custom-row");
-    const nameBtn = el("button", "setup-btn xy-custom-name", p.name);
+    const nameBtn = el("button", "setup-btn xy-custom-name");
+    nameBtn.appendChild(el("b", "", p.name));
+    nameBtn.appendChild(el("small", "", "X: " + axisText(p.x) + "\nY: " + axisText(p.y)));
     nameBtn.addEventListener("click", () => applyXyCustom(p));
     const ren = el("button", "xy-custom-icon", "✎");
     ren.addEventListener("click", (e) => { e.stopPropagation(); renameXyPreset(row, p); });
@@ -150,7 +168,7 @@ function saveCurrentXyPreset() {
   state.xyPresets.push(p);
   saveState();
   renderXyCustomList();
-  const row = [...$("xypreset-custom").children].find((r) => r.querySelector(".xy-custom-name")?.textContent === p.name);
+  const row = [...$("xypreset-custom").children].find((r) => r.querySelector(".xy-custom-name b")?.textContent === p.name);
   if (row) renameXyPreset(row, p);
 }
 
