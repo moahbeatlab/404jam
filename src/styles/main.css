@@ -696,8 +696,9 @@
   #pnpreset-head h2 { flex: 1; font-size: 14px; letter-spacing: .08em; }
   .pn-target { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; padding: 0 16px 8px; }
   .pn-target small, #mo-bar small { color: var(--muted); font-size: .72em; letter-spacing: .08em; font-weight: 600; }
-  #pnpreset-list { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: grid; gap: 8px; }
-  .pn-pre { touch-action: pan-y; justify-items: start; text-align: left; place-content: center start; padding: 8px 12px; }
+  #pnpreset-list { overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain; padding: 4px 16px 16px; display: grid; grid-auto-rows: max-content; gap: 8px; }
+  .pn-into-hint { padding: 0 16px 8px; margin: 0; }
+  .pn-pre { min-height: 76px; touch-action: pan-y; justify-items: start; text-align: left; place-content: center start; padding: 8px 12px; }
   #mo-bar { display: grid; grid-template-columns: auto auto 1fr auto; gap: 10px; align-items: center; flex: none; }
   #mo-bus { font-size: 18px; color: var(--accent); }
   #mo-bar .big { min-height: 42px; padding: 0 14px; font-size: 12px; }

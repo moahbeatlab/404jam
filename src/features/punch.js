@@ -1,4 +1,4 @@
-import { fxDefFor, defaultCcs, dispFromCc, fxNameFor } from "../core/conv.js";
+import { fxDefFor, defaultCcs, dispFromCc, fxNameFor, buildFactoryBus } from "../core/conv.js";
 import { saveState, state } from "../core/store.js";
 import { $, BUSES, clamp, el } from "../core/util.js";
 import { BUS_TABLES } from "../data/effects-db.js";
@@ -134,24 +134,28 @@ function morphSet(mix) {
 }
 
 /* ---- presets ---- */
+/* a variation of a pack as a snapshot: the buses it names are on, the others are left alone */
+function variationSnap(v) {
+  const snap = BUSES.map(() => emptyBus());
+  v.b.forEach(([i, fx, vals]) => {
+    const r = buildFactoryBus(BUSES[i].table, fx, vals);
+    snap[i] = { set: true, on: true, fx: r.fx, cc: r.cc };
+  });
+  return snap;
+}
+/* slot -1: all 4 variations into PUNCH 1-4; a slot: only its own variation (slot n = variation n) */
 function presetInto(preset, slot) {
   const p = PUNCH_PRESETS[preset];
   if (!p) return;
   if (PunchRt.held) up(PunchRt.held - 1);
-  state.punch[slot] = BUSES.map((B, i) => {
-    const q = i < 4 ? p.buses[i] : null;
-    if (!q) return emptyBus();
-    const num = BUS_TABLES[B.table].indexOf(q.fx);
-    if (num < 0) return emptyBus();
-    const dflt = defaultCcs(fxDefFor(B.table, num));
-    return { set: true, on: true, fx: num, cc: q.k.map((v, k) => (v < 0 ? dflt[k] : clamp(v, 0, 127))) };
-  });
+  const slots = slot < 0 ? [0, 1, 2, 3] : [slot];
+  slots.forEach((i) => { state.punch[i] = variationSnap(p.v[i]); });
   saveState();
-  say("PUNCH " + (slot + 1) + ": " + p.name);
+  say(slot < 0 ? p.name + " is in PUNCH 1-4: " + p.v.map((x, i) => (i + 1) + " " + x.name).join(", ") + "." : "PUNCH " + (slot + 1) + ": " + p.name + " " + p.v[slot].name);
 }
 
 /* ---- the page ---- */
-let built = false, presetSlot = 0;
+let built = false, presetSlot = -1;
 const slotBtns = [];
 function buildPunch() {
   if (built) return;
@@ -188,14 +192,14 @@ function buildPunch() {
   m.addEventListener("pointerup", end);
   m.addEventListener("pointercancel", end);
   const seg = $("pn-into");
-  for (let i = 0; i < PUNCH_SLOTS; i++) {
-    const b = el("button", "", String(i + 1));
+  for (let i = -1; i < PUNCH_SLOTS; i++) {
+    const b = el("button", "", i < 0 ? "ALL" : String(i + 1));
     b.addEventListener("click", () => { presetSlot = i; paintInto(); });
     seg.appendChild(b);
   }
   renderPunch();
 }
-function paintInto() { $("pn-into").querySelectorAll("button").forEach((b, i) => b.classList.toggle("on", i === presetSlot)); }
+function paintInto() { $("pn-into").querySelectorAll("button").forEach((b, i) => b.classList.toggle("on", i - 1 === presetSlot)); }
 function openPresets() {
   const list = $("pnpreset-list");
   list.textContent = "";
@@ -203,6 +207,7 @@ function openPresets() {
     const b = el("button", "big pn-pre");
     b.appendChild(el("b", "", p.name));
     b.appendChild(el("small", "", p.note));
+    b.appendChild(el("small", "", p.v.map((x) => x.name).join(" · ")));
     b.addEventListener("click", () => { presetInto(i, presetSlot); $("pnpreset").classList.remove("open"); });
     list.appendChild(b);
   });
