@@ -240,6 +240,1366 @@
    "gate": true,
    "key": "C",
    "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 9,
+   "name": "Strings",
+   "file": "b09.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 10,
+   "name": "Brass stab",
+   "file": "b10.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 11,
+   "name": "Piano Cmaj7",
+   "file": "b11.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 12,
+   "name": "Guitar chord",
+   "file": "b12.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 13,
+   "name": "Marimba",
+   "file": "b13.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 14,
+   "name": "Synth lead",
+   "file": "b14.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 15,
+   "name": "Choir ahh",
+   "file": "b15.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 1,
+   "pad": 16,
+   "name": "Flute",
+   "file": "b16.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 1,
+   "name": "909 Kick",
+   "file": "c01.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 2,
+   "name": "909 Snare",
+   "file": "c02.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 3,
+   "name": "909 Clap",
+   "file": "c03.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 4,
+   "name": "909 Hat closed",
+   "file": "c04.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 2
+  },
+  {
+   "bank": 2,
+   "pad": 5,
+   "name": "909 Hat open",
+   "file": "c05.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 2
+  },
+  {
+   "bank": 2,
+   "pad": 6,
+   "name": "Ride",
+   "file": "c06.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 7,
+   "name": "Rim",
+   "file": "c07.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 8,
+   "name": "Tom",
+   "file": "c08.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 9,
+   "name": "Perc",
+   "file": "c09.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 10,
+   "name": "Shaker",
+   "file": "c10.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 11,
+   "name": "Crash",
+   "file": "c11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 12,
+   "name": "Tom high",
+   "file": "c12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 13,
+   "name": "808 Sub F",
+   "file": "c13.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 2,
+   "pad": 14,
+   "name": "Reese F",
+   "file": "c14.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 2,
+   "pad": 15,
+   "name": "Stab Fm",
+   "file": "c15.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 2,
+   "pad": 16,
+   "name": "Pluck F",
+   "file": "c16.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 1,
+   "name": "Kick long",
+   "file": "d01.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 2,
+   "name": "Kick short",
+   "file": "d02.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 3,
+   "name": "Snare",
+   "file": "d03.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 4,
+   "name": "Snare 2",
+   "file": "d04.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 5,
+   "name": "Clap",
+   "file": "d05.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 6,
+   "name": "Hat closed",
+   "file": "d06.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 3
+  },
+  {
+   "bank": 3,
+   "pad": 7,
+   "name": "Hat open",
+   "file": "d07.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 3
+  },
+  {
+   "bank": 3,
+   "pad": 8,
+   "name": "Hat pedal",
+   "file": "d08.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 3
+  },
+  {
+   "bank": 3,
+   "pad": 9,
+   "name": "Cowbell",
+   "file": "d09.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 10,
+   "name": "Conga",
+   "file": "d10.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 11,
+   "name": "Clave",
+   "file": "d11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 12,
+   "name": "Cymbal",
+   "file": "d12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 13,
+   "name": "Tom low",
+   "file": "d13.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 14,
+   "name": "Tom mid",
+   "file": "d14.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 15,
+   "name": "Tom high",
+   "file": "d15.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 3,
+   "pad": 16,
+   "name": "Shaker",
+   "file": "d16.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 1,
+   "name": "Dusty kick",
+   "file": "e01.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 2,
+   "name": "Punch kick",
+   "file": "e02.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 3,
+   "name": "Crack snare",
+   "file": "e03.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 4,
+   "name": "Rim snare",
+   "file": "e04.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 5,
+   "name": "Dust clap",
+   "file": "e05.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 6,
+   "name": "Hat closed",
+   "file": "e06.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 5
+  },
+  {
+   "bank": 4,
+   "pad": 7,
+   "name": "Hat open",
+   "file": "e07.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 5
+  },
+  {
+   "bank": 4,
+   "pad": 8,
+   "name": "Ride",
+   "file": "e08.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 9,
+   "name": "Shaker",
+   "file": "e09.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 10,
+   "name": "Tambourine",
+   "file": "e10.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 11,
+   "name": "Break hit",
+   "file": "e11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 12,
+   "name": "Scratch",
+   "file": "e12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 13,
+   "name": "Vinyl pop",
+   "file": "e13.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 14,
+   "name": "Horn stab",
+   "file": "e14.wav",
+   "bus": 0,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 15,
+   "name": "Vox hey",
+   "file": "e15.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 4,
+   "pad": 16,
+   "name": "Bass hit",
+   "file": "e16.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 1,
+   "name": "Rhodes Cm9",
+   "file": "f01.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 2,
+   "name": "Rhodes Fmaj9",
+   "file": "f02.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 3,
+   "name": "Wurli Am7",
+   "file": "f03.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "A",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 4,
+   "name": "Warm pad",
+   "file": "f04.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 5,
+   "name": "Guitar pluck",
+   "file": "f05.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "G",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 6,
+   "name": "Upright bass",
+   "file": "f06.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 7,
+   "name": "Vibes",
+   "file": "f07.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 8,
+   "name": "Flute",
+   "file": "f08.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 9,
+   "name": "Tape stop",
+   "file": "f09.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 10,
+   "name": "Vinyl crackle",
+   "file": "f10.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 11,
+   "name": "Lofi kick",
+   "file": "f11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 12,
+   "name": "Lofi snare",
+   "file": "f12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 13,
+   "name": "Lofi hat",
+   "file": "f13.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 6
+  },
+  {
+   "bank": 5,
+   "pad": 14,
+   "name": "Lofi hat open",
+   "file": "f14.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": 6
+  },
+  {
+   "bank": 5,
+   "pad": 15,
+   "name": "Rim click",
+   "file": "f15.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 5,
+   "pad": 16,
+   "name": "Chime",
+   "file": "f16.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 1,
+   "name": "Bongo hi",
+   "file": "g01.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 2,
+   "name": "Bongo lo",
+   "file": "g02.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 3,
+   "name": "Conga open",
+   "file": "g03.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 4,
+   "name": "Conga slap",
+   "file": "g04.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 5,
+   "name": "Conga mute",
+   "file": "g05.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 6,
+   "name": "Timbale hi",
+   "file": "g06.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 7,
+   "name": "Timbale lo",
+   "file": "g07.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 8,
+   "name": "Cowbell",
+   "file": "g08.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 9,
+   "name": "Claves",
+   "file": "g09.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 10,
+   "name": "Guiro",
+   "file": "g10.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 11,
+   "name": "Cabasa",
+   "file": "g11.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 12,
+   "name": "Maracas",
+   "file": "g12.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 13,
+   "name": "Triangle",
+   "file": "g13.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 14,
+   "name": "Agogo hi",
+   "file": "g14.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 15,
+   "name": "Agogo lo",
+   "file": "g15.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 6,
+   "pad": 16,
+   "name": "Whistle",
+   "file": "g16.wav",
+   "bus": 0,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 1,
+   "name": "Riser",
+   "file": "h01.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 2,
+   "name": "Downlifter",
+   "file": "h02.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 3,
+   "name": "Impact",
+   "file": "h03.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 4,
+   "name": "Sub drop",
+   "file": "h04.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 5,
+   "name": "Reverse crash",
+   "file": "h05.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 6,
+   "name": "Laser",
+   "file": "h06.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 7,
+   "name": "Zap",
+   "file": "h07.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 8,
+   "name": "Noise up",
+   "file": "h08.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 9,
+   "name": "Noise down",
+   "file": "h09.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 10,
+   "name": "Glitch",
+   "file": "h10.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 11,
+   "name": "Siren",
+   "file": "h11.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 12,
+   "name": "Vinyl stop",
+   "file": "h12.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 13,
+   "name": "Rewind",
+   "file": "h13.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 14,
+   "name": "Noise burst",
+   "file": "h14.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 15,
+   "name": "Bubble",
+   "file": "h15.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 7,
+   "pad": 16,
+   "name": "Alarm",
+   "file": "h16.wav",
+   "bus": 2,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 1,
+   "name": "Sub 808 F",
+   "file": "i01.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 8,
+   "pad": 2,
+   "name": "Reese F",
+   "file": "i02.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 8,
+   "pad": 3,
+   "name": "Acid F",
+   "file": "i03.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 8,
+   "pad": 4,
+   "name": "Pluck bass F",
+   "file": "i04.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 8,
+   "pad": 5,
+   "name": "FM bass F",
+   "file": "i05.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": 4
+  },
+  {
+   "bank": 8,
+   "pad": 6,
+   "name": "Saw lead F",
+   "file": "i06.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 7,
+   "name": "Square lead F",
+   "file": "i07.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 8,
+   "name": "Supersaw Fm7",
+   "file": "i08.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 9,
+   "name": "Pad Fm",
+   "file": "i09.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 10,
+   "name": "Arp pluck F",
+   "file": "i10.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 11,
+   "name": "Bell F",
+   "file": "i11.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 12,
+   "name": "Organ Fm",
+   "file": "i12.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 13,
+   "name": "Stab Fm9",
+   "file": "i13.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 14,
+   "name": "High pluck F",
+   "file": "i14.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 15,
+   "name": "Vox pad Fm",
+   "file": "i15.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "F",
+   "choke": null
+  },
+  {
+   "bank": 8,
+   "pad": 16,
+   "name": "Noise hit",
+   "file": "i16.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 1,
+   "name": "Vox a",
+   "file": "j01.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 2,
+   "name": "Vox e",
+   "file": "j02.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 3,
+   "name": "Vox i",
+   "file": "j03.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 4,
+   "name": "Vox o",
+   "file": "j04.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 5,
+   "name": "Vox u",
+   "file": "j05.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 6,
+   "name": "Choir C",
+   "file": "j06.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 7,
+   "name": "Breath swell",
+   "file": "j07.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 8,
+   "name": "Hum",
+   "file": "j08.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "A",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 9,
+   "name": "Whisper",
+   "file": "j09.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 10,
+   "name": "Hey!",
+   "file": "j10.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 11,
+   "name": "Ha",
+   "file": "j11.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 12,
+   "name": "Yeah",
+   "file": "j12.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 13,
+   "name": "Pop",
+   "file": "j13.wav",
+   "bus": 1,
+   "gate": false,
+   "key": null,
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 14,
+   "name": "Chop up",
+   "file": "j14.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 15,
+   "name": "Chop down",
+   "file": "j15.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "C",
+   "choke": null
+  },
+  {
+   "bank": 9,
+   "pad": 16,
+   "name": "Oo swell",
+   "file": "j16.wav",
+   "bus": 1,
+   "gate": true,
+   "key": "G",
+   "choke": null
   }
  ]
 }

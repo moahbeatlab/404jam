@@ -105,7 +105,7 @@ function buildPads() {
   chip.appendChild(el("span", "", "BANK"));
   chip.appendChild(el("b", "", cur === 10 ? "★" : BANK_NAMES[cur]));
   chip.appendChild(el("i", "", "▾"));
-  chip.addEventListener("click", () => openPick("Pads of bank", BANK_NAMES.map((n, i) => ({ t: n, s: SimInfo.on ? (i < 2 ? "demo sounds" : "empty") : "" })).concat([{ t: "★", s: "custom" }]), cur, (i) => {
+  chip.addEventListener("click", () => openPick("Pads of bank", BANK_NAMES.map((n, i) => ({ t: n, s: SimInfo.on ? (SimInfo.count(i) ? SimInfo.count(i) + " demo sounds" : "empty") : "" })).concat([{ t: "★", s: "custom" }]), cur, (i) => {
     state.play.padBank = i;
     saveState();
     buildPads();
@@ -249,7 +249,7 @@ function refreshPlayNote() {
   const mode = state.play.mode;
   let t = playNoteText();
   if (SimInfo.on && mode !== "pads" && state.play.target === "sample") t += " Demo unit: " + (SimInfo.chroma() ? "pitching " + SimInfo.chroma() + "." : "tap a pad in PADS first, then play it here.");
-  if (SimInfo.on && mode === "pads") t += " Demo unit: banks A and B have sounds (dimmed pads are empty).";
+  if (SimInfo.on && mode === "pads") t += " Demo unit: all banks A to J have sounds (dimmed pads are empty).";
   $("play-note").textContent = t;
 }
 function setupBend() {

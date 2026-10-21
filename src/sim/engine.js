@@ -13,7 +13,7 @@ import { PATTERNS } from "./patterns.js";
    simple approximations of their effects, program changes (patterns) and a MIDI clock that goes back into the app.
    It is a toy to try the features, not an emulation of the unit. ===== */
 const SRC = "Demo unit";
-const Sim = { on: false, loading: false, ctx: null, master: null, vol: 0.8, tempo: 92, running: false, cur: null, next: undefined, curId: "", chroma: null, nowStep: -1, kit: [], hooks: new Set(), powerHooks: new Set() };
+const Sim = { on: false, loading: false, ctx: null, master: null, vol: 0.8, tempo: 92, bankBpm: [92, 90, 124, 140, 90, 80, 100, 120, 124, 95], running: false, cur: null, next: undefined, curId: "", chroma: null, nowStep: -1, kit: [], hooks: new Set(), powerHooks: new Set() };
 const pads = new Map(); /* bank*16 + pad -> { buf, name, bus, gate, choke, key } */
 const voices = new Set(), held = new Map();
 let buses = [];
@@ -147,7 +147,7 @@ function receive(bytes) {
   } else if (st === 0xC0) {
     const pat = PATTERNS[ch] && PATTERNS[ch][bytes[1]];
     const sel = { pat: pat || null, id: String.fromCharCode(65 + ch) + (bytes[1] + 1) };
-    if (!Sim.running) { Sim.cur = sel.pat; Sim.curId = sel.id; startTransport(); } else Sim.next = sel;
+    if (!Sim.running) { Sim.cur = sel.pat; Sim.curId = sel.id; useBankTempo(); startTransport(); } else Sim.next = sel;
     Sim.hooks.forEach((f) => f());
   } else if (st === 0xB0 && ch < 4) {
     const b = buses[ch], cc = bytes[1], val = bytes[2];
@@ -161,7 +161,7 @@ function receive(bytes) {
 let timer = null, sp = 0, acc = 0, last = 0;
 function pulse() {
   onClockByte(0xF8, SRC);
-  if (sp % 96 === 0 && Sim.next !== undefined) { Sim.cur = Sim.next.pat; Sim.curId = Sim.next.id; Sim.next = undefined; Sim.hooks.forEach((f) => f()); }
+  if (sp % 96 === 0 && Sim.next !== undefined) { Sim.cur = Sim.next.pat; Sim.curId = Sim.next.id; Sim.next = undefined; useBankTempo(); Sim.hooks.forEach((f) => f()); }
   if (sp % 6 === 0) {
     const i = (sp / 6) % 16;
     Sim.nowStep = i;
@@ -187,7 +187,10 @@ function stopTransport() {
   onClockByte(0xFC, SRC);
   Sim.hooks.forEach((f) => f());
 }
-function setTempo(bpm) { Sim.tempo = Math.max(60, Math.min(180, Math.round(bpm))); Sim.hooks.forEach((f) => f()); }
+/* every bank has its own tempo (the unit keeps one per pattern; here one per bank): a pattern of the bank brings it, the +/- changes it for the bank of the pattern that plays */
+const bankIx = () => Math.max(0, "ABCDEFGHIJ".indexOf((Sim.curId || "A")[0]));
+function useBankTempo() { Sim.tempo = Sim.bankBpm[bankIx()]; }
+function setTempo(bpm) { Sim.tempo = Math.max(60, Math.min(180, Math.round(bpm))); Sim.bankBpm[bankIx()] = Sim.tempo; Sim.hooks.forEach((f) => f()); }
 function setVolume(v) { Sim.vol = v; if (Sim.master) Sim.master.gain.value = v; }
 
 async function enable() {
@@ -209,10 +212,11 @@ async function enable() {
     if (window.busdriver) window.busdriver.sim = Sim; /* for tests in the console */
     Sim.on = true;
     SimInfo.on = true;
+    SimInfo.count = (b) => { let n = 0; for (let p = 1; p <= 16; p++) if (pads.has(b * 16 + p)) n++; return n; };
     SimInfo.pad = (b, p) => { const x = pads.get(b * 16 + p); return x ? x.name : null; };
     SimInfo.pat = (b, pc) => (PATTERNS[b] && PATTERNS[b][pc] ? PATTERNS[b][pc].name : null);
     SimInfo.chroma = () => (Sim.chroma ? "ABCDEFGHIJ"[Sim.chroma.bank] + Sim.chroma.pad + " " + Sim.chroma.name : null);
-    showBanner("Demo unit on: sounds on banks A and B, patterns 1–8 in banks A and B", "info", 4500);
+    showBanner("Demo unit on: sounds and patterns 1–8 on all banks A to J", "info", 4500);
   } catch (e) {
     showBanner("Demo unit: could not load the sounds (" + (e && e.message || e) + ")", "warn", 6000);
   }
