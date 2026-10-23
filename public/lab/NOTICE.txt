@@ -1,0 +1,5 @@
+The Sample Lab engine (lab.wasm) is built from the Go packages "formats", "proto" and "lab" of
+404tui, https://github.com/moahbeatlab/404tui (commit b6372b5), which is licensed under the
+GNU General Public License v3. Its source is at that address, and `make lab-wasm` rebuilds it.
+wasm_exec.js is the Go project's WebAssembly loader (BSD-style licence, see the Go source tree).
+The rest of 404jam is MIT; the engine is a separate file that the page loads in a Web Worker.
