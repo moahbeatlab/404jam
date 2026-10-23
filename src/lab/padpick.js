@@ -30,7 +30,7 @@ function choosePad(title, start, opts = {}) {
     box.appendChild(btn("Cancel", "", () => done(-1)));
     back.appendChild(box);
     back.addEventListener("pointerdown", (e) => { if (e.target === back) done(-1); });
-    document.getElementById("lab").appendChild(back);
+    document.body.appendChild(back);
   });
 }
 export { choosePad };

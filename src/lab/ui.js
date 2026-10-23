@@ -68,7 +68,7 @@ function sheet(title, items, selected) {
     box.appendChild(btn("Cancel", "", () => done(-1)));
     back.appendChild(box);
     back.addEventListener("pointerdown", (e) => { if (e.target === back) done(-1); });
-    document.getElementById("lab").appendChild(back);
+    document.body.appendChild(back);
   });
 }
 /* ask for a line of text */
@@ -86,7 +86,7 @@ function ask(title, value, maxLength) {
     box.appendChild(row("", btn("Cancel", "", () => done(null)), btn("OK", "go", () => done(inp.value))));
     back.appendChild(box);
     back.addEventListener("pointerdown", (e) => { if (e.target === back) done(null); });
-    document.getElementById("lab").appendChild(back);
+    document.body.appendChild(back);
     setTimeout(() => { inp.focus(); inp.select(); }, 30);
   });
 }

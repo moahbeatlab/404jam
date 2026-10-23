@@ -177,7 +177,7 @@ center. Slot 4 comes preconfigured as a slow drift.
 
 ## Sample Lab (prepare a project without the unit)
 
-**Menu > Sample Lab** opens a full-screen module for working on an SP-404MKII *project* on this device: no unit and no account, and nothing is uploaded; everything stays in the browser (the last project is also kept in the browser, so a reload does not lose it). It works the way 404tui's offline mode does, because the same file code runs here as WebAssembly in a Web Worker. The engine (about 1.5 MB over the network) loads the first time you open the Lab.
+The **LAB** tab at the bottom (or **Menu > Sample Lab**) opens a view of the app, with its own screens in the tab row at the top (PROJECT, PADS, SLICE, PTN, CHORDS), for working on an SP-404MKII *project* on this device: no unit and no account, and nothing is uploaded; everything stays in the browser (the last project is also kept in the browser, so a reload does not lose it). It works the way 404tui's offline mode does, because the same file code runs here as WebAssembly in a Web Worker. The engine (about 1.5 MB over the network) loads the first time you open the Lab.
 
 **PROJECT**: open a zip of a project folder or the folder itself (on the SD card: `ROLAND/SP-404MKII/PROJECT_01`, with `PADCONF.BIN`, `SMPL` and `PTN`), or start an empty project. Rename it, set its tempo, add audio files (WAV, AIFF, FLAC, MP3, converted to 48 kHz 16 bit) onto free pads, and **download the result as a zip** to copy back onto the card.
 

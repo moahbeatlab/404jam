@@ -125,11 +125,12 @@ function setActiveBus(bus) {
 }
 function currentView() {
   const b = document.body.classList;
-  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("perf") ? "perf" : b.contains("overview") ? "overview" : "focus";
+  return b.contains("xy") ? "xy" : b.contains("pattern") ? "pattern" : b.contains("play") ? "play" : b.contains("jam") ? "jam" : b.contains("perf") ? "perf" : b.contains("lab") ? "lab" : b.contains("overview") ? "overview" : "focus";
 }
 function setView(v) {
   const b = document.body.classList;
-  b.remove("overview", "xy", "pattern", "play", "jam", "perf");
+  const wasLab = b.contains("lab");
+  b.remove("overview", "xy", "pattern", "play", "jam", "perf", "lab");
   if (v !== "focus") b.add(v);
   if (xyTab) xyTab.classList.toggle("active", v === "xy");
   if (mixTab) mixTab.classList.toggle("active", v === "focus" || v === "overview");
@@ -137,6 +138,9 @@ function setView(v) {
   if (playTab) playTab.classList.toggle("active", v === "play");
   if (jamTab) jamTab.classList.toggle("active", v === "jam");
   if (perfTab) perfTab.classList.toggle("active", v === "perf");
+  if (labTab) labTab.classList.toggle("active", v === "lab");
+  if (v === "lab") import("../lab/lab.js").then((m) => m.enterLab());
+  else if (wasLab) import("../lab/lab.js").then((m) => m.leaveLab());
   $("view-toggle").textContent = v === "overview" ? "Focus" : "Overview";
   if (v === "xy") renderXy();
   if (v === "pattern") renderPattern();
@@ -154,7 +158,7 @@ function toggleView() {
 
 /* bus tabs */
 const tabs = [], tabLeds = [];
-let patternTab = null, playTab = null, jamTab = null, perfTab = null, mixTab = null, xyTab = null;
+let labTab = null, patternTab = null, playTab = null, jamTab = null, perfTab = null, mixTab = null, xyTab = null;
 function buildTabs() {
   const host = $("bustabs");
   BUSES.forEach((B, i) => {
@@ -188,6 +192,7 @@ function buildTabs() {
   playTab = mk("PADS", toggle("play"));
   patternTab = mk("PTN", toggle("pattern"));
   jamTab = mk("JAM", toggle("jam"));
+  labTab = mk("LAB", toggle("lab"));
   mixTab.classList.add("active");
 }
 

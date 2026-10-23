@@ -23,7 +23,7 @@ import { showBanner, updateConnUi } from "./ui/banner.js";
 import { closeStepper, controls, queueSlotRender, setBusCc, stepCtx } from "./ui/controls.js";
 import { closePicker, openPicker } from "./ui/picker.js";
 import { applyTheme, applyWake, openSetup, pushStateToDevice, renderSetup } from "./ui/setup.js";
-import { allOff, buildOverview, buildTabs, currentView, gotoFocus, renderBus, sendSw, setActiveBus, toggleView } from "./ui/views.js";
+import { allOff, buildOverview, buildTabs, currentView, gotoFocus, renderBus, sendSw, setActiveBus, setView, toggleView } from "./ui/views.js";
 
 /* ===== 12 BOOT ===== */
 function boot() {
@@ -47,7 +47,7 @@ function boot() {
   /* Menu: the buttons that made the status bar too wide (they stay in the page, hidden, and are pressed from here) */
   $("menu-btn").addEventListener("click", () => {
     const items = [[$("view-toggle").textContent, "view-toggle"], ["Snapshots", "snaps-btn"], ["Library", "lib-btn"], ["Setup", "setup-btn"]];
-    openPick("MENU", items.map((x) => ({ t: x[0] })).concat([{ t: "Demo unit", s: "sound without the SP" }, { t: "Sample Lab", s: "prepare a project, slice samples, make chords (no unit needed)" }]), -1, (i) => (i < items.length ? $(items[i][1]).click() : i === items.length ? openSim() : import("./lab/lab.js").then((m) => m.openLab())));
+    openPick("MENU", items.map((x) => ({ t: x[0] })).concat([{ t: "Demo unit", s: "sound without the SP" }, { t: "Sample Lab", s: "prepare a project, slice samples, make chords (no unit needed)" }]), -1, (i) => (i < items.length ? $(items[i][1]).click() : i === items.length ? openSim() : setView("lab")));
   });
   /* the demo unit changes what the pads and patterns pages show */
   Sim.powerHooks.add(() => { const v = currentView(); if (v === "play") renderPlay(); if (v === "pattern") renderPattern(); });

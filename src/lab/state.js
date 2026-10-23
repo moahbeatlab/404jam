@@ -1,5 +1,6 @@
 import { json, call } from "./client.js";
 import { forget } from "./audio.js";
+import { showBanner } from "../ui/banner.js";
 import { save as persist } from "./persist.js";
 
 /* what the Lab screens share */
@@ -15,14 +16,10 @@ const padCache = new Map(); /* pad -> {id, frames, channels} loaded from the pro
 const subs = new Set();
 const BANKS = "ABCDEFGHIJ";
 const padLabel = (n) => BANKS[Math.floor(n / 16)] + (n % 16 + 1);
-let msgTimer = null;
+/* messages use the app's own banner */
 function say(text, kind) {
-  const m = document.getElementById("lb-msg");
-  if (!m) return;
-  m.textContent = text || "";
-  m.className = kind || "";
-  clearTimeout(msgTimer);
-  if (text && kind !== "err") msgTimer = setTimeout(() => { m.textContent = ""; }, 5000);
+  if (!text) return;
+  showBanner(kind === "err" ? "⚠ " + text : text, "info", kind === "err" ? 7000 : 3500);
 }
 async function refreshInfo() {
   L.info = await json("info");

@@ -14,33 +14,27 @@ const loaders = {
   patterns: () => import("./patterns.js"),
   chords: () => import("./chords.js"),
 };
-let built = false, host = null, navBtns = {}, body = null;
+let built = false, host = null, navBtns = {}, body = null, projEl = null;
 function build() {
   if (built) return;
   built = true;
-  host = $("lab");
+  host = $("view-lab");
   host.textContent = "";
-  const panel = el("div", "lb-panel");
-  const top = el("div", "lb-top");
-  top.appendChild(el("b", "lb-title", "SAMPLE LAB"));
-  const name = el("span", "lb-proj");
-  name.id = "lb-proj";
-  top.appendChild(name);
-  const close = el("button", "lb-btn lb-close", "Close");
-  close.addEventListener("click", closeLab);
-  top.appendChild(close);
-  const msg = el("div", "");
-  msg.id = "lb-msg";
+  /* the same head row as JAM: a label, the project in an LCD, then the actions */
+  const top = el("div", "lb-head");
+  top.appendChild(el("span", "label", "LAB"));
+  projEl = el("span", "display mono lb-proj");
+  top.appendChild(projEl);
   body = el("div", "lb-body");
-  const nav = el("div", "lb-nav");
+  host.append(top, body);
+  /* the Lab's screens sit in the bus-tab row, styled like the bus tabs */
+  const bar = $("bustabs");
   TABS.forEach(([id, label]) => {
-    const b = el("button", "lb-tab", label);
-    b.addEventListener("click", () => show(id));
-    nav.appendChild(b);
+    const b = el("button", "bustab labtab", label);
+    b.addEventListener("pointerdown", (e) => { e.preventDefault(); show(id); });
+    bar.appendChild(b);
     navBtns[id] = b;
   });
-  panel.append(top, msg, body, nav);
-  host.appendChild(panel);
   /* sound may only start from a tap: every tap makes sure the audio is running (iOS in particular) */
   ["click", "touchend", "pointerup"].forEach((t) => host.addEventListener(t, () => { try { context(); } catch (e) { /* no audio */ } }, true));
   onChange(paintHead);
@@ -51,14 +45,13 @@ function build() {
   });
 }
 function paintHead() {
-  const p = $("lb-proj");
-  if (p) p.textContent = L.info && L.info.open ? L.info.name : "no project";
+  if (projEl) projEl.textContent = L.info && L.info.open ? L.info.name : "no project";
 }
 async function show(view) {
   build();
   L.view = view;
   stopAll();
-  Object.entries(navBtns).forEach(([id, b]) => b.classList.toggle("on", id === view));
+  Object.entries(navBtns).forEach(([id, b]) => b.classList.toggle("active", id === view));
   Object.values(views).forEach((v) => { v.root.parentElement.style.display = "none"; });
   if (!views[view]) {
     const wrap = el("div", "lb-view");
@@ -71,15 +64,13 @@ async function show(view) {
   views[view].root.parentElement.style.display = "";
   if (L.view === view && views[view].show) await views[view].show();
 }
-function closeLab() {
-  stopAll();
-  $("lab").classList.remove("open");
-}
-async function openLab() {
+/* called by the app's view switcher */
+async function enterLab() {
   build();
-  $("lab").classList.add("open");
+  paintHead();
   /* wake the engine now, so it loads while the first screen draws */
   call("info").then((j) => { L.info = JSON.parse(j); paintHead(); if (L.view === "project" && views.project) views.project.show(); }).catch(() => {});
   await show(L.view);
 }
-export { openLab, closeLab, show };
+function leaveLab() { stopAll(); }
+export { enterLab, leaveLab, show };
