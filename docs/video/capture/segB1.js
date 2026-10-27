@@ -10,16 +10,12 @@
   pad.dispatchEvent(mk('pointerdown',cx+rx,cy)); A('xy-drag-start');
   for (let k = 0; k < 2; k++) for (let d = 0; d <= 360; d += 6) { pad.dispatchEvent(mk('pointermove',cx+rx*Math.cos(d*Math.PI/180)*(1-0.25*k*d/360),cy+ry*Math.sin(d*Math.PI/180)*(1-0.25*k*d/360))); await J.sleep(32); }
   pad.dispatchEvent(mk('pointerup',cx,cy)); A('xy-drag-end'); await J.sleep(700);
-  J.view('PERF'); await J.sleep(1200); A('perf');
-  const lfo = Array.from(document.querySelectorAll('#view-perf button')).filter(J.vis).find(b=>b.textContent.trim()==='LFO'); if (lfo) { J.tap(lfo, true); lfo.click(); } await J.sleep(1800); A('perf-lfo');
-  J.view('MIX'); await J.sleep(600);
-  J.btn('Menu').click(); await J.sleep(700); const ov = J.btn('Overview'); if (ov) ov.click(); await J.sleep(900); A('mix-back');
-  J.btn('Menu').click(); await J.sleep(700); J.btn('Snapshots').click(); await J.sleep(1400); A('snaps-open');
-  let slots = Array.from(document.querySelectorAll('.snap-slot')); J.tap(slots[0]); await J.sleep(1300); A('snap-saved');
-  document.activeElement && document.activeElement.blur && document.activeElement.blur(); await J.sleep(300);
-  slots = Array.from(document.querySelectorAll('.snap-slot')); J.tap(slots[2]); await J.sleep(1300); A('snap-saved2');
-  J.btn('Close', document.getElementById('snaps')).click(); await J.sleep(700);
-  document.getElementById('lib-btn').click(); await J.sleep(1700); A('library');
-  document.getElementById('recipes-close').click(); await J.sleep(700); A('segB-end');
-  return JSON.stringify(J.log);
+  // two points on the pad, then a morph between them
+  const rel = (b) => b.dispatchEvent(new PointerEvent('pointerup', {bubbles:true, pointerId:1, pointerType:'mouse', isPrimary:true}));
+  const pts = Array.from(document.querySelectorAll('#xp-btns button'));
+  await J.drag(pad, cx, cy, r.x + r.width*0.15, r.y + r.height*0.8, 14, 30); await J.sleep(300);
+  J.tap(pts[0], true); await J.sleep(1100); rel(pts[0]); A('xy-point1'); await J.sleep(800);
+  await J.drag(pad, cx, cy, r.x + r.width*0.85, r.y + r.height*0.2, 14, 30); await J.sleep(300);
+  J.tap(pts[1], true); await J.sleep(1100); rel(pts[1]); A('xy-point2'); await J.sleep(1000);
+  return 'ok';
 })()

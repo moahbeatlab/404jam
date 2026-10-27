@@ -38,3 +38,12 @@
   addEventListener('unhandledrejection', e => window.__errs.push('R ' + (e.reason && e.reason.message || e.reason)));
   return 'ok';
 })()
+;(function(){
+  const J = window.J;
+  // a fader of the BUS shown in MIX (the big faders), by position
+  J.ffader = async (idx, from, to, ms) => {
+    const f = Array.from(document.querySelectorAll('.fader')).filter(J.vis)[idx]; if (!f) return 'nofader';
+    const t = f.querySelector('.fader-track-wrap') || f, r = t.getBoundingClientRect(), x = r.x + r.width / 2;
+    await J.drag(t, x, r.y + r.height * from, x, r.y + r.height * to, 24, ms || 30); return 'ok';
+  };
+})();

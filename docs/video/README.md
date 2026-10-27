@@ -1,7 +1,7 @@
 # The 404jam film
 
 A two-minute film that says what 404jam is and shows each part of it: the five effect buses, the XY pad, snapshots, the play
-surfaces and patterns, JAM, and (as a preview) the Sample Lab. It is made from a **recording of the real app** driven by a script,
+surfaces and patterns, JAM, and PERF (Punch, Morph, Motion, LFO). The SP-404MkII is drawn (a vector, `device_svg` in `build.py`) over the cut between sections. It is made from a **recording of the real app** driven by a script,
 and rendered with [HyperFrames](https://github.com/heygen-com/hyperframes) (HTML and GSAP in, MP4 out), with zoom-ins and captions.
 
 Both halves are repeatable from the files here, so the film can be made again when the app changes.
@@ -17,21 +17,24 @@ render and its frame cache, and 4 GB of memory (the render is the heavy part: se
 
 ## 1. Record the app
 
-    npm install && npm run dev -- --port 5199 --host 127.0.0.1 &       # or any URL that serves the build you want to show
+    npm install && npm run dev -- --port 5199 --host 127.0.0.1 &       # from a checkout of main: the film shows the released app, not a test branch
     docs/video/capture/run.sh http://127.0.0.1:5199/ /tmp/404jam-cap
 
 `run.sh` opens the app at **1920×1080**, starts the recorder (this **reloads the page**, so everything is done after it), loads the helpers
-and runs four segments, each one a script in `capture/`:
+and runs the segments, each one a script in `capture/` (**a segment must take less than about 25 s**: the browser driver gives up on a longer eval, so a long part is split):
 
 | Segment | What it does |
 | --- | --- |
 | `segA.js` | the Demo unit on, an effect on each bus, the buses on, six faders dragged |
-| `segB.js` | XY presets and a circular drag, PERF, the Overview, Snapshots (two saved), the Library |
+| `segB1.js`, `segB2.js` | XY presets and a circular drag; two points saved by holding the point buttons, GO morphs between them (ping-pong); the Overview, Snapshots, the Library |
 | `segC.js` | PADS (keys, scale, pads), PTN, JAM with the MC-101 preset |
-| `segD.js` | the Sample Lab: a project, five generated samples, the pads, the slicer's onsets, chords |
+| `segD0.js` | the Demo unit's PLAY: it gives the app a MIDI clock, without which Motion does not loop and the LFOs run on tap tempo |
+| `segD1.js`, `segD1b.js` | PERF › PUNCH: a preset fills four slots, hold one while the MIX view shows the buses change, let go; then MORPH, the slider |
+| `segD2.js` | PERF › MOTION: arm a slot, move a fader for two bars in MIX, it loops (MIX shows the fader move), speed, direction |
+| `segD3.js` | PERF › LFO: bus, knob, shape, start, depth; MIX shows the fader follow |
 
 A segment is one `async` function. It logs each action with `A('name')` and **waits first, then logs**, so a log line is the *end* of its
-wait. Helpers (`J.tap`, `J.view`, `J.fader`, `J.loadFx`…) are in `capture/helpers.js`; the Lab's file injection is `capture/lab-helpers.js`.
+wait. Helpers (`J.tap`, `J.view`, `J.fader`, `J.loadFx`…) are in `capture/helpers.js` and `capture/app-helpers.js` (`J.ffader` drags the big faders of MIX). Show movement, not only buttons: the effect of a Punch, a Motion or an LFO is on the MIX view, so the segments switch to it while the thing runs.
 
 ### Finding the actions in the video
 
@@ -88,6 +91,14 @@ On a small machine (2 CPUs, 4 GB) the render **fails with `Unable to capture scr
 2. Run `capture/run.sh` again and look at frames from across the recording (`ffmpeg -ss T -i recording.webm -frames:v 1 f.png`).
 3. Add or edit a scene in `FEATURES` (beats by event name); if the story changes, the `problem` and `what` scenes.
 4. `check`, `snapshot` a frame per beat, render.
-5. The Sample Lab scene is labelled a **preview** because it is only on the test page; when it is released, change the tag and the closing line in `build.py`.
+5. Show what is released: record from `main`, not from `test-all`. A feature that is only on a test branch does not belong in the film until it is released.
 
 The recording, the music and the rendered film are not committed (they are large and can be made again); publish the film as a release or on the Pages site.
+
+## Editing the film
+
+- **Change a caption, a time or a scene:** edit `FEATURES` (or the scene functions) in `presentation/build.py` and run it; it rewrites `index.html` and `compositions/*.html`. Hand edits to those files are lost the next time `build.py` runs.
+- **Look at it while you edit:** in the project folder, `npx hyperframes preview` opens the HyperFrames studio (a timeline you can scrub, play and edit) in the browser. Edits you make there change the generated HTML files; to keep a change, port it into `build.py`.
+- **The SP-404MkII drawing and the transitions:** `device_svg` and `transition_scene` in `build.py` (colours are the `.dv-*` rules in `DEV_CSS`).
+- **The music:** `python3 music.py assets/music.wav SECONDS`, or put your own file at `assets/music.wav`.
+- **Cut or reorder the footage:** every scene shows a stretch of one recording (`a` to `b`, event names plus an offset); reorder the entries of `FEATURES` to reorder the film.

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # Record the real app doing everything the film shows, and work out when each action happens in the recording.
 #
-#   npm run dev -- --port 5199 --host 127.0.0.1 &          # a build that has what you want to show (the Sample Lab is on test-all)
+#   npm run dev -- --port 5199 --host 127.0.0.1 &          # a build that has what you want to show (the released app: main)
 #   docs/video/capture/run.sh http://127.0.0.1:5199/ /tmp/404jam-cap
 #
 # Needs agent-browser (a headless Chrome driver), ffmpeg, python3 with numpy. See ../README.md.
 set -euo pipefail
+export AGENT_BROWSER_DEFAULT_TIMEOUT=180000          # a segment is one long eval, more than the default 25 s
 URL="${1:-http://127.0.0.1:5199/}"
 OUT="${2:-/tmp/404jam-cap}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -19,16 +20,16 @@ sleep 2
 agent-browser record start "$OUT/recording.webm" >/dev/null  # reloads the page: do everything after this
 sleep 2.5
 agent-browser eval "$(cat "$HERE/helpers.js")" >/dev/null
-agent-browser eval "$(cat "$HERE/lab-helpers.js")" >/dev/null
-agent-browser eval "window.__errs=[];addEventListener('error',e=>window.__errs.push(e.message))" >/dev/null
-for seg in A B C D; do
+agent-browser eval "$(cat "$HERE/app-helpers.js")" >/dev/null
+agent-browser eval "window.__errs=[];addEventListener('error',e=>window.__errs.push(Math.round(performance.now()/100)/10+' '+e.message+' '+String(e.filename).split('/').pop()+':'+e.lineno))" >/dev/null
+for seg in A B1 B2 C D0 D1 D1b D2 D3; do
   agent-browser eval "$(cat "$HERE/seg$seg.js")" > "$OUT/log$seg.txt"
 done
 sleep 2
 echo "page errors during the run: $(agent-browser eval 'JSON.stringify(window.__errs)')"
 agent-browser record stop >/dev/null
 # the last segment returns the whole log of actions as a JSON string (the CLI prints it quoted)
-python3 - "$OUT/logD.txt" "$OUT/log.json" <<'PY'
+python3 - "$OUT/logD3.txt" "$OUT/log.json" <<'PY'
 import json, sys
 s = open(sys.argv[1]).read().strip().splitlines()[-1]
 open(sys.argv[2], "w").write(json.loads(s))
