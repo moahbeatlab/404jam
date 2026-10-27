@@ -56,6 +56,16 @@ FEATURES = [
         (('lab-onsets', 0.4), "Chords and arps too", None)]),
 ]
 
+def focus_panels(fid, i, x, y, w, h, W, H):
+    """four blurred, dimmed panels round the part in focus (cam pixels), plus a hairline edge; the part stays sharp"""
+    x, y, w, h = round(x), round(y), round(w), round(h)
+    x0, y0 = max(0, x), max(0, y)
+    x1, y1 = min(W, x + w), min(H, y + h)
+    box = [(0, 0, W, y0), (0, y1, W, H - y1), (0, y0, x0, y1 - y0), (x1, y0, W - x1, y1 - y0)]
+    out = [f'<div class="dim {fid}-f{i}" style="left:{a}px;top:{b}px;width:{c}px;height:{d}px"></div>' for a, b, c, d in box if c > 0 and d > 0]
+    out.append(f'<div class="edge {fid}-f{i}" style="left:{x}px;top:{y}px;width:{w}px;height:{h}px"></div>')
+    return "".join(out)
+
 def cam_for(rect):
     if rect is None:
         return 0, 0, round(S0, 4)
@@ -101,14 +111,15 @@ def feature(f):
         tl.append(f'tl.to("#cam", {{ x: {x}, y: {y}, scale: {s}, duration: 0.55, ease: "power3.inOut" }}, {max(0.0, t0 - 0.25):.3f});')
         if rect and rect[2] < 1800:
             rx, ry, rw, rh = rect
-            rings.append(f'<div class="ring" id="{f["id"]}-ring{i}" style="left:{rx - CROP - 8}px;top:{ry - CROP - 8}px;width:{rw + 16}px;height:{rh + 16}px"></div>')
-            tl.append(f'tl.fromTo("#{f["id"]}-ring{i}", {{ opacity: 0, scale: 1.05 }}, {{ opacity: 1, scale: 1, duration: 0.35, ease: "power3.out" }}, {t0 + 0.3:.3f});')
-            tl.append(f'tl.to("#{f["id"]}-ring{i}", {{ opacity: 0, duration: 0.25 }}, {t1 - 0.25:.3f});')
+            rings.append(focus_panels(f['id'], i, rx - CROP - 8, ry - CROP - 8, rw + 16, rh + 16, VW, VH))
+            tl.append(f'tl.fromTo(".{f["id"]}-f{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.4, ease: "power2.out" }}, {t0 + 0.3:.3f});')
+            tl.append(f'tl.to(".{f["id"]}-f{i}", {{ opacity: 0, duration: 0.25 }}, {t1 - 0.25:.3f});')
     tl.append(f'tl.to("#cam", {{ x: 0, y: 0, scale: {S0:.4f}, duration: 0.5, ease: "power3.inOut" }}, {dur - 0.55:.3f});')
     html = HEAD + f"""    #win {{ position: absolute; left: {WIN_X}px; top: {WIN_Y}px; width: {WIN_W}px; height: {WIN_H}px; border-radius: 14px; overflow: hidden; background: #121216; box-shadow: 0 0 0 2px #2a2a31; }}
     #cam {{ position: absolute; left: 0; top: 0; width: {VW}px; height: {VH}px; overflow: hidden; }}
     #cam video {{ position: absolute; left: -{CROP}px; top: -{CROP}px; width: {REC_W}px; height: {REC_H}px; }}
-    .ring {{ position: absolute; border: 5px solid #ffb000; border-radius: 12px; opacity: 0; box-shadow: 0 0 24px rgba(255,176,0,.45); }}
+    .dim {{ position: absolute; opacity: 0; background: rgba(10,10,14,.42); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }}
+    .edge {{ position: absolute; opacity: 0; border: 2px solid rgba(255,255,255,.55); border-radius: 10px; }}
     #band {{ position: absolute; left: {WIN_X}px; right: {WIN_X}px; top: {WIN_Y + WIN_H + 6}px; height: 86px; display: flex; align-items: center; gap: 30px; }}
     .tag {{ font: 600 28px "IBM Plex Mono", monospace; color: #ffb000; letter-spacing: .06em; white-space: nowrap; width: 400px; }}
     .tag b {{ color: #9a9aa6; font-weight: 400; }}

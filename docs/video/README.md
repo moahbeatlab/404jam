@@ -68,12 +68,12 @@ did not run is the cause: look at the recording.
 `build.py` is where the film is written (edit it, not the generated HTML). The feature scenes are a table, `FEATURES`: a stretch of the recording
 (`a`, `b`) and **beats**, each a time, a caption (about 6 words) and a part of the screen to punch in on (`x, y, width, height` in recording pixels).
 A time is seconds or `("event name", offset)`: **use event names**, so that recording again moves the film with it and no number has to be
-looked up. The camera moves to the part, a ring is drawn round it, the caption changes.
+looked up. The camera moves to the part, everything else is blurred and dimmed round it, the caption changes.
 
 What `check` taught, and `build.py` now does:
 
 - A caption needs **0.5 s plus 0.3 s a word** on screen; `build.py` prints `too quick` when a beat gets less.
-- Keep a punched-in part narrow enough that its text is **28 px or more** after the zoom; a full-width part cannot zoom, so it gets no ring.
+- Keep a punched-in part narrow enough that its text is **28 px or more** after the zoom; a full-width part cannot zoom, so it is not blurred round.
 - The first frame must already show the title (it is the thumbnail); the closing line needs about 5 s.
 - The corner markers are cropped by placing the recording 14 px up and left inside its window.
 
