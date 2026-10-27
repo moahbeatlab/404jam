@@ -1,0 +1,7 @@
+assets/
+compositions/
+index.html
+.hyperframes/
+node_modules/
+*.mp4
+renders/

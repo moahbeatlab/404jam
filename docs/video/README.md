@@ -1,0 +1,93 @@
+# The 404jam film
+
+A two-minute film that says what 404jam is and shows each part of it: the five effect buses, the XY pad, snapshots, the play
+surfaces and patterns, JAM, and (as a preview) the Sample Lab. It is made from a **recording of the real app** driven by a script,
+and rendered with [HyperFrames](https://github.com/heygen-com/hyperframes) (HTML and GSAP in, MP4 out), with zoom-ins and captions.
+
+Both halves are repeatable from the files here, so the film can be made again when the app changes.
+
+    capture/        records the app doing everything the film shows, and finds when each action happens in the recording
+    presentation/   the film: build.py writes the scenes, music.py writes a backing track, events.json says when things happen
+
+## What you need
+
+`node` 22 or newer, `ffmpeg`, `python3` with `numpy`, and [`agent-browser`](https://www.npmjs.com/package/agent-browser) (a headless Chrome
+driver; the first run needs `--args "--no-sandbox"` in a container, which `capture/run.sh` passes). About 2 GB of free disk for the
+render and its frame cache, and 4 GB of memory (the render is the heavy part: see *Rendering* below).
+
+## 1. Record the app
+
+    npm install && npm run dev -- --port 5199 --host 127.0.0.1 &       # or any URL that serves the build you want to show
+    docs/video/capture/run.sh http://127.0.0.1:5199/ /tmp/404jam-cap
+
+`run.sh` opens the app at **1920×1080**, starts the recorder (this **reloads the page**, so everything is done after it), loads the helpers
+and runs four segments, each one a script in `capture/`:
+
+| Segment | What it does |
+| --- | --- |
+| `segA.js` | the Demo unit on, an effect on each bus, the buses on, six faders dragged |
+| `segB.js` | XY presets and a circular drag, PERF, the Overview, Snapshots (two saved), the Library |
+| `segC.js` | PADS (keys, scale, pads), PTN, JAM with the MC-101 preset |
+| `segD.js` | the Sample Lab: a project, five generated samples, the pads, the slicer's onsets, chords |
+
+A segment is one `async` function. It logs each action with `A('name')` and **waits first, then logs**, so a log line is the *end* of its
+wait. Helpers (`J.tap`, `J.view`, `J.fader`, `J.loadFx`…) are in `capture/helpers.js`; the Lab's file injection is `capture/lab-helpers.js`.
+
+### Finding the actions in the video
+
+The recorder (Playwright's) **drops the stretches where nothing changes**, so one second of script is not one second of video (80 s of script
+became 68 s). The film needs to know *where in the video* each action is. So every logged action flashes a 10 px magenta square in the top-left
+corner, and `capture/sync.py` finds the flashes and pairs them, in order, with the log. The result is `presentation/events.json`, a name → video
+seconds table. The film crops the corner, so the squares never show. If `sync.py` says the counts differ, a dialog over the corner or an action that
+did not run is the cause: look at the recording.
+
+### Things that went wrong, so they do not again
+
+- A bare `.click()` does nothing on controls that listen for `pointerdown` (the view tabs, snapshot slots, faders). Use `J.tap(el)` and, for drags, `J.drag`.
+  The menu, picker items by `click`, and the `Overview` toggle are plain clicks.
+- The overview has **no faders until an effect is chosen**, and the effect picker lists favourites first, so pick **by name**
+  (`J.loadFx(bus, 'Tape Echo')`), not by position.
+- The EFX pads turn a bus **on**; choosing an effect does not. Snapshots then say `ON` instead of `off`.
+- The JAM preset asks for a **target device** in a second step (`Default (SP-404 output)`). Skipping it leaves a dialog over everything after it.
+- Switching views with the bottom tabs goes to **Focus**, not Overview; use Menu → Overview to get the five buses side by side again.
+- Do not zoom the page (CSS `zoom`): the layout is built on `100dvh` and breaks. Record at 1920×1080 and let the film punch in.
+- Whatever shows in the recording is in the film: use the Demo unit and generated samples, never a real project or file names.
+
+## 2. The film
+
+    mkdir -p /tmp/404jam-film && cp -r docs/video/presentation/. /tmp/404jam-film && cd /tmp/404jam-film
+    mkdir -p assets/clips
+    ffmpeg -i /tmp/404jam-cap/recording.webm -c:v libx264 -crf 17 -pix_fmt yuv420p -r 30 assets/clips/jam.mp4
+    python3 music.py assets/music.wav 104        # a generated backing track (seeded, no samples); the length is the film's, plus a little
+    python3 build.py                              # writes index.html and compositions/*.html; says "too quick" for a caption that needs longer
+    npx hyperframes telemetry disable             # it sends anonymous usage data otherwise
+    npx hyperframes check                         # lint, layout, contrast: fix what it says
+    npx hyperframes snapshot --at 41,48,66        # look at frames before rendering
+    npx hyperframes render -o 404jam.mp4 --fps 30 --workers 1 --low-memory-mode --protocol-timeout 900000
+
+`build.py` is where the film is written (edit it, not the generated HTML). The feature scenes are a table, `FEATURES`: a stretch of the recording
+(`a`, `b`) and **beats**, each a time, a caption (about 6 words) and a part of the screen to punch in on (`x, y, width, height` in recording pixels).
+A time is seconds or `("event name", offset)`: **use event names**, so that recording again moves the film with it and no number has to be
+looked up. The camera moves to the part, a ring is drawn round it, the caption changes.
+
+What `check` taught, and `build.py` now does:
+
+- A caption needs **0.5 s plus 0.3 s a word** on screen; `build.py` prints `too quick` when a beat gets less.
+- Keep a punched-in part narrow enough that its text is **28 px or more** after the zoom; a full-width part cannot zoom, so it gets no ring.
+- The first frame must already show the title (it is the thumbnail); the closing line needs about 5 s.
+- The corner markers are cropped by placing the recording 14 px up and left inside its window.
+
+### Rendering
+
+On a small machine (2 CPUs, 4 GB) the render **fails with `Unable to capture screenshot`** with several workers, or when the video-frame cache fills `/tmp`.
+`--workers 1 --low-memory-mode --protocol-timeout 900000` and `--frames-cache-dir <a folder on the real disk>` fixed it; it takes about 20 minutes for 95 s of film.
+
+### When a feature is added or changed
+
+1. If the app has a new part worth showing, add actions for it to a segment (and wait before you log).
+2. Run `capture/run.sh` again and look at frames from across the recording (`ffmpeg -ss T -i recording.webm -frames:v 1 f.png`).
+3. Add or edit a scene in `FEATURES` (beats by event name); if the story changes, the `problem` and `what` scenes.
+4. `check`, `snapshot` a frame per beat, render.
+5. The Sample Lab scene is labelled a **preview** because it is only on the test page; when it is released, change the tag and the closing line in `build.py`.
+
+The recording, the music and the rendered film are not committed (they are large and can be made again); publish the film as a release or on the Pages site.
