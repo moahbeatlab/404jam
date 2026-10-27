@@ -12,7 +12,10 @@ import json, os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # where each action of the capture is in the recording, in seconds (capture/sync.py writes it next to this file)
-EVENTS = json.load(open(os.path.join(HERE, "events.json")))
+EVENTS_FILE = os.path.join(HERE, "events.json")
+if not os.path.exists(EVENTS_FILE):
+    raise SystemExit("build.py: events.json is missing: run docs/video/capture/run.sh first, it writes it next to this file")
+EVENTS = json.load(open(EVENTS_FILE))
 
 def at(x):
     """a time: seconds, or (name of a capture event, offset in seconds)"""
@@ -26,29 +29,31 @@ OVERLAP = 0.45
 VW, VH = REC_W - CROP, REC_H - CROP
 S0 = WIN_W / VW
 
+# Times are (event name, offset). The capture logs an action AFTER its wait, so an event is the END of what it names:
+# a thing is on screen from about (event - its wait) to the event. The offsets below are measured against frames.
 FEATURES = [
-    dict(id="mix", a=('mark', 1.3), b=('segA-end', 0.39), tab="MIX", name="THE BUSES", enter="wipe", beats=[
-        (('overview-empty', 0.2), "Try it with the Demo unit", None),
-        (('fx0 Tape Echo', 0.0), "Pick an effect on each bus", (0, 100, 1920, 120)),
+    dict(id="mix", a=('mark', 0.6), b=('faders-start', 5.3), tab="MIX", name="THE BUSES", enter="wipe", beats=[
+        (('overview-empty', -0.8), "Try it with the Demo unit", None),
+        (('fx0 Tape Echo', -0.7), "Pick an effect on each bus", (0, 100, 1920, 120)),
         (('fx-all', 0.1), "Real parameter names", (0, 930, 1160, 100)),
-        (('f-b0a', 0.3), "Six touch faders per bus", (0, 100, 780, 330))]),
-    dict(id="xy", a=('xy', 0.1), b=('xy-drag-end', 1.4), tab="XY", name="XY PAD", enter="push", beats=[
-        (('xy', 0.2), "Presets set the axes for you", (720, 120, 480, 520)),
-        (('xy-drag-start', 0.0), "Drag: X is time, Y feedback", (0, 100, 1100, 620))]),
-    dict(id="snap", a=('mix-back', 1.4), b=('library', 0.1), tab="SNAP", name="SNAPSHOTS", enter="zoom", beats=[
-        (('snaps-open', 0.1), "Snapshots store all five buses", (720, 50, 480, 420))]),
-    dict(id="play", a=('segB-end', 0.59), b=('jam', 0.09), tab="PADS", name="AND PATTERNS", enter="wipe", beats=[
-        (('pads', 0.1), "A keyboard for the chromatic channel", None),
-        (('keys-played', 0.8), "Scale pads that stay in key", None),
-        (('ptn', 0.1), "Patterns: one tap to switch", (0, 60, 1920, 520))]),
-    dict(id="jam", a=('jam', -0.01), b=('lab', 0.1), tab="JAM", name="JAM", enter="push", beats=[
-        (('jam', 0.29), "JAM: your own controls", None),
-        (('jam-device', 0.2), "A preset fills the grid", (0, 100, 1920, 420))]),
-    dict(id="lab", a=('segC-end', 1.2), b=('segD-end', 0.8), tab="LAB", name="PREVIEW", enter="zoom", beats=[
-        (('lab', 0.1), "Sample Lab: no unit needed", None),
-        (('lab-project', 2.7), "Samples land on pads", (0, 100, 1920, 420)),
-        (('lab-pads', 0.6), "Slice: cut at the onsets", (0, 180, 1920, 340)),
-        (('lab-onsets', 0.3), "Chords and arps too", None)]),
+        (('faders-start', 0.0), "Six touch faders per bus", (0, 100, 780, 330))]),
+    dict(id="xy", a=('xy', -0.9), b=('xy-drag-end', 1.2), tab="XY", name="XY PAD", enter="push", beats=[
+        (('xy-presets', -0.4), "Presets set both axes", (720, 120, 480, 520)),
+        (('xy-assigned', 0.0), "Drag: X is time, Y feedback", (0, 100, 1100, 620))]),
+    dict(id="snap", a=('mix-back', 0.6), b=('library', 0.1), tab="SNAP", name="SNAPSHOTS", enter="zoom", beats=[
+        (('mix-back', 1.0), "Snapshots store all five buses", (720, 50, 480, 420))]),
+    dict(id="play", a=('segB-end', 0.0), b=('ptn-tap2', 0.0), tab="PADS", name="AND PATTERNS", enter="wipe", beats=[
+        (('segB-end', 0.4), "A chromatic keyboard", None),
+        (('keys-played', 0.1), "Scale pads that stay in key", None),
+        (('pads-grid', 0.1), "Patterns: one tap to switch", (0, 60, 1920, 520))]),
+    dict(id="jam", a=('ptn-tap2', 0.0), b=('jam-added', 1.5), tab="JAM", name="JAM", enter="push", beats=[
+        (('ptn-tap2', 0.2), "JAM: your own controls", None),
+        (('jam-added', -1.8), "A preset fills the grid", (0, 100, 1920, 420))]),
+    dict(id="lab", a=('jam-added', 0.4), b=('segD-end', 0.8), tab="LAB", name="PREVIEW", enter="zoom", beats=[
+        (('lab', -0.5), "Sample Lab: no unit needed", None),
+        (('lab-added', 0.0), "Samples land on pads", (0, 100, 1920, 420)),
+        (('lab-slice', 0.2), "Cut at the onsets", (0, 180, 1920, 340)),
+        (('lab-onsets', 0.4), "Chords and arps too", None)]),
 ]
 
 def cam_for(rect):

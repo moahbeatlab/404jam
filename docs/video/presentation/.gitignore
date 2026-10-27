@@ -5,3 +5,4 @@ index.html
 node_modules/
 *.mp4
 renders/
+events.json
