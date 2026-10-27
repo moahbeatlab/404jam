@@ -12,6 +12,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p "$OUT"
 rm -f "$OUT/recording.webm"
 agent-browser close --all >/dev/null 2>&1 || true
+sleep 3                                                      # the daemon must be gone before --args is read again
 agent-browser --args "--no-sandbox" open "$URL" >/dev/null
 agent-browser set viewport 1920 1080 >/dev/null              # the film is 1920x1080: record at that size
 sleep 2
