@@ -110,41 +110,62 @@ HEAD = """<template>
 """
 
 
+DEV_W, DEV_H = 660, 786
+PAD_X, PAD_Y = (120, 225, 329, 434), (494, 564, 634, 704)
+
+def pad_center(n):
+    r, c = divmod(n, 4)
+    return PAD_X[c], PAD_Y[r]
+
 def device_svg(uid, width=None):
-    """a stylised line drawing of the SP-404MkII seen from above (not to scale, no logo): amber hairlines on a dark body"""
+    """the SP-404MkII seen from above as amber line art on a dark body, laid out like the real unit: four knobs, the round display
+    with six effect buttons, a row of buttons, the 4x4 pads and the bus column. No logos. Pad n is lit by tweening #{uid}-p{n}'s opacity."""
+    u = uid
+    ln = "#3d3d48"
+    def key(cx, cy, w, h, on=False):
+        return f'<rect x="{cx - w / 2}" y="{cy - h / 2}" width="{w}" height="{h}" rx="9" class="dv-key{" on" if on else ""}"/>'
+    knobs = "".join(f'<circle cx="{x}" cy="80" r="25" class="dv-knob"/><line x1="{x}" y1="80" x2="{x + dx}" y2="{80 - dy}" class="dv-tick"/>'
+                    for x, dx, dy in [(118, -7, 18), (258, 4, 19), (398, 0, 19), (537, 11, 16)])
+    fx = "".join(key(x, y, 98, 52, (x, y) in ((145, 235), (523, 296))) for x, y in [(145, 235), (132, 296), (145, 357), (512, 235), (523, 296), (510, 357)])
+    rowb = "".join(key(x, 430, 44, 26, x == 215) for x in (105, 160, 215, 285, 340, 395, 470))
     pads = []
-    for n in range(16):
-        r, c = divmod(n, 4)
-        x, y = 350 + c * 118, 50 + r * 118
-        pads.append(f'<rect id="{uid}-p{n}" class="dv-pad" x="{x}" y="{y}" width="104" height="104" rx="13"/>'
-                    f'<circle cx="{x + 14}" cy="{y + 14}" r="4" class="dv-led"/>')
-    knobs = "".join(f'<circle cx="{82 + 70 * k}" cy="232" r="25" class="dv-knob"/><line x1="{82 + 70 * k}" y1="232" x2="{82 + 70 * k + (14, 6, -12, 10)[k]}" y2="{232 - (10, 19, 15, -17)[k]}" class="dv-tick"/>' for k in range(4))
-    keys = "".join(f'<rect x="{46 + 52 * i}" y="{300 + 34 * j}" width="34" height="18" rx="5" class="dv-key{" on" if (i, j) in ((1, 0), (3, 1)) else ""}"/>' for j in range(2) for i in range(5))
-    faders = "".join(f'<rect x="{96 + 80 * k}" y="392" width="9" height="116" rx="4" class="dv-slot"/><rect x="{81 + 80 * k}" y="{(430, 462, 410)[k]}" width="39" height="20" rx="5" class="dv-cap{" on" if k == 2 else ""}"/>' for k in range(3))
-    wave = " ".join(f"{54 + i * 8},{110 + (30 * ((i * 37) % 11) / 11 - 15) * (1 - abs(i - 12) / 14):.0f}" for i in range(25))
+    for r in range(4):
+        for c in range(5):
+            cx, cy = (PAD_X[c], PAD_Y[r]) if c < 4 else (538, PAD_Y[r])
+            x, y = cx - 42, cy - 32
+            on = " on" if (c == 4 and r == 2) else ""
+            pads.append(f'<rect x="{x}" y="{y}" width="84" height="64" rx="10" class="dv-pad{on}"/>')
+            if c < 4:
+                pads.append(f'<rect id="{u}-p{r * 4 + c}" class="dv-lit" x="{x}" y="{y}" width="84" height="64" rx="10" fill="#ffb000" stroke="#ffcf5a" stroke-width="3" opacity="0"/>')
+    wave = " ".join(f"{240 + i * 8},{295 + (44 * ((i * 37) % 11) / 11 - 22) * (1 - abs(i - 11) / 13):.0f}" for i in range(23))
     w = f' style="width:{width}px"' if width else ""
-    return f"""<svg class="dv" id="{uid}-dev" viewBox="0 0 860 540" xmlns="http://www.w3.org/2000/svg"{w}>
-      <rect x="6" y="6" width="848" height="528" rx="28" class="dv-body"/>
-      <rect x="22" y="22" width="816" height="496" rx="20" class="dv-in"/>
-      <rect x="46" y="48" width="262" height="130" rx="10" class="dv-screen"/>
+    return f"""<svg class="dv" id="{u}-dev" viewBox="0 0 {DEV_W} {DEV_H}" xmlns="http://www.w3.org/2000/svg"{w}>
+      <rect x="2" y="2" width="656" height="782" rx="26" class="dv-body"/>
+      <rect x="14" y="14" width="632" height="758" rx="18" class="dv-in"/>
+      <rect x="78" y="56" width="504" height="86" rx="43" class="dv-in"/>
+      {knobs}
+      <g transform="translate(0,-40)">
+      <rect x="78" y="190" width="504" height="226" rx="70" class="dv-in"/>
+      <circle cx="330" cy="295" r="128" class="dv-ring"/>
+      <circle cx="330" cy="295" r="108" class="dv-disp"/>
       <polyline points="{wave}" class="dv-wave"/>
-      <line x1="60" y1="150" x2="296" y2="150" class="dv-base"/>
-      {knobs}{keys}{faders}{"".join(pads)}
+      {fx}</g>
+      {rowb}<circle cx="545" cy="430" r="19" class="dv-knob"/>
+      <text x="46" y="599" text-anchor="middle" dominant-baseline="central" transform="rotate(-90 46 599)" class="dv-m">moahbeatlab</text>
+      {"".join(pads)}
     </svg>"""
 
 DEV_CSS = """    .dv { display: block; width: 100%; height: auto; overflow: visible; }
     .dv-body { fill: #121216; stroke: #ffb000; stroke-opacity: .7; stroke-width: 3; }
     .dv-in { fill: none; stroke: #2a2a33; stroke-width: 2; }
-    .dv-screen { fill: #08080b; stroke: #ffb000; stroke-opacity: .8; stroke-width: 2; }
+    .dv-ring { fill: #0b0b0e; stroke: #ffb000; stroke-opacity: .8; stroke-width: 2.5; }
+    .dv-disp { fill: #08080b; stroke: #2a2a33; stroke-width: 2; }
     .dv-wave { fill: none; stroke: #ffb000; stroke-width: 3; stroke-linejoin: round; }
-    .dv-base { stroke: #3a3a44; stroke-width: 2; }
     .dv-knob { fill: #1b1b21; stroke: #4a4a56; stroke-width: 3; }
     .dv-tick { stroke: #ffb000; stroke-width: 4; stroke-linecap: round; }
     .dv-key { fill: #1d1d24; stroke: #3d3d48; stroke-width: 2; } .dv-key.on { fill: #ffb000; stroke: #ffb000; }
-    .dv-slot { fill: #08080b; stroke: #34343e; stroke-width: 2; }
-    .dv-cap { fill: #24242c; stroke: #5a5a68; stroke-width: 3; } .dv-cap.on { fill: #ffb000; stroke: #ffb000; }
-    .dv-pad { fill: #1c1c23; stroke: #4a4a56; stroke-width: 3; }
-    .dv-led { fill: #3a3a44; }
+    .dv-pad { fill: #1c1c23; stroke: #4a4a56; stroke-width: 3; } .dv-pad.on { stroke: #ffb000; }
+    .dv-m { font: 700 38px "IBM Plex Mono", monospace; fill: #ffb000; letter-spacing: -.02em; }
 """
 
 def transition_scene(i, label, lit):
@@ -152,18 +173,18 @@ def transition_scene(i, label, lit):
     uid = f"xt{i}"
     tl = [f'tl.fromTo(".xt-bg", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.25, ease: "power2.out" }}, 0);',
           f'tl.fromTo("#{uid}-wrap", {{ opacity: 0, scale: 0.84, y: 40 }}, {{ opacity: 1, scale: 1, y: 0, duration: 0.45, ease: "power3.out" }}, 0.05);',
-          f'tl.fromTo("#{uid}-p{lit}", {{ fill: "#1c1c23", stroke: "#4a4a56" }}, {{ fill: "#ffb000", stroke: "#ffcf5a", duration: 0.12, ease: "none" }}, 0.28);',
+          f'tl.fromTo("#{uid}-p{lit}", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.12, ease: "none" }}, 0.28);',
           f'tl.fromTo("#{uid}-ring", {{ opacity: 0.9, scale: 0.9 }}, {{ opacity: 0, scale: 1.7, duration: 0.5, ease: "power2.out" }}, 0.3);',
           f'tl.fromTo("#{uid}-label", {{ opacity: 0, y: 14 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, 0.3);',
           f'tl.to(".xt-bg", {{ opacity: 0, duration: 0.4, ease: "power2.in" }}, 1.0);',
           f'tl.to("#{uid}-wrap", {{ opacity: 0, scale: 1.2, duration: 0.4, ease: "power2.in" }}, 1.0);',
           f'tl.to("#{uid}-label", {{ opacity: 0, duration: 0.25 }}, 1.0);']
     r, c = divmod(lit, 4)
-    cx, cy = (350 + c * 118 + 52) / 860, (50 + r * 118 + 52) / 540
+    px, py = pad_center(lit); cx, cy = px / DEV_W, py / DEV_H
     html = HEAD + DEV_CSS + f"""    .xt-bg {{ position: absolute; inset: 0; background: #0d0d10; }}
-    .xt-wrap {{ position: absolute; left: 330px; top: 150px; width: 1260px; transform-origin: 50% 50%; }}
-    .xt-ring {{ position: absolute; width: 180px; height: 180px; margin: -90px 0 0 -90px; border: 5px solid #ffb000; border-radius: 26px; left: {cx * 100:.2f}%; top: {cy * 100:.2f}%; opacity: 0; }}
-    .xt-label {{ position: absolute; left: 0; right: 0; top: 900px; text-align: center; font: 600 40px "IBM Plex Mono", monospace; color: #ffb000; letter-spacing: .12em; opacity: 0; }}
+    .xt-wrap {{ position: absolute; left: 330px; top: 70px; width: 564px; transform-origin: 50% 50%; }}
+    .xt-ring {{ position: absolute; width: 108px; height: 88px; margin: -44px 0 0 -54px; border: 5px solid #ffb000; border-radius: 26px; left: {cx * 100:.2f}%; top: {cy * 100:.2f}%; opacity: 0; }}
+    .xt-label {{ position: absolute; left: 1000px; right: 100px; top: 470px; text-align: left; font: 600 64px "IBM Plex Mono", monospace; color: #ffb000; letter-spacing: .12em; opacity: 0; }}
   </style>
   <div id="root" data-composition-id="{uid}" data-width="1920" data-height="1080">
     <div class="xt-bg"></div>
@@ -318,7 +339,7 @@ def what_scene():
     #wh-br { left: 120px; top: 270px; width: 640px; height: 340px; }
     #wh-sp { left: 1160px; top: 270px; width: 640px; height: 340px; }
     #wh-br .bars { display: flex; gap: 10px; align-items: flex-end; height: 120px; margin-top: 20px; } #wh-br .bars i { width: 36px; background: #ffb000; border-radius: 6px; }
-    #wh-sp .dv { position: absolute; right: 28px; bottom: 26px; width: 290px; } #wh-sp p { max-width: 290px; }
+    #wh-sp .dv { position: absolute; right: 40px; bottom: 16px; width: 200px; } #wh-sp p { max-width: 290px; }
     #wh-link { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; }
     #wh-cap1 { position: absolute; left: 760px; width: 400px; top: 470px; text-align: center; font: 600 28px "IBM Plex Mono", monospace; color: #ffb000; opacity: 0; line-height: 1.35; }
     #wh-demo { left: 120px; top: 700px; width: 800px; border-style: dashed; }
@@ -352,7 +373,7 @@ def outro_scene():
           'tl.fromTo("#ou-try", { opacity: 0 }, { opacity: 1, duration: 0.5 }, 1.2);']
     tl += [f'tl.fromTo("#ou-c{i}", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.05 }}, {1.7 + i * 0.07:.2f});' for i in range(len(url))]
     tl += ['tl.fromTo("#ou-status", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 3.4);']
-    html = HEAD + DEV_CSS + """    #ou-dev { position: absolute; left: 380px; top: 250px; width: 1160px; opacity: .08; }
+    html = HEAD + DEV_CSS + """    #ou-dev { position: absolute; left: 700px; top: 40px; width: 520px; opacity: .1; }
     #ou-word { position: absolute; left: 0; right: 0; top: 150px; text-align: center; font: 700 190px "IBM Plex Mono", monospace; letter-spacing: -0.04em; opacity: 0; }
     #ou-try { position: absolute; left: 0; right: 0; top: 430px; text-align: center; font: 500 34px "IBM Plex Mono", monospace; color: #9a9aa6; opacity: 0; }
     #ou-url { position: absolute; left: 0; right: 0; top: 500px; text-align: center; font: 700 78px "IBM Plex Mono", monospace; color: #ffb000; }

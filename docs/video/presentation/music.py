@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """A short, plain backing track for the film: pad chords, bass, a light beat, an arp. Generated, no samples.
     python3 music.py assets/music.wav 112
+    python3 music.py assets/music.wav 52 reel      # the short vertical film: the full groove from the start
 """
 import sys, wave
 import numpy as np
@@ -27,7 +28,9 @@ def clap(): t = np.arange(int(.2 * sr)) / sr; return rng.standard_normal(len(t))
 hz = lambda m: 440 * 2 ** ((m - 69) / 12)
 chords = [(57, 60, 64), (53, 57, 60), (48, 52, 55), (55, 59, 62)]   # Am F C G
 bar = 4 * beat
-def groove_on(t):   # which parts play when: intro sparse, problem tense, the tour full, the end soft
+reel = len(sys.argv) > 3
+def groove_on(t):
+    if reel: return "intro" if t < 3 else "tour" if t < total - 6 else "end"   # which parts play when: intro sparse, problem tense, the tour full, the end soft
     return "intro" if t < 6 else "problem" if t < 19 else "tour" if t < total - 9 else "end"
 for b in range(int(total / bar) + 1):
     t0 = b * bar; ch = chords[b % 4]; sec = groove_on(t0)
