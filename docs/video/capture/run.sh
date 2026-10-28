@@ -3,19 +3,23 @@
 #
 #   npm run dev -- --port 5199 --host 127.0.0.1 &          # a build that has what you want to show (the released app: main)
 #   docs/video/capture/run.sh http://127.0.0.1:5199/ /tmp/404jam-cap
+#   VIEWPORT="432 768 2.5" docs/video/capture/run.sh http://127.0.0.1:5199/ /tmp/404jam-phone ../presentation/events-phone.json
+#                                                          the phone layout, recorded at 1080x1920 for the vertical reel
 #
 # Needs agent-browser (a headless Chrome driver), ffmpeg, python3 with numpy. See ../README.md.
 set -euo pipefail
 export AGENT_BROWSER_DEFAULT_TIMEOUT=180000          # a segment is one long eval, more than the default 25 s
 URL="${1:-http://127.0.0.1:5199/}"
 OUT="${2:-/tmp/404jam-cap}"
+EVENTS="${3:-$(dirname "$0")/../presentation/events.json}"
+VIEWPORT="${VIEWPORT:-1920 1080}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p "$OUT"
 rm -f "$OUT/recording.webm"
 agent-browser close --all >/dev/null 2>&1 || true
 sleep 3                                                      # the daemon must be gone before --args is read again
 agent-browser --args "--no-sandbox" open "$URL" >/dev/null
-agent-browser set viewport 1920 1080 >/dev/null              # the film is 1920x1080: record at that size
+agent-browser set viewport $VIEWPORT >/dev/null              # the film is 1920x1080: record at that size
 sleep 2
 agent-browser record start "$OUT/recording.webm" >/dev/null  # reloads the page: do everything after this
 sleep 2.5
@@ -23,7 +27,8 @@ agent-browser eval "$(cat "$HERE/helpers.js")" >/dev/null
 agent-browser eval "$(cat "$HERE/app-helpers.js")" >/dev/null
 agent-browser eval "window.__errs=[];addEventListener('error',e=>window.__errs.push(Math.round(performance.now()/100)/10+' '+e.message+' '+String(e.filename).split('/').pop()+':'+e.lineno))" >/dev/null
 for seg in A B1 B2 C D0 D1 D1b D2 D3; do
-  agent-browser eval "$(cat "$HERE/seg$seg.js")" > "$OUT/log$seg.txt"
+  f="$HERE/seg$seg.js"; [ -n "${PHONE:-}" ] && [ -f "$HERE/seg$seg.phone.js" ] && f="$HERE/seg$seg.phone.js"   # PHONE=1: the phone layout needs its own version of a segment
+  agent-browser eval "$(cat "$f")" > "$OUT/log$seg.txt"
 done
 sleep 2
 echo "page errors during the run: $(agent-browser eval 'JSON.stringify(window.__errs)')"
@@ -34,6 +39,6 @@ import json, sys
 s = open(sys.argv[1]).read().strip().splitlines()[-1]
 open(sys.argv[2], "w").write(json.loads(s))
 PY
-python3 "$HERE/sync.py" "$OUT/recording.webm" "$OUT/log.json" "$HERE/../presentation/events.json"
+python3 "$HERE/sync.py" "$OUT/recording.webm" "$OUT/log.json" "$EVENTS"
 cp "$OUT/recording.webm" "$OUT/jam.webm"
 echo "recording: $OUT/recording.webm  (convert for the film: ffmpeg -i recording.webm -c:v libx264 -crf 17 -pix_fmt yuv420p -r 30 assets/clips/jam.mp4)"

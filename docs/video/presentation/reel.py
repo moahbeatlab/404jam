@@ -14,49 +14,44 @@ import build as B
 
 W, H = 1080, 1920
 WIN_Y, WIN_H = 310, 1100          # the screen window; the top 250 px and the bottom 340 px stay free for the app's own interface
-CAPTION_Y = 1436
+CAPTION_Y = 1486
 REC_W, REC_H, CROP = B.REC_W, B.REC_H, B.CROP
-at = B.at
+import json
+EV = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "events-phone.json")))
+CARD_W, CARD_H, CARD_X, CARD_Y = 700, 1244, 190, 215      # the phone screen (1080x1920 scaled by 0.648)
+def at(x):
+    return round(EV[x[0]] + x[1], 2) if isinstance(x, tuple) else x
 
-# (recording start, seconds, caption, cx, cy, s)
+# (recording start, seconds, caption); the screen is the app's phone layout, recorded at 1080x1920 (capture/run.sh with PHONE=1 VIEWPORT="432 768 2.5")
 SECTIONS = [
     dict(id="punch", tab="PERF", name="PUNCH", lit=5, beats=[
-        (('punch-loaded', -0.9), 3.0, "Hold a slot to punch it in", 1500, 560, 1.06),
-        (('punch-held', 0.2), 3.0, "Five buses change at once", 540, 560, 1.06),
-        (('punch-mix', 0.2), 2.2, "Let go: all back", 540, 560, 1.06)]),
+        (('punch-loaded', -0.9), 2.8, "Hold a slot to punch it in"),
+        (('punch-held', -0.2), 2.6, "The effects change at once"),
+        (('punch-mix', 0.0), 2.0, "Let go: all back")]),
     dict(id="morph", tab="PERF", name="MORPH", lit=10, beats=[
-        (('punch-morph-mode', 1.3), 3.0, "Or slide from now to the punch", 960, 540, 0.62)]),
+        (('punch-morph-up', -1.8), 3.0, "Or slide from now to the punch")]),
     dict(id="xy", tab="XY", name="XY PAD", lit=0, beats=[
-        (('xy-point1', -1.6), 2.6, "Hold a point to save it", 480, 700, 1.05),
-        (('xy-point2', -1.5), 2.0, "Save a second point", 480, 700, 1.05),
-        (('xy-go', 0.1), 4.0, "GO: it glides between both", 960, 420, 0.56)]),
+        (('xy-point1', -1.6), 2.6, "Hold a point to save it"),
+        (('xy-point2', -1.5), 2.0, "Save a second point"),
+        (('xy-go', 0.1), 3.0, "GO: it glides between both")]),
     dict(id="motion", tab="PERF", name="MOTION", lit=15, beats=[
-        (('motion-armed', 2.3), 4.2, "Motion records your fader move", 560, 560, 1.06),
-        (('motion-playing', 0.4), 4.5, "Then the slot loops it", 560, 560, 1.06)]),
+        (('motion-armed', 2.3), 4.2, "Motion records your fader move"),
+        (('motion-playing', 0.4), 4.0, "Then the slot loops it")]),
     dict(id="lfo", tab="PERF", name="LFO", lit=6, beats=[
-        (('lfo-bus', -0.7), 3.0, "LFO: pick a bus and a knob", 960, 420, 0.62),
-        (('lfo-shape', 0.0), 3.0, "Start it: a wave moves the knob", 960, 480, 0.62),
-        (('lfo-depth', -0.2), 4.0, "On the mixer the fader follows", 560, 560, 1.06)]),
+        (('lfo-bus', -0.7), 2.6, "LFO: pick a bus and a knob"),
+        (('lfo-run', -1.2), 2.6, "Start it: a wave moves the knob"),
+        (('lfo-depth', 0.2), 2.8, "On the mixer the fader follows")]),
 ]
 
-def place(cx, cy, s):
-    """left/top of the full recording inside the window so that (cx, cy) is in the middle, never showing the capture's 14 px marker"""
-    def axis(c, size, full):
-        if (full - CROP) * s <= size:
-            return (size - (full - CROP) * s) / 2 - CROP * s
-        return min(-CROP * s, max(size - full * s, size / 2 - c * s))
-    return round(axis(cx, W, REC_W), 1), round(axis(cy, WIN_H, REC_H), 1)
-
 def section(sec):
-    beats = [(at(r), d, cap, cx, cy, s) for r, d, cap, cx, cy, s in sec["beats"]]
+    beats = [(at(r), d, cap) for r, d, cap in sec["beats"]]
     total = round(sum(b[1] for b in beats), 2)
     vids, caps, tl, t = [], [], [], 0.0
-    for i, (rec, d, cap, cx, cy, s) in enumerate(beats):
+    for i, (rec, d, cap) in enumerate(beats):
         need = 0.5 + 0.3 * len(cap.split())
         if d < need - 0.1:
             print("  too quick: %s beat %d shows %.1f s, wants %.1f s: %r" % (sec["id"], i, d, need, cap))
-        ox, oy = place(cx, cy, s)
-        vids.append(f'<video id="{sec["id"]}-v{i}" class="clip" data-start="{t:.2f}" data-duration="{d}" data-media-start="{rec}" src="assets/clips/jam.mp4" muted playsinline style="left:{ox}px;top:{oy}px;width:{round(REC_W * s)}px;height:{round(REC_H * s)}px"></video>')
+        vids.append(f'<video id="{sec["id"]}-v{i}" class="clip" data-start="{t:.2f}" data-duration="{d}" data-media-start="{rec}" src="assets/clips/phone.mp4" muted playsinline></video>')
         caps.append(f'<div class="cap" id="{sec["id"]}-c{i}"><span>{cap}</span></div>')
         last = i == len(beats) - 1
         tl.append(f'tl.fromTo("#{sec["id"]}-c{i}", {{ opacity: 0, y: 26 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power3.out" }}, {t + 0.05:.2f});')
@@ -66,17 +61,17 @@ def section(sec):
             tl.append(f'tl.to("#flash", {{ opacity: 0, duration: 0.25, ease: "power2.out" }}, {t:.2f});')
         t += d
     html = B.HEAD + f"""    #root {{ width: {W}px; height: {H}px; }}
-    #tag {{ position: absolute; left: 60px; top: 236px; font: 600 34px "IBM Plex Mono", monospace; color: #ffb000; letter-spacing: .06em; }}
+    #tag {{ position: absolute; left: {CARD_X}px; top: 150px; font: 600 34px "IBM Plex Mono", monospace; color: #ffb000; letter-spacing: .06em; }}
     #tag b {{ color: #9a9aa6; font-weight: 400; }}
-    #win {{ position: absolute; left: 0; top: {WIN_Y}px; width: {W}px; height: {WIN_H}px; overflow: hidden; background: #0d0d10; border-top: 2px solid #2a2a31; border-bottom: 2px solid #2a2a31; }}
-    #win video {{ position: absolute; }}
+    #card {{ position: absolute; left: {CARD_X}px; top: {CARD_Y}px; width: {CARD_W}px; height: {CARD_H}px; overflow: hidden; border-radius: 34px; background: #0d0d10; box-shadow: 0 0 0 3px #2a2a31, 0 24px 60px rgba(0,0,0,.6); }}
+    #card video {{ position: absolute; left: -17px; top: -17px; width: {CARD_W + 17}px; height: {CARD_H + 17}px; }}   /* 17 px cropped off the left and top: the capture's marker */
     #flash {{ position: absolute; inset: 0; background: #ffb000; opacity: 0; }}
-    .cap {{ position: absolute; left: 60px; width: {W - 120}px; top: {CAPTION_Y}px; height: 150px; display: flex; align-items: center; justify-content: center; text-align: center; opacity: 0; }}
-    .cap span {{ font: 700 58px/1.12 "Inter", sans-serif; color: #ececf0; }}
+    .cap {{ position: absolute; left: 60px; width: {W - 120}px; top: {CAPTION_Y}px; height: 120px; display: flex; align-items: center; justify-content: center; text-align: center; opacity: 0; }}
+    .cap span {{ font: 700 52px/1.12 "Inter", sans-serif; color: #ececf0; }}
   </style>
   <div id="root" data-composition-id="{sec['id']}" data-width="{W}" data-height="{H}">
     <div id="tag">{sec['tab']} <b>·</b> {sec['name']}</div>
-    <div id="win">{''.join(vids)}<div id="flash"></div></div>
+    <div id="card">{''.join(vids)}<div id="flash"></div></div>
     {''.join(caps)}
   </div>
   <script>

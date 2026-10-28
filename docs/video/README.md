@@ -103,12 +103,19 @@ The recording, the music and the rendered film are not committed (they are large
 - **The music:** `python3 music.py assets/music.wav SECONDS`, or put your own file at `assets/music.wav`.
 - **Cut or reorder the footage:** every scene shows a stretch of one recording (`a` to `b`, event names plus an offset); reorder the entries of `FEATURES` to reorder the film.
 
-## The vertical reel (9:16, 1080x1920, about 54 s)
+## The vertical reel (9:16, 1080x1920, about 50 s)
 
-`presentation/reel.py` makes a portrait cut from the same recording and `events.json`: a hook, then Punch, Morph, the XY ping-pong, Motion and LFO, each with the SP-404MkII drawing as a one-second divider, and an end card. It imports `build.py` for the drawing, so keep both in the same project folder.
+The reel shows the app's **phone layout**, as on a smartphone: a second recording of the same app, made in a 432x768 viewport at 2.5x (so the video is exactly 1080x1920), plus its own events file.
+
+    PHONE=1 VIEWPORT="432 768 2.5" docs/video/capture/run.sh http://127.0.0.1:5199/ /tmp/404jam-phone docs/video/presentation/events-phone.json
+    ffmpeg -i /tmp/404jam-phone/recording.webm -c:v libx264 -crf 18 -pix_fmt yuv420p -r 30 assets/clips/phone.mp4
+
+`PHONE=1` makes `run.sh` use `seg<name>.phone.js` where one exists: the phone layout shows one bus at a time (the focus view), so `segA.phone.js` picks each bus tab and drives `#fx-name`, `#efx-pad` and the big faders; the other segments work unchanged.
+
+`presentation/reel.py` then makes the film from `events-phone.json` and `assets/clips/phone.mp4`: a hook, then Punch, Morph, the XY ping-pong, Motion and LFO, each introduced by the SP-404MKII line art, and an end card. It imports `build.py` for the drawing, so keep both in the same project folder.
 
     python3 reel.py                                          # writes index.html and compositions/*.html
-    python3 music.py assets/music.wav 54.3 reel              # the backing track, full groove from the start
+    python3 music.py assets/music.wav 50 reel                # the backing track, full groove from the start
     npx hyperframes render --workers 1 --low-memory-mode --protocol-timeout 900000 -o reel.mp4
 
-A section is a list of beats in `SECTIONS`: where in the recording it starts (seconds or `(event, offset)`), how long, the caption, and the part of the screen to show as a centre `(cx, cy)` and a scale `s` (1.0 shows 1080x1100 recording pixels). The screen window leaves the top 250 px and the bottom 340 px free for the platform's own buttons.
+A section is a list of beats in `SECTIONS`: where in the phone recording it starts (seconds or `(event, offset)`), how long, and the caption. The phone screen sits in a card with the top 150 px and the bottom 330 px left free for the platform's own buttons.
